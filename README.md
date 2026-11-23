@@ -212,6 +212,20 @@ node dsh-judge-gate/check.cjs pwsh "command=Out-File D:\a.ps1 -InputObject 中�
 
 **名单两侧都管**（2026-11-23 改）：插件在工具调用前拦的那一下（`lib/paramcheck.js`）也按同一份名单走，名单外的判据直接跳过；把 `J3` 写进 `--skip`，参数形态整条不判（返回「J3 已按名单关闭」，不静默放行）。配置可以写在 profile 的 `judges.only` / `judges.skipJudges`，也可以写环境变量 `DSH_JUDGE_ONLY` / `DSH_JUDGE_SKIP`。**仍有一处例外**：`J6`（这轮读过的文件是不是这一回的）、`J14`（一小时内查没查过自己的工具）与 `J15`（工具失败后又动同一文件）的判定状态记在进程内，规则包表达不了，名单对它们不起作用。
 
+### 六、查工具描述有没有夹带东西
+
+工具描述会原样进模型上下文。装新插件、接 MCP 服务器之前扫一遍：
+
+```
+node tools/mcp-descan.js 某个工具定义.json
+node tools/mcp-descan.js --profile        # 本机所有 profile 的配置
+node tools/mcp-descan.js --self-test      # 自检：5 坏样本该中、3 好样本不该中
+```
+
+11 条规则（指令覆盖 / 隐藏动作 / 保密要求 / 偷看提示词 / 偷凭据 / 不可见字符 / HTML 注释 / base64 块），`high` 级命中退出码 1。
+
+只查描述文字，不查工具背后的代码到底做了什么——中了不代表一定坏，没中也不代表干净。
+
 ## 怎么写自己的规矩
 
 见 [`docs/怎么写一条规矩.md`](docs/怎么写一条规矩.md)。要点三条：

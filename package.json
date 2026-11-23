@@ -1,0 +1,34 @@
+{
+  "name": "dsh-judge-gate",
+  "version": "0.3.0",
+  "description": "弱裁判事前闸：每次工具调用 dispatch 前同步核一遍参数形态（缺必填键、形近错键、多余键、写文本文件漏 -Encoding 等），拦下即拒，判定与日志全部随包自带，不依赖任何本机绝对路径。",
+  "keywords": [
+    "dsh-plugin",
+    "guard",
+    "judge",
+    "powershell",
+    "ai-agent",
+    "tool-call"
+  ],
+  "license": "GPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zzqtnb/weakreferee-rules.git"
+  },
+  "homepage": "https://github.com/zzqtnb/weakreferee-rules",
+  "bugs": {
+    "url": "https://github.com/zzqtnb/weakreferee-rules/issues"
+  },
+  "main": "./dsh-judge-gate/index.js",
+  "dsh": {
+    "bundle": {
+      "patch": "./dsh-judge-gate/cordis.patch.yml"
+    }
+  },
+  "files": [
+    "dsh-judge-gate/**"
+  ],
+  "engines": {
+    "node": ">=22"
+  }
+}

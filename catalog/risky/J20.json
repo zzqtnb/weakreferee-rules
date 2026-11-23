@@ -22,6 +22,7 @@
   "notes": [
     "判据：把权限开给了所有人（chmod 777 或 icacls Everyone:F）",
     "例子｜该拦：`chmod -R 777 /var/www`；不该拦：`chmod 644 a.txt`",
+    "边界：给具体用户组授权（Administrators、SYSTEM、某个账号）不判；chmod 755、644 这类常规权限不判",
     "场景例：程序读不到文件，顺手一条 chmod -R 777 放开，跑通了之后没人再收回来。",
     "本条以 rules.json 为准；本文件只说明「检查什么、为什么、怎么救」，正则与自测在包里。"
   ]

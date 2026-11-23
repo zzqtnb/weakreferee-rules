@@ -174,6 +174,14 @@ function checkCatalogEntry(dirName, e, seen) {
   if (e.when && !WHEN.includes(e.when)) err(where, `when 不合法：${e.when}`);
   if (e.severity && !SEVERITY.includes(e.severity)) err(where, `severity 不合法：${e.severity}`);
 
+  // 三段式（2026-11-23 用户定）：进库的每一条都写四行——判据 / 例子（该拦+不该拦）/ 边界 / 场景例。
+  // 别人上传的条目也按这个卡，缺一项就进不了库，不靠看的人自己记得查。
+  const noteText = Array.isArray(e.notes) ? e.notes.join('\n') : String(e.notes || '');
+  if (!/判据[:：]/.test(noteText)) err(where, 'notes 缺「判据：」一行——这条检查的是什么');
+  else if (!/例子/.test(noteText)) err(where, 'notes 缺「例子｜」一行——写一个该拦的、一个不该拦的');
+  else if (noteText.includes('该拦') && !noteText.includes('不该拦')) err(where, '例子只有「该拦」，补一条「不该拦」——只测该拦的规则，宽到什么都拦也能全过');
+  else if (!/边界[:：]/.test(noteText)) err(where, 'notes 缺「边界：」一行——哪些情况放过');
+
   if (!e.evidence || !e.evidence.level) { err(where, '缺 evidence.level'); return; }
   if (!['实测', '文献', '推断'].includes(e.evidence.level)) err(where, `evidence.level 不合法：${e.evidence.level}`);
   // level 说的是「依据有多硬」，hits 说的是「这条规矩本身命中几次」，两者可以不一致：

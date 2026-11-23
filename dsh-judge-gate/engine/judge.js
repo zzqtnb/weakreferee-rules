@@ -49,7 +49,30 @@ function pick(ctx, spec) {
 }
 
 /* ─────────────────────────────────────────────
- * 三、十六种条件类型 * 每个返回 true = 命中（这一步该报警）
+ * 二·五、契约表（给「参数类型不符」用）
+ * 表是快照，会落后于插件安装——表里查不到的键一律放过，宁可漏也不误报。
+ * ───────────────────────────────────────────── */
+let _TOOL_TYPES = null;
+function loadToolTypes() {
+  if (_TOOL_TYPES) return _TOOL_TYPES;
+  const dir = process.env.JUDGE_TOOLS_DIR || path.join(__dirname, '..', 'contract');
+  try {
+    const j = JSON.parse(fs.readFileSync(path.join(dir, 'tool-types.json'), 'utf8'));
+    _TOOL_TYPES = (j && j.tools) || {};
+  } catch { _TOOL_TYPES = {}; }
+  return _TOOL_TYPES;
+}
+
+function typeOk(t, v) {
+  if (t === 'array') return Array.isArray(v);
+  if (t === 'integer') return Number.isInteger(v);
+  if (t === 'number') return typeof v === 'number';
+  if (t === 'object') return v !== null && typeof v === 'object' && !Array.isArray(v);
+  return typeof v === t;
+}
+
+/* ─────────────────────────────────────────────
+ * 三、条件类型表 * 每个返回 true = 命中（这一步该报警）
  * needsIO 的会读文件系统；其余纯内存
  * ───────────────────────────────────────────── */
 const CONDITION = {
@@ -107,6 +130,22 @@ const CONDITION = {
     };
     if (p.type && !ok(p.type)) return true;
     if (Array.isArray(p.anyOf) && p.anyOf.length) return !p.anyOf.some(ok);
+    return false;
+  },
+
+  // 通用版：不写死键，按契约表逐个比对这次调用给的参数类型。
+  // 表里没声明类型的键直接放过；值为空/缺省不判（缺必填归 missingKey、required 归契约层）。
+  argTypeMismatch(p, ctx) {
+    const spec = loadToolTypes()[ctx.tool];
+    if (!spec) return false;
+    const args = ctx.args || {};
+    for (const k of Object.keys(args)) {
+      const want = spec[k] && spec[k].type;
+      if (!want) continue;
+      const v = args[k];
+      if (v === undefined || v === null || v === '') continue;
+      if (!typeOk(want, v)) return true;
+    }
     return false;
   },
 

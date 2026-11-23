@@ -33,7 +33,7 @@
  */
 
 import { createRequire } from 'node:module';
-import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, statSync, writeFileSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, renameSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { homedir, tmpdir } from 'node:os';
@@ -479,6 +479,16 @@ export function apply(ctx, config) {
         : (inst && Array.isArray(inst.rules) ? inst.rules : []);
       const picked = [];
       const rejectedAll = [];
+      // 自建包：data/custom/<包名>/rules.json
+      //   判据有两条来路——人从市场里挑（judge-packs add 包或单条），
+      //   机器从自己的历史调用里挖（mine 出草案 → judge-packs add --draft 装成 custom 包）。
+      //   两条路的落点都是这里的清单，装载时不区分来源。
+      try {
+        const CUSTOM_ROOT = join(dirname(MARKS_FILE), 'custom');
+        for (const d of readdirSync(CUSTOM_ROOT, { withFileTypes: true })) {
+          if (d.isDirectory()) RULE_DIRS.push(join(CUSTOM_ROOT, d.name));
+        }
+      } catch { /* 没有自建包 */ }
       for (const d of RULE_DIRS) {
         const packId = d.split(/[\\/]/).pop();
         const on = wantPacks.includes(packId);

@@ -74,6 +74,14 @@ node tools/judge-packs.cjs status                   # 现在实际生效几条
 
 清单写在 `data/judges-installed.json`，改完重启 DSH 生效。插件包里没有 `judges/` 源文件时，`list` 直接从 `rules/*/rules.json` 读——你看到的就是能装的。
 
+### 判据从哪来：两条路
+
+**一条人挑**：上面那些命令，`list` 看市场、`add` 装包或单条。适合「我知道我要防什么」。
+
+**一条机器挑**：`weakreferee mine` 扫自己的会话历史，把反复出现、现在没人管的写法列成草案；确认后 `judge-packs add --draft mine-rules.json` 把它装成一个自建包（落在 `data/custom/mine/`）。适合「我不知道自己会被什么坑，让记录说话」。草案的 `action` 一律是 `warn`（只提示不拦），看过没问题自己改成 `block`。
+
+两条路的落点都是同一份清单，装载时不区分来源。哪条路进来都一样：装几条、拦几条、误拦归谁，账上都记着。
+
 ### 装多装少的代价
 
 自己掂量，不替你选：

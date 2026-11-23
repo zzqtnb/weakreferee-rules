@@ -60,6 +60,20 @@ function judges() {
       });
     }
   }
+  // 自建包：data/custom/<包名>/rules.json（mine 草案装进来的地方）
+  try {
+    const CUSTOM = path.join(DATA, 'custom');
+    for (const d of fs.readdirSync(CUSTOM, { withFileTypes: true })) {
+      if (!d.isDirectory()) continue;
+      const arr = readJson(path.join(CUSTOM, d.name, 'rules.json'), []);
+      for (const r of arr) {
+        out.push({
+          id: r.id, title: r.title || r.id, order: 2000, pack: d.name, custom: true,
+          rules: [{ id: r.id, action: r.action || 'warn', text: r.title || '', appliesTo: r.appliesTo || {} }],
+        });
+      }
+    }
+  } catch { /* 没有自建包 */ }
   return out;
 }
 
@@ -88,6 +102,13 @@ try {
     for (const r of readJson(path.join(ROOT, 'rules', d.name, 'rules.json'), [])) RULE_PACK[r.id] = d.name;
   }
 } catch { /* 没有 rules/ 就只按 packs/ 判断 */ }
+// 自建包也算归属，不然 status 会把装好的草案报成「没生效」
+try {
+  for (const d of fs.readdirSync(path.join(DATA, 'custom'), { withFileTypes: true })) {
+    if (!d.isDirectory()) continue;
+    for (const r of readJson(path.join(DATA, 'custom', d.name, 'rules.json'), [])) RULE_PACK[r.id] = d.name;
+  }
+} catch { /* 没有自建包 */ }
 
 const isRuleOn = (id) => {
   if (STORE_NOW.rules.includes(id)) return true;
@@ -132,6 +153,31 @@ if (cmd === 'status') {
   console.log(`单独装的条：${STORE_NOW.rules.join(', ') || '无'}`);
   console.log(`实际生效 ${onRules.length} 条${onRules.length ? '：' + onRules.map((r) => r.id).join(' ') : ''}`);
   if (!onRules.length) console.log('提示：现在一条都没装，闸不会拦任何东西。先跑 list 看看。');
+  process.exit(0);
+}
+
+// 判据有两条来路，落点都是同一份清单：
+//   人从市场里挑 —— list 看着挑，add 包或单条
+//   机器从历史里挑 —— mine 扫自己的会话出草案（mine-rules.json），add --draft 装进 custom 包
+if (cmd === 'add' && args.includes('--draft')) {
+  const i = args.indexOf('--draft');
+  const file = args[i + 1];
+  if (!file) { console.error('要给草案文件：add --draft <mine-rules.json>（由 weakreferee mine --write 生成）'); process.exit(2); }
+  if (!fs.existsSync(file)) { console.error('找不到文件：' + file); process.exit(2); }
+  const drafts = readJson(path.resolve(file), null);
+  if (!Array.isArray(drafts)) { console.error('草案文件应是数组（mine --write 的 mine-rules.json）'); process.exit(2); }
+  if (!drafts.length) { console.log('草案是空的：这次扫描没有能出规矩的形态，不用装'); process.exit(0); }
+  const CUSTOM = path.join(DATA, 'custom', 'mine');
+  fs.mkdirSync(CUSTOM, { recursive: true });
+  const cf = path.join(CUSTOM, 'rules.json');
+  const old = readJson(cf, []);
+  const byId = new Map((Array.isArray(old) ? old : []).map((r) => [r.id, r]));
+  for (const d of drafts) if (d && d.id) byId.set(d.id, d);
+  fs.writeFileSync(cf, JSON.stringify([...byId.values()], null, 2) + '\n', 'utf8');
+  if (!STORE_NOW.packs.includes('mine')) STORE_NOW.packs.push('mine');
+  writeStore(STORE_NOW);
+  console.log(`已装草案 ${drafts.length} 条 → ${cf}（累计 ${byId.size} 条），包 mine 已记进清单`);
+  console.log('草案的 action 默认是 warn（只提示不拦）。确认无误后编辑该文件改成 block，再重启 DSH。');
   process.exit(0);
 }
 

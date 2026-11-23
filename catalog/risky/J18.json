@@ -1,0 +1,29 @@
+{
+  "id": "J18",
+  "title": "J18 不带 WHERE 的 DELETE / UPDATE",
+  "domain": "risky",
+  "evidence": {
+    "level": "实测",
+    "source": "2026-11-23 从库候选 CAT-RISKY-04 验过入包，4 个自测用例通过；尚未在真实会话命中"
+  },
+  "falsePositiveRisk": "medium",
+  "defaultAction": "warn",
+  "appliesTo": {
+    "tool": "pwsh",
+    "platform": [
+      "win32"
+    ]
+  },
+  "message": "DELETE / UPDATE 里没有 WHERE：一条语句下去，动的是整张表",
+  "fix": "补上 WHERE；真要清空整表就写 TRUNCATE 并说明理由，别让语句看不出意图",
+  "severity": "A",
+  "reversible": false,
+  "promotedTo": "windows-powershell#WIN-SQL-DELETE-01",
+  "notes": [
+    "判据：DELETE / UPDATE 里没有 WHERE：一条语句下去，动的是整张表",
+    "例子｜该拦：`sqlite3 a.db \"DELETE FROM users\"`；不该拦：`sqlite3 a.db \"DELETE FROM users WHERE id=3\"`",
+    "场景例：改一条用户数据时漏掉 WHERE，跑完发现整张表都被改了，备份还是三天前的。",
+    "误拦提示：写文档或 echo 一段 SQL 示例时也会命中——SQL 是作为命令参数传出去的，判据看不出口令还是示例。所以库里的默认动作是提醒而不是拦下；要拦自己在包里改成 block",
+    "本条以 rules.json 为准；本文件只说明「检查什么、为什么、怎么救」，正则与自测在包里。"
+  ]
+}

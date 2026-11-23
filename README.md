@@ -206,7 +206,7 @@ node dsh-judge-gate/check.cjs pwsh "command=Out-File D:\a.ps1 -InputObject 中�
 
 两个名字都认：包里那个号（`WIN-ENC-01`）和给人看的号（`J8`）。名字写错会被点名，不会静默少装。
 
-**一处要说清**：名单作用在「规则包引擎」这一侧——`check.cjs` 的新引擎列、便携包的 `scan`/`mine`/`replay`、以及 `DSH_JUDGE_ENGINE=shadow` 的旁路。DSH 插件在工具调用前拦那一下走的是包内 `lib/paramcheck.js` 的内置判定，不吃名单；想让插件也只拦这几条，得改 `lib/paramcheck.js`。
+**名单两侧都管**（2026-11-23 改）：插件在工具调用前拦的那一下（`lib/paramcheck.js`）也按同一份名单走，名单外的判据直接跳过；把 `J3` 写进 `--skip`，参数形态整条不判（返回「J3 已按名单关闭」，不静默放行）。配置可以写在 profile 的 `judges.only` / `judges.skipJudges`，也可以写环境变量 `DSH_JUDGE_ONLY` / `DSH_JUDGE_SKIP`。**仍有一处例外**：`J6`（这轮读过的文件是不是这一回的）与 `J14`（一小时内查没查过自己的工具）的判定状态记在进程内，规则包表达不了，名单对它们不起作用。
 
 ## 怎么写自己的规矩
 

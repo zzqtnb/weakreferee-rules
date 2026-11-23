@@ -1,0 +1,27 @@
+{
+  "id": "J22",
+  "title": "J22 别删表删库（DROP / TRUNCATE）",
+  "domain": "risky",
+  "evidence": {
+    "level": "实测",
+    "source": "2026-11-23 从库候选 CAT-RISKY-03 验过入包，4 个自测用例通过；尚未在真实会话命中"
+  },
+  "falsePositiveRisk": "medium",
+  "defaultAction": "warn",
+  "appliesTo": {
+    "tool": "pwsh",
+    "platform": [
+      "win32"
+    ]
+  },
+  "message": "命令里有 DROP / TRUNCATE：执行完表或库直接消失，没有中间状态",
+  "fix": "先备份或导出；确实要删，写一句「删的是哪张表、为什么」再执行",
+  "severity": "A",
+  "reversible": false,
+  "promotedTo": "windows-powershell#WIN-SQL-DROP-01",
+  "notes": [
+    "判据：命令里有 DROP / TRUNCATE：执行完表或库直接消失，没有中间状态",
+    "例子｜该拦：`sqlite3 a.db \"DROP TABLE users\"`；不该拦：`sqlite3 a.db \"SELECT * FROM users\"`",
+    "本条以 rules.json 为准；本文件只说明「检查什么、为什么、怎么救」，正则与自测在包里。"
+  ]
+}

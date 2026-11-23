@@ -16,7 +16,7 @@
     ]
   },
   "loadOrder": 20,
-  "rules": 9,
+  "rules": 15,
   "ruleIds": [
     "WIN-ENC-01",
     "WIN-AUTOVAR-CMD-01",
@@ -26,7 +26,13 @@
     "WIN-RMDIR-01",
     "WIN-IRREVERSIBLE-01",
     "WIN-MIRROR-01",
-    "WIN-BAT-CJK-01"
+    "WIN-BAT-CJK-01",
+    "WIN-SQL-DELETE-01",
+    "WIN-GIT-DISCARD-01",
+    "WIN-PERM-OPEN-01",
+    "WIN-VARPATH-RM-01",
+    "WIN-SQL-DROP-01",
+    "WIN-LOG-WIPE-01"
   ],
   "testedOn": {
     "host": "DSH 桌面版（Windows）",
@@ -39,8 +45,7 @@
   "notes": [
     "这一包里的 5 条来自真实事故，每条 evidence.source 里写了命中时间戳。",
     "WIN-RMDIR-01 / WIN-IRREVERSIBLE-01 / WIN-MIRROR-01 目前零命中，属于预防性规则，保留但优先级低。",
-    "WIN-PS1-* 三条只对 .ps1 文件生效（appliesTo.fileMatches），不要扩展到 .txt 或 .md。"
-  ,
+    "WIN-PS1-* 三条只对 .ps1 文件生效（appliesTo.fileMatches），不要扩展到 .txt 或 .md。",
     "testedOn 里的数字来自作者环境（2026-11，Windows 上的 DSH 桌面版）。换环境后请用你自己的账本覆盖它——别人的命中率不代表你的。"
   ]
 }

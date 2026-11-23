@@ -17,6 +17,8 @@
   "reversible": false,
   "promotedTo": "core#CORE-HTTPS-01",
   "notes": [
+    "判据：web_fetch 只收 https，http:// 会被工具直接拒绝",
+    "例子｜该拦：`{\"url\":\"http://example.com\"}`；不该拦：`{\"url\":\"https://example.com\"}`",
     "场景例：有人让 AI 去抓一个网页，地址写成明文 http，工具连请求都没发出去就回了失败；来回试了几次，才看出是协议写错。",
     "本条以 rules.json 为准；本文件只说明「检查什么、为什么、怎么救」，正则与自测在包里。"
   ]

@@ -242,6 +242,35 @@ function maskQuoted(s) {
 // 2026-11-23 改：原来写死 D:\deepseek\回收站 与 D:\deepseek\状态\，别人机器上没有 D 盘就静默失效。
 const DATA_DIR = process.env.DSH_JUDGE_DATA || path.join(__dirname, "..", "data");
 const CMD_BACKUP_ROOT = process.env.DSH_JUDGE_BACKUP || path.join(DATA_DIR, "回收站");
+// ── 启用名单（2026-11-23）：插件主判定也认「只装几条」 ──
+// 原来名单只作用于规则包引擎，插件拦工具这一侧照旧全开，用户按目录挑了五条也不生效。
+// 名单写法与引擎一致：逗号/分号/空格分隔，认 id 也认 legacy 名（J8 或 WIN-ENC-01）。
+function parseIdList(v) {
+  if (!v) return [];
+  if (Array.isArray(v)) v = v.join(',');
+  return String(v).split(/[,;\s]+/).map((s) => s.trim().toUpperCase()).filter(Boolean);
+}
+const ONLY_LIST = parseIdList(process.env.DSH_JUDGE_ONLY);
+const SKIP_LIST = parseIdList(process.env.DSH_JUDGE_SKIP);
+const ID_ALIAS = {
+  J3: ['J3', 'CORE-HTTPS-01', 'CORE-PARAMS-GEN'], J5: ['J5', 'DSH-ANCHOR-01'],
+  J8: ['J8', 'WIN-ENC-01'], J9: ['J9', 'WIN-RMDIR-01'],
+  J10: ['J10', 'WIN-PS1-AUTOVAR-01'], J11: ['J11', 'WIN-MIRROR-01'],
+  J12: ['J12', 'SCENE-BACKUP-01'], J13: ['J13', 'WIN-IRREVERSIBLE-01'],
+  J15: ['J15', 'WIN-PS1-CJK-01'], J16: ['J16', 'WIN-PS1-BOM-EDIT-01'],
+  J17: ['J17', 'WIN-AUTOVAR-CMD-01'], P6: ['P6', 'DSH-STALE-JUDGE-01'],
+  BAT: ['BAT', 'WIN-BAT-CJK-01'],
+};
+function judgeEnabled(id) {
+  const names = ID_ALIAS[id] || [String(id || '').toUpperCase()];
+  if (ONLY_LIST.length && !names.some((n) => ONLY_LIST.includes(n))) return false;
+  if (names.some((n) => SKIP_LIST.includes(n))) return false;
+  return true;
+}
+function judgeListInfo() {
+  return { only: ONLY_LIST.slice(), skip: SKIP_LIST.slice() };
+}
+
 const CMD_WRITE_VERBS = /\b(Set-Content|Add-Content|Out-File|Export-Csv|Export-Clixml|Tee-Object|Copy-Item|Move-Item|Rename-Item|Remove-Item|New-Item|Clear-Content)\b|(^|[\s;&|(])(del|erase|rd|rmdir|rm|ri)\s/i;
 function snapshotCmdPaths(cmd) {
   let snapErr = null;
@@ -273,8 +302,32 @@ function snapshotCmdPaths(cmd) {
     // 备份失败要说出来：影子期只提示不拦，但「以为备了其实没备」比不备份更坑
     return snapErr ? "J12 想备份但写不进 " + CMD_BACKUP_ROOT + "（" + snapErr + "），这次没备份" : null;
   }
+  try { pruneBackups(); } catch {}
   return "J12 命令要改的 " + saved.length + " 个文件已备份到回收站（影子期只备份不拦）：" + saved.slice(0, 3).join(" , ");
 }
+// 备份保留（2026-11-23）：影子期每次命中都真备份，实测已攒 211 个目录 / 4.5 MB。
+// 留最近 200 个、超 30 天的删掉；每 20 次调用清一次，不每次扫盘。
+let PRUNE_CALLS = 0;
+function pruneBackups() {
+  if (++PRUNE_CALLS % 20 !== 0) return;
+  try {
+    const ents = fs.readdirSync(CMD_BACKUP_ROOT, { withFileTypes: true }).filter((e) => e.isDirectory() && e.name.startsWith('cmd__'));
+    if (!ents.length) return;
+    const rows = ents.map((e) => {
+      const full = path.join(CMD_BACKUP_ROOT, e.name);
+      let mt = 0;
+      try { mt = fs.statSync(full).mtimeMs; } catch {}
+      return { full, mt };
+    }).sort((a, b) => b.mt - a.mt);
+    const cutoff = Date.now() - 30 * 24 * 3600 * 1000;
+    for (let i = 0; i < rows.length; i++) {
+      const old = i >= 200 || rows[i].mt < cutoff;
+      if (!old) continue;
+      try { fs.rmSync(rows[i].full, { recursive: true, force: true }); } catch {}
+    }
+  } catch {}
+}
+
 // ── J14：用没用自己建的系统（2026-11-21 加，用户指出「建了不用」） ──
 // 影子期：只提示，不拦。先判这次调用属于哪一档，只对「要动正式位置」的档位要求先查，
 // 纯讨论轮（只读、写 _tmp）根本走不到这里，天然不会误报。
@@ -354,7 +407,7 @@ function checkTextInner(name, args) {
   if (name === 'pwsh') {
     const cmd = String(args.command || '');
     const masked = maskQuoted(cmd);
-    const __snap = snapshotCmdPaths(cmd);   // J12：先备份再判
+    const __snap = judgeEnabled('J12') ? snapshotCmdPaths(cmd) : null;   // J12：先备份再判（名单外不备）
     if (!cmd) return null;
     // J17（2026-11-21）：J10 管的是写进 .ps1 文件里的自动变量赋值，这一条管命令行这一侧。
     // 同一个失手的两端：写脚本时撞 $home/$input/$args，直接下命令行也一样会踩。
@@ -503,7 +556,7 @@ function checkTextInner(name, args) {
 }
 
 // 包装：原判据优先，原判据不管的时候才轮到 J14 兜底提示
-function checkText(name, args) {
+function checkTextRaw(name, args) {
   if (!args || typeof args !== 'object') return null;
   if (name === 'pwsh') recordCmd(String(args.command || ''));
   const r = checkTextInner(name, args);
@@ -511,4 +564,18 @@ function checkText(name, args) {
   try { return j14Note(name, args); } catch { return null; }
 }
 
-module.exports = { check, checkText, REQ, WRONGKEY, FORBID, CLOSED, TABLE_FILE, TYPES, TYPES_BLOCK };
+// 名单过滤（2026-11-23）：命中的判据不在启用名单里就当没判到
+function checkText(name, args) {
+  const r = checkTextRaw(name, args);
+  if (!r) return null;
+  if (r.judge && !judgeEnabled(r.judge)) return null;
+  return r;
+}
+
+// 参数形态（J3）也受名单管：关掉就整条不判，返回通过而不是假装没收录
+function checkGuarded(name, args, badJson) {
+  if (!judgeEnabled('J3')) return { status: '通过', notes: 'J3 已按名单关闭' };
+  return check(name, args, badJson);
+}
+
+module.exports = { check: checkGuarded, checkRaw: check, checkText, judgeEnabled, judgeListInfo, parseIdList, REQ, WRONGKEY, FORBID, CLOSED, TABLE_FILE, TYPES, TYPES_BLOCK };

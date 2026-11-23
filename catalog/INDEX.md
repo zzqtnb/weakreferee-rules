@@ -2,7 +2,7 @@
 
 一条一句，挑你要的那几条。这里只写「检查什么、什么时候会撞上、撞上了怎么办」，**具体的判定写在 `packs/` 里**——库里不放正则，就不会出现两份说法对不上的情况。
 
-共 27 条，分 4 个域。动作三档：**拦下**（拒了这次调用）、**提醒**（放行但记一笔）、**记账**（只写日志，不打断）。表里的动作是**默认值**，装到你自己机器上想怎么调都行，改法见 `CONTRIBUTING.md`。
+共 21 条，分 4 个域。动作三档：**拦下**（拒了这次调用）、**提醒**（放行但记一笔）、**记账**（只写日志，不打断）。表里的动作是**默认值**，装到你自己机器上想怎么调都行，改法见 `CONTRIBUTING.md`。
 
 ## 编码与行尾（`encoding`，4 条）
 
@@ -21,22 +21,16 @@
 | `J17` | 命令行里给 PowerShell 自动变量赋值 | 命令行里给 $home 这类保留名赋值，整条命令当场失效，报错信息完全看不出跟赋值有关，来回改别的部分浪费很久。 | block（说明） | `params/J17.json` |
 | `J3` | 调工具前先读参数约束 | 有人让 AI 去抓一个网页，地址写成明文 http，工具连请求都没发出去就回了失败；来回试了几次，才看出是协议写错。 | block（说明） | `params/J3.json` |
 
-## 危险操作（`risky`，16 条）
+## 危险操作（`risky`，10 条）
 
 | 编号 | 这条管什么 | 什么时候会撞上 | 默认动作 | 文件 |
 |---|---|---|---|---|
-| `CAT-RISKY-11` | 删根目录或系统盘根 | 删根目录或系统盘根 | block | `risky/rules.json` |
-| `CAT-RISKY-12` | 整库删除或磁盘格式化 | 整库删除或磁盘格式化 | block | `risky/rules.json` |
-| `CAT-RISKY-01` | 递归强制删除（rm -rf / Remove-Item -Recurse -Force） | 递归强制删除（rm -rf / Remove-Item -Recurse -Force） | warn | `risky/rules.json` |
-| `CAT-RISKY-03` | 数据库删表或清空（DROP / TRUNCATE） | 数据库删表或清空（DROP / TRUNCATE） | warn | `risky/rules.json` |
-| `CAT-RISKY-04` | 没有 WHERE 的 DELETE 或 UPDATE | 没有 WHERE 的 DELETE 或 UPDATE | warn | `risky/rules.json` |
-| `CAT-RISKY-05` | 丢弃未提交改动（git reset --hard / checkout -- . / clean -fd） | 丢弃未提交改动（git reset --hard / checkout -- . / clean -fd） | warn | `risky/rules.json` |
-| `CAT-RISKY-06` | 系统级磁盘或分区操作（diskpart / format / mkfs） | 系统级磁盘或分区操作（diskpart / format / mkfs） | warn | `risky/rules.json` |
-| `CAT-RISKY-07` | 权限全开（chmod -R 777 / icacls Everyone:F） | 权限全开（chmod -R 777 / icacls Everyone:F） | warn | `risky/rules.json` |
-| `CAT-RISKY-09` | 清空日志或审计文件 | 清空日志或审计文件 | warn | `risky/rules.json` |
-| `CAT-RISKY-02` | 变量展开路径的递归删除（rm -rf "$X"/） | 变量展开路径的递归删除（rm -rf "$X"/） | steer | `risky/rules.json` |
-| `CAT-RISKY-08` | 向生产环境发请求（URL 或命令里出现 prod / production） | 向生产环境发请求（URL 或命令里出现 prod / production） | steer | `risky/rules.json` |
-| `CAT-RISKY-10` | 覆盖已存在的脚本或配置文件（重定向 / 写文件到已有路径） | 覆盖已存在的脚本或配置文件（重定向 / 写文件到已有路径） | steer | `risky/rules.json` |
+| `J19` | 丢弃未提交改动前先确认 | 想回到干净状态，一条 reset --hard 下去，半天没提交的改动全没了。 | block（说明） | `risky/J19.json` |
+| `J20` | 别把权限一次开到所有人 | 程序读不到文件，顺手一条 chmod -R 777 放开，跑通了之后没人再收回来。 | block（说明） | `risky/J20.json` |
+| `J21` | 变量拼出来的路径别直接递归删 | J21 变量拼出来的路径别直接递归删 | block（说明） | `risky/J21.json` |
+| `J18` | 不带 WHERE 的 DELETE / UPDATE | 改一条用户数据时漏掉 WHERE，跑完发现整张表都被改了，备份还是三天前的。 | warn（说明） | `risky/J18.json` |
+| `J22` | 别删表删库（DROP / TRUNCATE） | J22 别删表删库（DROP / TRUNCATE） | warn（说明） | `risky/J22.json` |
+| `J23` | 别清日志与审计记录 | J23 别清日志与审计记录 | warn（说明） | `risky/J23.json` |
 | `J11` | 整目录镜像前先查目录联接 | 整目录复制或清理时没注意里面有一个指向别处的联接，跟随下去把链接那头的真实文件一起清掉了；删的是「快捷方式」，没的是原件 | steer（说明） | `risky/J11.json` |
 | `J12` | 命令改文件前先落一份可回滚备份 | 一条命令直接覆盖了绝对路径下的配置文件，改错之后没有旧版本可以退回，只能凭记忆重写。 | steer（说明） | `risky/J12.json` |
 | `J13` | 不可逆动作动手前先导出回滚件 | 改注册表、服务或计划任务之前没有导出旧配置，出问题只能靠回忆往回改，改错一处就再也回不到原样。 | steer（说明） | `risky/J13.json` |

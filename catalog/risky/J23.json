@@ -1,0 +1,28 @@
+{
+  "id": "J23",
+  "title": "J23 别清日志与审计记录",
+  "domain": "risky",
+  "evidence": {
+    "level": "实测",
+    "source": "2026-11-23 从库候选 CAT-RISKY-09 验过入包，4 个自测用例通过；尚未在真实会话命中"
+  },
+  "falsePositiveRisk": "low",
+  "defaultAction": "warn",
+  "appliesTo": {
+    "tool": "pwsh",
+    "platform": [
+      "win32"
+    ]
+  },
+  "message": "这条命令会清掉日志或审计记录：出事之后第一件事就是看它",
+  "fix": "先导出再清（wevtutil epl）；平时只要最近几条就用 Get-WinEvent -MaxEvents",
+  "severity": "B",
+  "reversible": false,
+  "promotedTo": "windows-powershell#WIN-LOG-WIPE-01",
+  "notes": [
+    "判据：这条命令会清掉日志或审计记录：出事之后第一件事就是看它",
+    "例子｜该拦：`Clear-EventLog -LogName System`；不该拦：`Get-EventLog -LogName System -Newest 5`",
+    "边界：读日志一律不判；只删某个自己写的应用日志（不是事件日志）也会命中，看提示后放行即可",
+    "本条以 rules.json 为准；本文件只说明「检查什么、为什么、怎么救」，正则与自测在包里。"
+  ]
+}

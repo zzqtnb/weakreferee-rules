@@ -1,0 +1,28 @@
+{
+  "id": "J19",
+  "title": "J19 丢弃未提交改动前先确认",
+  "domain": "risky",
+  "evidence": {
+    "level": "实测",
+    "source": "2026-11-23 从库候选 CAT-RISKY-05 验过入包，4 个自测用例通过；尚未在真实会话命中"
+  },
+  "falsePositiveRisk": "low",
+  "defaultAction": "block",
+  "appliesTo": {
+    "tool": "pwsh",
+    "platform": [
+      "win32"
+    ]
+  },
+  "message": "git 这条命令会丢掉未提交的改动（reset --hard / checkout -- . / restore . / clean -f）",
+  "fix": "先 git status 看清楚，需要留就 stash 或先提交；确实要丢，写一句说明再执行",
+  "severity": "A",
+  "reversible": false,
+  "promotedTo": "windows-powershell#WIN-GIT-DISCARD-01",
+  "notes": [
+    "判据：git 这条命令会丢掉未提交的改动（reset --hard / checkout -- . / restore . / clean -f）",
+    "例子｜该拦：`git reset --hard HEAD~1`；不该拦：`git status --short`",
+    "场景例：想回到干净状态，一条 reset --hard 下去，半天没提交的改动全没了。",
+    "本条以 rules.json 为准；本文件只说明「检查什么、为什么、怎么救」，正则与自测在包里。"
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "id": "J21",
+  "title": "J21 变量拼出来的路径别直接递归删",
+  "domain": "risky",
+  "evidence": {
+    "level": "实测",
+    "source": "2026-11-23 从库候选 CAT-RISKY-02 验过入包，4 个自测用例通过；尚未在真实会话命中"
+  },
+  "falsePositiveRisk": "low",
+  "defaultAction": "block",
+  "appliesTo": {
+    "tool": "pwsh",
+    "platform": [
+      "win32"
+    ]
+  },
+  "message": "递归删除的路径是变量拼出来的：变量为空或带尾分隔符，删的就变成整个根",
+  "fix": "先把变量打印出来看一眼，或写成字面量；至少加 -WhatIf 干跑一遍",
+  "severity": "A",
+  "reversible": false,
+  "promotedTo": "windows-powershell#WIN-VARPATH-RM-01",
+  "notes": [
+    "判据：递归删除的路径是变量拼出来的：变量为空或带尾分隔符，删的就变成整个根",
+    "例子｜该拦：`Remove-Item \"$dir\\\" -Recurse`；不该拦：`Remove-Item \"$dir\\logs\\a.txt\"`",
+    "本条以 rules.json 为准；本文件只说明「检查什么、为什么、怎么救」，正则与自测在包里。"
+  ]
+}

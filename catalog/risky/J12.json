@@ -20,8 +20,9 @@
   "reversible": false,
   "promotedTo": "dsh-host#SCENE-BACKUP-01",
   "notes": [
+    "判据：这条命令会覆盖或删掉一个绝对路径下的文件",
+    "例子｜该拦：`Remove-Item -Path D:\\x\\a.txt -Force`；不该拦：`Get-ChildItem D:\\x`",
     "场景例：一条命令直接覆盖了绝对路径下的配置文件，改错之后没有旧版本可以退回，只能凭记忆重写。",
-    "怎么判：pwsh 命令里出现写/删文件的动词——Set-Content / Add-Content / Out-File / Export-Csv / Export-Clixml / Tee-Object / Copy-Item / Move-Item / Rename-Item / Remove-Item / New-Item / Clear-Content，或 del / erase / rd / rmdir / rm / ri",
     "本条以 rules.json 为准；本文件只说明「检查什么、为什么、怎么救」，正则与自测在包里。"
   ]
 }

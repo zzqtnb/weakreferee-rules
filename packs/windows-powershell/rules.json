@@ -552,5 +552,439 @@
       ]
     },
     "scene": "批处理里写了中文提示，双击运行时显示一串乱码，或者命令解释器读到一半直接停下，人以为是文件坏了。"
+  },
+  {
+    "id": "WIN-SQL-DELETE-01",
+    "legacyJudge": "J18",
+    "title": "DELETE / UPDATE 没有 WHERE",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "pwsh",
+      "platform": [
+        "windows"
+      ]
+    },
+    "condition": {
+      "any": [
+        {
+          "all": [
+            {
+              "type": "regexHit",
+              "in": "args.command",
+              "maskQuoted": false,
+              "pattern": "\\bdelete\\s+from\\s+[\\w\\.\\[\\]\"`]+"
+            },
+            {
+              "type": "regexMiss",
+              "in": "args.command",
+              "maskQuoted": false,
+              "pattern": "\\bwhere\\b"
+            }
+          ]
+        },
+        {
+          "all": [
+            {
+              "type": "regexHit",
+              "in": "args.command",
+              "maskQuoted": false,
+              "pattern": "\\bupdate\\s+[\\w\\.\\[\\]\"`]+\\s+set\\b"
+            },
+            {
+              "type": "regexMiss",
+              "in": "args.command",
+              "maskQuoted": false,
+              "pattern": "\\bwhere\\b"
+            }
+          ]
+        }
+      ]
+    },
+    "action": "block",
+    "severity": "A",
+    "message": "DELETE / UPDATE 里没有 WHERE（会动整张表）",
+    "fix": "补上 WHERE；真要清空整表就写 TRUNCATE 并说明理由，别让一条语句看不出意图",
+    "reversible": false,
+    "evidence": {
+      "hits": 0,
+      "sessions": 0,
+      "source": "2026-11-23 从库候选 CAT-RISKY-04 验过入包，4 个自测用例通过"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "command": "sqlite3 a.db \"DELETE FROM users\""
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "sqlite3 a.db \"DELETE FROM users WHERE id=3\""
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
+            "command": "sqlite3 a.db \"UPDATE users SET name='x'\""
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "sqlite3 a.db \"UPDATE users SET name='x' WHERE id=3\""
+          },
+          "expect": "pass"
+        }
+      ],
+      "needFs": false
+    },
+    "scene": "改数据时漏掉 WHERE，跑完发现整张表都被改了，备份还是三天前的。"
+  },
+  {
+    "id": "WIN-GIT-DISCARD-01",
+    "legacyJudge": "J19",
+    "title": "git 丢弃未提交改动",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "pwsh",
+      "platform": [
+        "windows"
+      ]
+    },
+    "condition": {
+      "all": [
+        {
+          "type": "regexHit",
+          "in": "args.command",
+          "maskQuoted": true,
+          "pattern": "\\bgit\\s+(reset\\s+--hard\\b|checkout\\s+--\\s+\\.|restore\\s+\\.|clean\\s+-[a-z]*f)"
+        },
+        {
+          "type": "regexMiss",
+          "in": "args.command",
+          "maskQuoted": true,
+          "pattern": "--dry-run\\b"
+        }
+      ]
+    },
+    "action": "block",
+    "severity": "A",
+    "message": "git 这条命令会丢掉未提交的改动",
+    "fix": "先 git status 看清楚，需要留就 git stash 或先提交；确实要丢，加一句说明再执行",
+    "reversible": false,
+    "evidence": {
+      "hits": 0,
+      "sessions": 0,
+      "source": "2026-11-23 从库候选 CAT-RISKY-05 验过入包，4 个自测用例通过"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "command": "git reset --hard HEAD~1"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "git checkout -- ."
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "git status --short"
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
+            "command": "git diff HEAD~1 --stat"
+          },
+          "expect": "pass"
+        }
+      ],
+      "needFs": false
+    },
+    "scene": "想回到干净状态，一条 reset --hard 下去，半天没提交的改动全没了。"
+  },
+  {
+    "id": "WIN-PERM-OPEN-01",
+    "legacyJudge": "J20",
+    "title": "权限开给所有人",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "pwsh",
+      "platform": [
+        "windows"
+      ]
+    },
+    "condition": {
+      "any": [
+        {
+          "type": "regexHit",
+          "in": "args.command",
+          "maskQuoted": true,
+          "pattern": "\\bchmod\\s+[^|;\\r\\n]{0,80}\\b777\\b"
+        },
+        {
+          "type": "regexHit",
+          "in": "args.command",
+          "maskQuoted": true,
+          "pattern": "\\bicacls\\b[^|;\\r\\n]{0,200}\\/grant[^|;\\r\\n]{0,80}Everyone:[^|;\\r\\n]{0,10}(F|M|W)\\b"
+        }
+      ]
+    },
+    "action": "block",
+    "severity": "B",
+    "message": "把权限开给了所有人（777 或 Everyone:F）",
+    "fix": "授权到具体账号或用户组；实在要放开，先写清给谁、多久收回",
+    "reversible": true,
+    "evidence": {
+      "hits": 0,
+      "sessions": 0,
+      "source": "2026-11-23 从库候选 CAT-RISKY-07 验过入包，4 个自测用例通过"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "command": "chmod -R 777 /var/www"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "chmod 644 a.txt"
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
+            "command": "icacls D:\\share /grant Everyone:F"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "icacls D:\\share /grant Administrators:F"
+          },
+          "expect": "pass"
+        }
+      ],
+      "needFs": false
+    },
+    "scene": "程序读不到文件，顺手一条 chmod -R 777 放开，跑通了之后没人再收回来。"
+  },
+  {
+    "id": "WIN-VARPATH-RM-01",
+    "legacyJudge": "J21",
+    "title": "变量路径递归删除",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "pwsh",
+      "platform": [
+        "windows"
+      ]
+    },
+    "condition": {
+      "all": [
+        {
+          "type": "regexHit",
+          "in": "args.command",
+          "maskQuoted": false,
+          "pattern": "\\b(Remove-Item|ri|rm|del|erase|rd|rmdir)\\b[^|;\\r\\n]{0,120}(-Recurse\\b|/s\\b|-rf\\b)"
+        },
+        {
+          "type": "regexHit",
+          "in": "args.command",
+          "maskQuoted": false,
+          "pattern": "\\b(Remove-Item|ri|rm|del|erase|rd|rmdir)\\b[^|;\\r\\n]{0,120}\\$(env:)?[A-Za-z_][\\w]*[\\\\/]"
+        },
+        {
+          "type": "regexMiss",
+          "in": "args.command",
+          "maskQuoted": false,
+          "pattern": "-WhatIf\\b"
+        }
+      ]
+    },
+    "action": "block",
+    "severity": "A",
+    "message": "递归删除的路径是变量拼出来的（变量为空或带尾分隔符会删过头）",
+    "fix": "先把变量打印出来看一眼，或写成字面量；至少加 -WhatIf 干跑一遍",
+    "reversible": false,
+    "evidence": {
+      "hits": 0,
+      "sessions": 0,
+      "source": "2026-11-23 从库候选 CAT-RISKY-02 验过入包，4 个自测用例通过"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "command": "Remove-Item \"$dir\\\" -Recurse"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "Remove-Item \"$dir\\logs\\a.txt\""
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
+            "command": "Remove-Item D:\\build -Recurse"
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
+            "command": "Remove-Item \"$env:TEMP\\cache\\\" -Recurse -WhatIf"
+          },
+          "expect": "pass"
+        }
+      ],
+      "needFs": false
+    },
+    "scene": "脚本里拼路径删临时目录，变量这次是空的，`\"$dir\\\"` 变成了盘符根。"
+  },
+  {
+    "id": "WIN-SQL-DROP-01",
+    "legacyJudge": "J22",
+    "title": "删表或清空表",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "pwsh",
+      "platform": [
+        "windows"
+      ]
+    },
+    "condition": {
+      "all": [
+        {
+          "type": "regexHit",
+          "in": "args.command",
+          "maskQuoted": false,
+          "pattern": "\\b(drop\\s+(table|database|schema)|truncate\\s+(table\\s+)?[\\w\\.\"`\\[\\]]+)"
+        },
+        {
+          "type": "regexMiss",
+          "in": "args.command",
+          "maskQuoted": false,
+          "pattern": "(--dry-run\\b|-WhatIf\\b)"
+        }
+      ]
+    },
+    "action": "block",
+    "severity": "A",
+    "message": "命令里有 DROP / TRUNCATE（表或库会直接消失）",
+    "fix": "先备份或导出；确实要删，写一句「删的是哪张表、为什么要删」再执行",
+    "reversible": false,
+    "evidence": {
+      "hits": 0,
+      "sessions": 0,
+      "source": "2026-11-23 从库候选 CAT-RISKY-03 验过入包，4 个自测用例通过"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "command": "sqlite3 a.db \"DROP TABLE users\""
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "sqlite3 a.db \"TRUNCATE TABLE logs\""
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "sqlite3 a.db \"SELECT * FROM users\""
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
+            "command": "psql -f drop_all.sql --dry-run"
+          },
+          "expect": "pass"
+        }
+      ],
+      "needFs": false
+    },
+    "scene": "迁移脚本跑第二遍，第一行 DROP TABLE 把刚建好的表清掉，后面全部报错。"
+  },
+  {
+    "id": "WIN-LOG-WIPE-01",
+    "legacyJudge": "J23",
+    "title": "清日志或审计",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "pwsh",
+      "platform": [
+        "windows"
+      ]
+    },
+    "condition": {
+      "all": [
+        {
+          "type": "regexHit",
+          "in": "args.command",
+          "maskQuoted": true,
+          "pattern": "\\b(clear-eventlog|wevtutil\\s+cl\\b|Clear-WinEvent)\\b|\\b(Remove-Item|ri|rm|del)\\b[^|;\\r\\n]{0,120}\\.(log|evtx)\\b"
+        },
+        {
+          "type": "regexMiss",
+          "in": "args.command",
+          "maskQuoted": true,
+          "pattern": "-WhatIf\\b"
+        }
+      ]
+    },
+    "action": "warn",
+    "severity": "B",
+    "message": "这条命令会清掉日志或审计记录",
+    "fix": "先导出再清（wevtutil epl）；平时只需要截取最近几条就用 Get-WinEvent -MaxEvents",
+    "reversible": false,
+    "evidence": {
+      "hits": 0,
+      "sessions": 0,
+      "source": "2026-11-23 从库候选 CAT-RISKY-09 验过入包，4 个自测用例通过"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "command": "Clear-EventLog -LogName System"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "wevtutil cl Security"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "Get-EventLog -LogName System -Newest 5"
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
+            "command": "Get-ChildItem D:\\logs\\*.log"
+          },
+          "expect": "pass"
+        }
+      ],
+      "needFs": false
+    },
+    "scene": "磁盘满了，顺手把几个月的事件日志清掉，后来要查一次登录异常，什么也拿不出来。"
   }
 ]

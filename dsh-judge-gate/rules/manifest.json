@@ -1,6 +1,6 @@
 {
   "_说明": "每个包的 rules.json 指纹。改规则要重新生成这份清单，否则加载时会提示不符。它只能发现文件被改动，不是签名。",
-  "generatedAt": "2026-11-23T04:04:38.963Z",
+  "generatedAt": "2026-11-23T13:56:41.469Z",
   "packs": {
     "core": {
       "file": "rules.json",
@@ -16,9 +16,9 @@
     },
     "windows-powershell": {
       "file": "rules.json",
-      "rules": 9,
-      "bytes": 16161,
-      "sha256": "ae09e591335e021663f13914dad516eb2ffad87451ce0e91cdf796c58da881ce"
+      "rules": 15,
+      "bytes": 27716,
+      "sha256": "e74d71ea9fcb270c2615d99fe514baa741215824cc62a4c706d32446b01e0558"
     }
   }
 }

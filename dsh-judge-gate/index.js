@@ -331,6 +331,14 @@ function resolveLogPath(preferred) {
 export function apply(ctx, config) {
   const opts = { ...DEFAULTS, ...(config || {}) };
   const skip = new Set(Array.isArray(opts.skip) ? opts.skip : []);
+  // 判据名单（2026-11-23）：插件主判定也按名单走 —— 名单写进 env，paramcheck 加载时读。
+  // 注意 opts.skip 是「跳过哪个工具」，判据名单用 only / skipJudges，两者别混。
+  if (!process.env.DSH_JUDGE_ONLY && opts.only) {
+    process.env.DSH_JUDGE_ONLY = Array.isArray(opts.only) ? opts.only.join(',') : String(opts.only);
+  }
+  if (!process.env.DSH_JUDGE_SKIP && opts.skipJudges) {
+    process.env.DSH_JUDGE_SKIP = Array.isArray(opts.skipJudges) ? opts.skipJudges.join(',') : String(opts.skipJudges);
+  }
 
   // ── 载入判据实现。载不进来不能装没事：第一次调用拦一下并说明原因，之后放行。
   //    （原实现是直接 return，宿主日志里一行 warn，模型侧完全无感——这就是静默失效。）

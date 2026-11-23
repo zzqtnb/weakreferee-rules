@@ -23,9 +23,9 @@
   "reversible": false,
   "promotedTo": "windows-powershell#WIN-AUTOVAR-CMD-01",
   "notes": [
+    "判据：给 PowerShell 自动变量赋值（只读，或影响解析）",
+    "例子｜该拦：`$home = 'D:\\x'`；不该拦：`$envPath = 'D:\\x'`",
     "场景例：命令行里给 $home 这类保留名赋值，整条命令当场失效，报错信息完全看不出跟赋值有关，来回改别的部分浪费很久。",
-    "怎么判：pwsh 的 command 文本里出现对 $home / $input / $args 这类自动变量的赋值",
-    "放行：here-string 里定义函数、函数体内的 $args/$input 属合法写法（这类落到 .ps1 用 -File 跑）；换成带固定前缀的多字名",
     "本条以 rules.json 为准；本文件只说明「检查什么、为什么、怎么救」，正则与自测在包里。"
   ]
 }

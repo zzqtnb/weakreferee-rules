@@ -1,0 +1,27 @@
+{
+  "id": "J12",
+  "title": "J12 命令改文件前先落一份可回滚备份",
+  "domain": "risky",
+  "evidence": {
+    "level": "实测",
+    "source": "作者环境真实命中过（次数、时间、会话号不公开）"
+  },
+  "falsePositiveRisk": "medium",
+  "defaultAction": "steer",
+  "appliesTo": {
+    "tool": "pwsh",
+    "platform": [
+      "win32"
+    ]
+  },
+  "message": "这条命令会覆盖或删掉一个绝对路径下的文件",
+  "fix": "先把它挪进回收站再动手：recycle.ps1 -Put <路径>",
+  "severity": "C",
+  "reversible": false,
+  "promotedTo": "dsh-host#SCENE-BACKUP-01",
+  "notes": [
+    "场景例：一条命令直接覆盖了绝对路径下的配置文件，改错之后没有旧版本可以退回，只能凭记忆重写。",
+    "怎么判：pwsh 命令里出现写/删文件的动词——Set-Content / Add-Content / Out-File / Export-Csv / Export-Clixml / Tee-Object / Copy-Item / Move-Item / Rename-Item / Remove-Item / New-Item / Clear-Content，或 del / erase / rd / rmdir / rm / ri",
+    "本条以 rules.json 为准；本文件只说明「检查什么、为什么、怎么救」，正则与自测在包里。"
+  ]
+}

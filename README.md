@@ -37,19 +37,42 @@
 | 其中被判据拦下 | 403 次（2.20%） |
 | 会话数 | 186 个（有工具调用的 160 个） |
 | 命中过至少一次的会话 | 67 个 |
-| 规则条数 | 13 条（core 2 / windows-powershell 8 / dsh-host 3） |
+| 规则条数 | 14 条（core 2 / windows-powershell 9 / dsh-host 3） |
 
 每条规则的 `evidence` 字段里写着它命中过几次、跨几个会话、命中的时间戳在哪儿。
 **没有 evidence 的规则可以装，但体检报告会把它列进「从没命中过」**——这比假装每条规则都很有用更诚实。
 
+## 三块东西：判据库、判据包、引擎
+
+仓库分三层，各管一件事：
+
+| 层 | 位置 | 给谁用 | 能不能自己挑 |
+|---|---|---|---|
+| **判据库** | `catalog/` | 想看「都查些什么」的人 | 一条一条看，挑着想装哪几条 |
+| **判据包** | `packs/` | 装了插件或便携包的人 | 按域整包装，也可以自己改 |
+| **引擎** | `dsh-judge-gate/` | 想让它真拦的人 | 装一次，之后自动跑 |
+
+判据库是**目录**：一条一个 json，写「检查什么、什么时候会撞上、撞上了怎么办」，不放正则。判定在包里。两边都存一篇正则，早晚有一边忘了改。
+
+判据包是**配方**：`rules.json` 里是真的条件与正则，机器读这个。同一个域在 `packs/` 和 `dsh-judge-gate/rules/` 各存一份，必须逐字节相同，`tools/validate.js` 会查。
+
+引擎是**两个能跑的东西**：装进 DSH 的插件（每次工具调用前同步判），和不依赖 DSH 的便携包（对已有会话事后体检）。同一个引擎，同一份规则。
+
+目录导览看 `catalog/INDEX.md`；加一条自己的规矩看 `CONTRIBUTING.md`。
+
 ## 包里有什么
 
 ```
+catalog/                  判据库：一条一个 json + INDEX.md 目录页
 packs/
-  core/               不依赖平台与宿主，换到哪都成立
-  windows-powershell/ 只在 Windows + PowerShell 生效，换 Linux 整包不装
-  dsh-host/           依赖宿主自身状态，换宿主整包不装
-schema/rule.schema.json   规则的结构定义，用来校验你自己写的包
+  core/                   不依赖平台与宿主，换到哪都成立
+  windows-powershell/     只在 Windows + PowerShell 生效，换 Linux 整包不装
+  dsh-host/               依赖宿主自身状态，换宿主整包不装
+  community/              社区贡献的包（<作者>/<域>）
+dsh-judge-gate/           引擎：装进 DSH 的插件（含 installer 与自检）
+skills/weakreferee/       给 agent 看的用法说明，不含判据
+tools/                    validate.js（结构校验）、gen-manifest.js（清单重算）
+schema/                   规则与判据库条目的结构定义
 docs/                     怎么写一条规矩、跟同类项目差在哪
 ```
 
@@ -168,6 +191,22 @@ node "%USERPROFILE%\weakreferee-rules\dsh-judge-gate\check.cjs" pwsh "command=Ou
 自检不过就当场停下，并告诉你备份在哪儿。
 
 细节见 [`dsh-judge-gate/README.md`](dsh-judge-gate/README.md)。
+
+### 五、只装其中几条
+
+目录里的 27 条不必全要。点名要哪几条，其余不加载：
+
+```
+node weakreferee-cli.js packs --only J8,J12
+node weakreferee-cli.js scan <会话目录> --only J8
+node dsh-judge-gate/check.cjs pwsh "command=Out-File D:\a.ps1 -InputObject 中文" --only J8
+```
+
+也可以在项目根的 `.weakreferee.json` 里写 `"only": ["J8","J12"]`，或用环境变量 `DSH_JUDGE_ONLY`（逗号、分号、空格都认）。反过来写 `--skip J9` 是「其余都装，就它不要」。
+
+两个名字都认：包里那个号（`WIN-ENC-01`）和给人看的号（`J8`）。名字写错会被点名，不会静默少装。
+
+**一处要说清**：名单作用在「规则包引擎」这一侧——`check.cjs` 的新引擎列、便携包的 `scan`/`mine`/`replay`、以及 `DSH_JUDGE_ENGINE=shadow` 的旁路。DSH 插件在工具调用前拦那一下走的是包内 `lib/paramcheck.js` 的内置判定，不吃名单；想让插件也只拦这几条，得改 `lib/paramcheck.js`。
 
 ## 怎么写自己的规矩
 

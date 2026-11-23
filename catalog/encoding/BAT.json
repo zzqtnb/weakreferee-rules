@@ -1,0 +1,29 @@
+{
+  "id": "BAT",
+  "title": "BAT 写 .bat/.cmd 带中文会乱码",
+  "domain": "encoding",
+  "evidence": {
+    "level": "实测",
+    "source": "作者环境真实命中过（次数、时间、会话号不公开）"
+  },
+  "falsePositiveRisk": "low",
+  "defaultAction": "steer",
+  "appliesTo": {
+    "tool": "write",
+    "platform": [
+      "win32"
+    ],
+    "fileMatches": "\\.(bat|cmd)$"
+  },
+  "message": "批处理文件按本地代码页解析（中文系统是 GBK），写进去的中文会变乱码，或者让 cmd 读到一半报错",
+  "fix": "批处理里只写 ASCII；必须输出中文时，在文件开头加 chcp 65001，并让 bat 用 type 输出一个外部 UTF-8 文本文件",
+  "severity": "S",
+  "reversible": true,
+  "promotedTo": "windows-powershell#WIN-BAT-CJK-01",
+  "notes": [
+    "场景例：批处理里写了中文提示，双击运行时显示一串乱码，或者命令解释器读到一半直接停下，人以为是文件坏了。",
+    "怎么判：write 往 .bat/.cmd 写的内容里有非 ASCII 字符",
+    "放行：内容纯 ASCII；或扩展名不是 .bat/.cmd（.txt 里的中文不归它管）",
+    "本条以 rules.json 为准；本文件只说明「检查什么、为什么、怎么救」，正则与自测在包里。"
+  ]
+}

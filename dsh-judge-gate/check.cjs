@@ -30,6 +30,19 @@ const RULE_DIRS = [
 ];
 if (!process.env.DSH_JUDGE_TOOLS_DIR) process.env.DSH_JUDGE_TOOLS_DIR = LIB;
 
+// 条目级启用名单（2026-11-23 加）：只想判目录里点名的几条时用它。
+//   node check.cjs pwsh "command=…" --only J8,J12
+//   node check.cjs --selfcheck --skip J9
+// 要在 load 之前落进环境变量，load 时才读得到；不写＝全开，老行为不变。
+function preArg(name) {
+  const i = process.argv.indexOf(name);
+  return i >= 0 ? process.argv[i + 1] : undefined;
+}
+const onlyArg = preArg('--only');
+const skipArg = preArg('--skip');
+if (onlyArg) process.env.DSH_JUDGE_ONLY = onlyArg;
+if (skipArg) process.env.DSH_JUDGE_SKIP = skipArg;
+
 function loadMain() {
   const pc = require(path.join(LIB, 'paramcheck.js'));
   if (typeof pc.check !== 'function') throw new Error('lib/paramcheck.js 没有导出 check()');
@@ -42,7 +55,8 @@ function loadEngine() {
   const rs0 = JE.load(RULE_DIRS, JE.ENV);
   const ex = EX.expandAll(rs0.rules, { dir: LIB });
   const pre = ex.rules.filter((r) => (r.when || 'tool:pre') === 'tool:pre');
-  return { JE, loaded: rs0.rules.length, rejected: rs0.rejected, expanded: pre.length, pre };
+  return { JE, loaded: rs0.rules.length, rejected: rs0.rejected, expanded: pre.length, pre,
+    filtered: rs0.filtered || [], missing: rs0.missing || [], only: rs0.only || [], skip: rs0.skip || [] };
 }
 
 function selfcheck() {
@@ -76,6 +90,14 @@ function selfcheck() {
   try {
     const e = loadEngine();
     console.log('规则包: 装 ' + e.loaded + ' 条，展开后 ' + e.expanded + ' 条，拒装 ' + e.rejected.length + ' 条');
+    if (e.only.length || e.skip.length) {
+      console.log('  名单: ' + (e.only.length ? '只装 ' + e.only.join('、') : '不限')
+        + (e.skip.length ? '，排除 ' + e.skip.join('、') : '') + '，没装 ' + e.filtered.length + ' 条');
+    }
+    if (e.missing.length) {
+      bad++;
+      console.log('  ⚠ 名单里这些没找到: ' + e.missing.join('、') + '（名字写错了，或者不在包里）');
+    }
     for (const r of e.rejected) console.log('  拒装 ' + r.id + ' ← ' + r.errors.join('; '));
   } catch (e) {
     bad++;

@@ -419,7 +419,15 @@ function validateRule(r) {
   return errs;
 }
 
-function load(packDirs, env) {
+// 启用名单：只装名单里那几条，或排除某几条。不写就是全开（老行为不变）。
+// 来源优先级：调用参数（插件读配置、命令行传参）> 环境变量 > 无。
+// 三种分隔都认：逗号、分号、空白；比较时一律大写（规则 id 都是大写，写小写也认）。
+function parseIdList(v) {
+  if (Array.isArray(v)) v = v.join(',');
+  return String(v || '').split(/[,;\s]+/).map(s => s.trim().toUpperCase()).filter(Boolean);
+}
+
+function load(packDirs, env, opts) {
   // 传字符串时按单目录处理。不写这句，for...of 会逐字符迭代，
   // 第一个字符 "D" 被当成盘符根目录扫全盘（2026-11-23 实测撞上 $RECYCLE.BIN 的 EPERM）
   if (typeof packDirs === 'string') packDirs = [packDirs];
@@ -451,7 +459,28 @@ function load(packDirs, env) {
     };
     walk(dir);
   }
-  const rules = [...merged.values()].filter(r => applies(r.appliesTo, { tool: '*', args: {} }) || true);
+  // 名单过滤：名单外的条目不装，但要记下名字——写了 J99 却装不上，
+  // 静默是最坏的失效（2026-11-23 定，同「环境变量没设」那类）。
+  // 匹配用两个名字：包里的 id（WIN-ENC-01）和给人看的 legacy 号（J8）。
+  // 人看目录记的是 J8，写 J8 就该装上——只认 id 的话名单会静默变空。
+  const only = parseIdList((opts && opts.only) || process.env.DSH_JUDGE_ONLY);
+  const skip = parseIdList((opts && opts.skip) || process.env.DSH_JUDGE_SKIP);
+  const keysOf = r => [r.id, r.legacyJudge].filter(Boolean).map(k => String(k).toUpperCase());
+  const hitSet = (r, set) => keysOf(r).some(k => set.has(k));
+  const known = new Set();
+  for (const r of merged.values()) keysOf(r).forEach(k => known.add(k));
+  const filtered = [];
+  let rules = [...merged.values()];
+  if (only.length) {
+    const set = new Set(only);
+    rules = rules.filter(r => { const keep = hitSet(r, set); if (!keep) filtered.push(r.legacyJudge || r.id); return keep; });
+  }
+  if (skip.length) {
+    const s = new Set(skip);
+    rules = rules.filter(r => { const keep = !hitSet(r, s); if (!keep) filtered.push(r.legacyJudge || r.id); return keep; });
+  }
+  const missing = only.filter(k => !known.has(k));
+  rules = rules.filter(r => applies(r.appliesTo, { tool: '*', args: {} }) || true);
   const byWhen = new Map();
   const byTool = new Map();   // when → tool → rules；调某工具时只取它那桶 + '*' 桶
   for (const r of rules) {
@@ -467,7 +496,7 @@ function load(packDirs, env) {
       m.get(n).push(r);
     }
   }
-  return { rules, byWhen, byTool, scanned, rejected, env: env || ENV };
+  return { rules, byWhen, byTool, scanned, rejected, filtered, missing, only, skip, env: env || ENV };
 }
 
 // 自测用的范围检查：只看「这条规矩管什么」（工具、文件、命令），不看「本机适不适用」
@@ -505,4 +534,4 @@ function judgeRaw(call, rules) {
   return hits;
 }
 
-module.exports = { judge, judgeRaw, adjudicate, load, maskQuoted, evalCond, CONDITION, ENV, processStartMs };
+module.exports = { judge, judgeRaw, adjudicate, load, parseIdList, maskQuoted, evalCond, CONDITION, ENV, processStartMs };

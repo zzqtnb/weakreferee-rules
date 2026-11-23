@@ -164,7 +164,7 @@ function capOf(e) {
 function checkCatalogEntry(dirName, e, seen) {
   const where = `catalog/${dirName}/${e.id || '(无 id)'}`;
   if (!e.id) { err(where, '缺 id'); return; }
-  if (!/^[A-Z][A-Z0-9-]{2,63}$/.test(e.id)) err(where, 'id 须大写字母开头');
+  if (!/^[A-Z][A-Z0-9-]{1,63}$/.test(e.id)) err(where, 'id 须大写字母开头，长度 2–64（J3、P6 这类两位编号也合法）');
   if (seen.has(e.id)) err(where, '库内 id 重复');
   seen.add(e.id);
 
@@ -190,17 +190,23 @@ function checkCatalogEntry(dirName, e, seen) {
   }
 
   const hasGen = !!e.generator;
+  const hasCond = !!e.condition;
+  const docOnly = !hasGen && !hasCond;
   if (hasGen) {
     if (!e.generator.kind) err(where, 'generator 缺 kind');
     if (!Array.isArray(e.generator.emit) || !e.generator.emit.length) err(where, 'generator 缺 emit');
-  } else if (!e.condition) {
-    err(where, '既没有 condition 也没有 generator');
-  } else {
+  } else if (hasCond) {
     checkCondition(where, e.condition, 0);
+  } else {
+    // 纯说明条目（2026-11-23 起）：判定逻辑不复制进库，写在 packs 里，库只讲「检查什么、为什么、怎么救」。
+    // 不复制正则就不会出现两份说法；代价是每条必须交代去处，且动作不能凭空比包更硬。
+    const notes = Array.isArray(e.notes) ? e.notes.join('') : '';
+    if (notes.length < 20) err(where, '纯说明条目必须有 notes（写清检查什么、为什么、怎么救）');
+    if (e.defaultAction === 'block' && !e.promotedTo) err(where, '纯说明条目要 block 就必须写 promotedTo（判定在哪条规则里）');
   }
 
   // 库里允许没有 selfTest，但一旦要 block 就必须有正反例
-  if (!hasGen && e.defaultAction === 'block') {
+  if (!hasGen && !docOnly && e.defaultAction === 'block') {
     const st = e.selfTest || {};
     if (st.needFs) {
       // 依赖真实文件的用例静态跑不了，但说明「测过」的意图在——降为提示，但要真环境验一遍
@@ -223,18 +229,40 @@ function checkCatalog() {
   const seen = new Set();
   let total = 0;
   const perDomain = {};
+  let docOnly = 0;
   for (const d of dirs) {
-    const f = path.join(catDir, d, 'rules.json');
-    if (!fs.existsSync(f)) { notices.push(`catalog/${d}/: 没有 rules.json`); continue; }
-    let list;
-    try { list = JSON.parse(fs.readFileSync(f, 'utf8')); } catch (e) { err(`catalog/${d}/rules.json`, `解析失败：${e.message}`); continue; }
-    if (!Array.isArray(list)) { err(`catalog/${d}/rules.json`, '顶层必须是数组'); continue; }
-    perDomain[d] = list.length;
-    total += list.length;
-    list.forEach(e => checkCatalogEntry(d, e, seen));
+    const dirPath = path.join(catDir, d);
+    const entries = [];
+    // 布局一：catalog/<域>/rules.json 一个数组装多条（早期写法，继续支持）
+    const bundle = path.join(dirPath, 'rules.json');
+    if (fs.existsSync(bundle)) {
+      try {
+        const list = JSON.parse(fs.readFileSync(bundle, 'utf8'));
+        if (!Array.isArray(list)) err(`catalog/${d}/rules.json`, '顶层必须是数组');
+        else entries.push(...list);
+      } catch (e) { err(`catalog/${d}/rules.json`, `解析失败：${e.message}`); }
+    }
+    // 布局二：catalog/<域>/<ID>.json 一条一个文件（2026-11-23 起为主布局）
+    for (const f of fs.readdirSync(dirPath)) {
+      if (!f.endsWith('.json') || f === 'rules.json' || f.startsWith('_')) continue;
+      const where = `catalog/${d}/${f}`;
+      let one;
+      try { one = JSON.parse(fs.readFileSync(path.join(dirPath, f), 'utf8')); }
+      catch (e) { err(where, `解析失败：${e.message}`); continue; }
+      if (Array.isArray(one)) { err(where, '单文件条目应是对象，不是数组（多条请放 rules.json）'); continue; }
+      if (one && one.id && f.replace(/\.json$/, '') !== one.id) err(where, `文件名应等于 id（${one.id}）`);
+      entries.push(one);
+    }
+    if (!entries.length) { notices.push(`catalog/${d}/: 目录里没有条目`); continue; }
+    perDomain[d] = entries.length;
+    total += entries.length;
+    entries.forEach((e) => {
+      if (!e.generator && !e.condition) docOnly += 1;
+      checkCatalogEntry(d, e, seen);
+    });
   }
   const empty = DOMAINS.filter(d => !perDomain[d]);
-  console.log(`判据库：${total} 条，分布在 ${Object.keys(perDomain).length}/${DOMAINS.length} 个域`);
+  console.log(`判据库：${total} 条（其中 ${docOnly} 条只说明、判定在 packs 里），分布在 ${Object.keys(perDomain).length}/${DOMAINS.length} 个域`);
   console.log('  ' + DOMAINS.map(d => `${d}=${perDomain[d] || 0}`).join('  '));
   if (empty.length) notices.push(`以下域还是空的：${empty.join('、')}——别人用得多的往往就在空域里`);
   return { total, ids: seen };

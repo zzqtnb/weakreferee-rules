@@ -1,0 +1,31 @@
+{
+  "id": "J17",
+  "title": "J17 命令行里给 PowerShell 自动变量赋值",
+  "domain": "params",
+  "evidence": {
+    "level": "实测",
+    "source": "作者环境真实命中过（次数、时间、会话号不公开）"
+  },
+  "falsePositiveRisk": "low",
+  "defaultAction": "block",
+  "appliesTo": {
+    "tool": "pwsh",
+    "platform": [
+      "win32"
+    ],
+    "shell": [
+      "powershell-5.1"
+    ]
+  },
+  "message": "给 PowerShell 自动变量赋值（只读，或影响解析）",
+  "fix": "换带固定前缀的多字名，如 $envPath 而不是 $home",
+  "severity": "S",
+  "reversible": false,
+  "promotedTo": "windows-powershell#WIN-AUTOVAR-CMD-01",
+  "notes": [
+    "场景例：命令行里给 $home 这类保留名赋值，整条命令当场失效，报错信息完全看不出跟赋值有关，来回改别的部分浪费很久。",
+    "怎么判：pwsh 的 command 文本里出现对 $home / $input / $args 这类自动变量的赋值",
+    "放行：here-string 里定义函数、函数体内的 $args/$input 属合法写法（这类落到 .ps1 用 -File 跑）；换成带固定前缀的多字名",
+    "本条以 rules.json 为准；本文件只说明「检查什么、为什么、怎么救」，正则与自测在包里。"
+  ]
+}

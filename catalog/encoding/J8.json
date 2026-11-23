@@ -1,0 +1,31 @@
+{
+  "id": "J8",
+  "title": "J8 写文本文件必须带 -Encoding",
+  "domain": "encoding",
+  "evidence": {
+    "level": "实测",
+    "source": "作者环境真实命中过（次数、时间、会话号不公开）"
+  },
+  "falsePositiveRisk": "low",
+  "defaultAction": "block",
+  "appliesTo": {
+    "tool": "pwsh",
+    "platform": [
+      "win32"
+    ],
+    "shell": [
+      "powershell-5.1"
+    ]
+  },
+  "message": "写文本文件没带 -Encoding，中文会按默认编码落盘，读回来是乱码",
+  "fix": "加 -Encoding utf8，或改用 [System.IO.File]::WriteAllText($p,$s,(New-Object System.Text.UTF8Encoding($true)))",
+  "severity": "S",
+  "reversible": false,
+  "promotedTo": "windows-powershell#WIN-ENC-01",
+  "notes": [
+    "场景例：导出文本时没写编码，中文落盘变成问号或乱码；当时看着成功，隔天再读才发现内容毁了。",
+    "怎么判：pwsh 命令里出现 >/>> 重定向到 .ps1/.md/.json/.txt/.csv/.yml/.yaml/.xml/.ini，或 Out-File / Set-Content / Add-Content / Export-Csv / Export-Clixml / Tee-Object，而整条命令没有 -Encoding",
+    "放行：有 -Encoding；*> $null、2>&1（不写盘）；目标不是文本扩展名",
+    "本条以 rules.json 为准；本文件只说明「检查什么、为什么、怎么救」，正则与自测在包里。"
+  ]
+}

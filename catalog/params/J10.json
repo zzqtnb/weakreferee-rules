@@ -1,0 +1,32 @@
+{
+  "id": "J10",
+  "title": "J10 别给 PowerShell 自动变量赋值",
+  "domain": "params",
+  "evidence": {
+    "level": "实测",
+    "source": "作者环境真实命中过（次数、时间、会话号不公开）"
+  },
+  "falsePositiveRisk": "low",
+  "defaultAction": "block",
+  "appliesTo": {
+    "tools": [
+      "write",
+      "edit"
+    ],
+    "platform": [
+      "win32"
+    ],
+    "fileMatches": "\\.ps1$"
+  },
+  "message": "往 .ps1 里写了 PowerShell 自动变量赋值（只读或影响解析）",
+  "fix": "换个带前缀的多字名，如 $envPath",
+  "severity": "S",
+  "reversible": false,
+  "promotedTo": "windows-powershell#WIN-PS1-AUTOVAR-01",
+  "notes": [
+    "场景例：脚本里给保留名赋值，一运行就报只读；改了半天别的行，最后才发现撞的是内建变量。",
+    "怎么判：write/edit 往 .ps1 里写 $input= / $args= / $error= / $host= / $home= / $pid= / $matches= / $this= / $foreach= / $psitem=",
+    "放行：非 .ps1；$args 出现在 param(...) 作形参（不带等号）",
+    "本条以 rules.json 为准；本文件只说明「检查什么、为什么、怎么救」，正则与自测在包里。"
+  ]
+}

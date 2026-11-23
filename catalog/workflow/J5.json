@@ -1,0 +1,23 @@
+{
+  "id": "J5",
+  "title": "J5 改文件前先确认锚点还在",
+  "domain": "workflow",
+  "evidence": {
+    "level": "实测",
+    "source": "作者环境真实命中过（次数、时间、会话号不公开）"
+  },
+  "falsePositiveRisk": "low",
+  "defaultAction": "steer",
+  "appliesTo": {
+    "tool": "edit"
+  },
+  "message": "要替换的原文在这个文件里已经找不到（文件被改过，或你要改的是另一个版本）",
+  "fix": "先用 read 看一眼当前内容，再照实际内容改；如果确认内容没变还报，点「这条不对」",
+  "severity": "B",
+  "reversible": false,
+  "promotedTo": "dsh-host#DSH-ANCHOR-01",
+  "notes": [
+    "场景例：隔了一天再改同一段内容，要替换的原文已经被别的改动挪走了，替换落空，AI 却照样报「已修改」；回头看文件根本没变。",
+    "本条以 rules.json 为准；本文件只说明「检查什么、为什么、怎么救」，正则与自测在包里。"
+  ]
+}

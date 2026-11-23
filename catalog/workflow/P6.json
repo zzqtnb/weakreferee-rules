@@ -1,0 +1,28 @@
+{
+  "id": "P6",
+  "title": "P6 判据代码比宿主新——闸跑的还是旧逻辑",
+  "domain": "workflow",
+  "evidence": {
+    "level": "实测",
+    "source": "作者环境真实命中过（次数、时间、会话号不公开）"
+  },
+  "falsePositiveRisk": "low",
+  "defaultAction": "block",
+  "appliesTo": {
+    "tool": "*",
+    "platform": [
+      "win32"
+    ]
+  },
+  "message": "判据文件比宿主进程新——闸正在用旧逻辑判定，等于没装",
+  "fix": "完全退出宿主再打开（不是关窗口，是退出进程）",
+  "severity": "A",
+  "reversible": false,
+  "promotedTo": "dsh-host#DSH-STALE-JUDGE-01",
+  "notes": [
+    "场景例：改完检查规则没有重启程序，后面十几次判断跑的还是旧规则，界面上一直显示通过；这种失效不报错，最难发现。",
+    "怎么判：paramcheck.js 或契约表的 mtime 晚于宿主进程启动时刻（用 process.uptime() 倒推），说明改了判据没重启",
+    "放行：同一个 mtime 只拦第一次，之后降为提示，不把活卡死",
+    "本条以 rules.json 为准；本文件只说明「检查什么、为什么、怎么救」，正则与自测在包里。"
+  ]
+}

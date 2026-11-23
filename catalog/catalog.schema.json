@@ -1,194 +1,206 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "判据库条目 / Catalog Entry",
-  "description": "判据库是「所有能想到的检查」，包是从库里挑出来装进软件的一组。库求全，包求稳。库里的条目比包里的规矩多三个字段：domain、evidence.level、falsePositiveRisk——没有这三样，库越大越害人。",
-  "type": "array",
-  "items": {
-    "type": "object",
-    "required": [
-      "id",
-      "title",
-      "domain",
-      "evidence",
-      "defaultAction"
-    ],
-    "additionalProperties": false,
-    "properties": {
-      "id": {
-        "type": "string",
-        "pattern": "^[A-Z][A-Z0-9-]{2,63}$",
-        "description": "库内唯一编号。建议 CAT-<域>-<序号>，搬进包时再改成包内编号。"
-      },
-      "title": {
-        "type": "string",
-        "minLength": 4,
-        "description": "一句话说这条查什么。非技术人员也要能读懂。"
-      },
-      "domain": {
-        "type": "string",
-        "enum": [
-          "params",
-          "encoding",
-          "path",
-          "risky",
-          "workflow",
-          "protocol",
-          "resource"
-        ],
-        "description": "七个域：params 参数形态／encoding 文本与编码／path 路径与文件／risky 危险操作／workflow 工具选用与顺序／protocol 协议与外发／resource 资源与额度。"
-      },
-      "evidence": {
-        "type": "object",
-        "required": [
-          "level"
-        ],
-        "additionalProperties": false,
-        "description": "证据强度。level 决定这条最多能有多硬的动作。",
-        "properties": {
-          "level": {
-            "type": "string",
-            "enum": [
-              "实测",
-              "文献",
-              "推断"
-            ],
-            "description": "实测＝在自己环境真实命中过并有日志；文献＝来自公开事故报告或别的项目；推断＝想出来的，没验证过。"
-          },
-          "hits": {
-            "type": "integer",
-            "minimum": 0,
-            "description": "实测命中次数。文献与推断写 0。"
-          },
-          "sessions": {
-            "type": "integer",
-            "minimum": 0,
-            "description": "分布在几个会话里。只在 1 个会话出现的要标成局部经验。"
-          },
-          "source": {
-            "type": "string",
-            "description": "证据出处：时间戳、日志片段、事故报道链接、别的项目的规则名。没有出处就写「自己想到的」。"
-          },
-          "lastHit": {
-            "type": "string",
-            "description": "最近一次命中时间。"
-          }
-        }
-      },
-      "falsePositiveRisk": {
-        "type": "string",
-        "enum": [
-          "low",
-          "medium",
-          "high"
-        ],
-        "description": "误拦风险。high 表示正常操作也可能被这条拦住，只能只记不拦或提示。"
-      },
-      "defaultAction": {
-        "type": "string",
-        "enum": [
-          "block",
-          "warn",
-          "steer",
-          "default",
-          "off"
-        ],
-        "description": "库里的建议动作。off＝只在库里躺着，不随任何包装载。规矩：实测+low 才能 block；文献最多 warn；推断最多 steer。"
-      },
-      "appliesTo": {
-        "type": "object",
-        "additionalProperties": false,
-        "description": "适用范围。全部省略表示任何环境都考虑。",
-        "properties": {
-          "tool": {
-            "type": "string"
-          },
-          "tools": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "commandMatches": {
-            "type": "string"
-          },
-          "fileMatches": {
-            "type": "string"
-          },
-          "platform": {
-            "type": "array",
-            "items": {
+  "description": "判据库是「所有能想到的检查」，包是从库里挑出来装进软件的一组。库求全，包求稳。库里的条目比包里的规矩多三个字段：domain、evidence.level、falsePositiveRisk——没有这三样，库越大越害人。 布局（2026-11-23 起）：catalog/<域>/ 下可以是一个 rules.json 数组，也可以一条一个 <ID>.json 对象（文件名必须等于 id）。单文件条目允许只写说明、把判定逻辑留在 packs 里（纯说明条目），此时必须有 notes 与（标 block 时）promotedTo——库里不复制正则，就不会出现两份说法。",
+  "oneOf": [
+    {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/entry"
+      }
+    },
+    {
+      "$ref": "#/definitions/entry"
+    }
+  ],
+  "definitions": {
+    "entry": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "domain",
+        "evidence",
+        "defaultAction"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9-]{1,63}$",
+          "description": "库内唯一编号。建议 CAT-<域>-<序号>，搬进包时再改成包内编号。"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 4,
+          "description": "一句话说这条查什么。非技术人员也要能读懂。"
+        },
+        "domain": {
+          "type": "string",
+          "enum": [
+            "params",
+            "encoding",
+            "path",
+            "risky",
+            "workflow",
+            "protocol",
+            "resource"
+          ],
+          "description": "七个域：params 参数形态／encoding 文本与编码／path 路径与文件／risky 危险操作／workflow 工具选用与顺序／protocol 协议与外发／resource 资源与额度。"
+        },
+        "evidence": {
+          "type": "object",
+          "required": [
+            "level"
+          ],
+          "additionalProperties": false,
+          "description": "证据强度。level 决定这条最多能有多硬的动作。",
+          "properties": {
+            "level": {
+              "type": "string",
               "enum": [
-                "win32",
-                "linux",
-                "darwin"
-              ]
-            }
-          },
-          "shell": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "host": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "models": {
-            "type": "array",
-            "items": {
-              "type": "string"
+                "实测",
+                "文献",
+                "推断"
+              ],
+              "description": "实测＝在自己环境真实命中过并有日志；文献＝来自公开事故报告或别的项目；推断＝想出来的，没验证过。"
+            },
+            "hits": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "实测命中次数。文献与推断写 0。"
+            },
+            "sessions": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "分布在几个会话里。只在 1 个会话出现的要标成局部经验。"
+            },
+            "source": {
+              "type": "string",
+              "description": "证据出处：时间戳、日志片段、事故报道链接、别的项目的规则名。没有出处就写「自己想到的」。"
+            },
+            "lastHit": {
+              "type": "string",
+              "description": "最近一次命中时间。"
             }
           }
+        },
+        "falsePositiveRisk": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "description": "误拦风险。high 表示正常操作也可能被这条拦住，只能只记不拦或提示。"
+        },
+        "defaultAction": {
+          "type": "string",
+          "enum": [
+            "block",
+            "warn",
+            "steer",
+            "default",
+            "off"
+          ],
+          "description": "库里的建议动作。off＝只在库里躺着，不随任何包装载。规矩：实测+low 才能 block；文献最多 warn；推断最多 steer。"
+        },
+        "appliesTo": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "适用范围。全部省略表示任何环境都考虑。",
+          "properties": {
+            "tool": {
+              "type": "string"
+            },
+            "tools": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "commandMatches": {
+              "type": "string"
+            },
+            "fileMatches": {
+              "type": "string"
+            },
+            "platform": {
+              "type": "array",
+              "items": {
+                "enum": [
+                  "win32",
+                  "linux",
+                  "darwin"
+                ]
+              }
+            },
+            "shell": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "host": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "models": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "condition": {
+          "type": "object",
+          "description": "与 rule.schema.json 同构：叶子条件或 all/any/not 组合。"
+        },
+        "generator": {
+          "type": "object",
+          "description": "生成器条目：装载时按外部契约表展开成若干条具体规矩。"
+        },
+        "message": {
+          "type": "string",
+          "description": "给人看的一句话：违反了哪条、为什么。"
+        },
+        "fix": {
+          "type": "string",
+          "description": "给人看的一句话：怎么改。"
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "S",
+            "A",
+            "B",
+            "C"
+          ]
+        },
+        "reversible": {
+          "type": "boolean"
+        },
+        "selfTest": {
+          "type": "object",
+          "description": "自测用例。进包之前必须补上；库里可以先空着，但标了 block 的必须有。"
+        },
+        "promotedTo": {
+          "type": "string",
+          "description": "已经被搬进哪个包的哪个编号。库是货源，包是货架。"
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "hardline": {
+          "type": "boolean",
+          "description": "死线：动作几乎没有正当理由（删根目录、格式化磁盘、删整库）。标了它才允许越过「证据等级决定动作上限」的限制直接 block。"
         }
-      },
-      "condition": {
-        "type": "object",
-        "description": "与 rule.schema.json 同构：叶子条件或 all/any/not 组合。"
-      },
-      "generator": {
-        "type": "object",
-        "description": "生成器条目：装载时按外部契约表展开成若干条具体规矩。"
-      },
-      "message": {
-        "type": "string",
-        "description": "给人看的一句话：违反了哪条、为什么。"
-      },
-      "fix": {
-        "type": "string",
-        "description": "给人看的一句话：怎么改。"
-      },
-      "severity": {
-        "type": "string",
-        "enum": [
-          "S",
-          "A",
-          "B",
-          "C"
-        ]
-      },
-      "reversible": {
-        "type": "boolean"
-      },
-      "selfTest": {
-        "type": "object",
-        "description": "自测用例。进包之前必须补上；库里可以先空着，但标了 block 的必须有。"
-      },
-      "promotedTo": {
-        "type": "string",
-        "description": "已经被搬进哪个包的哪个编号。库是货源，包是货架。"
-      },
-      "notes": {
-        "type": "array",
-        "items": {
-          "type": "string"
-        }
-      },
-      "hardline": {
-        "type": "boolean",
-        "description": "死线：动作几乎没有正当理由（删根目录、格式化磁盘、删整库）。标了它才允许越过「证据等级决定动作上限」的限制直接 block。"
       }
     }
   }

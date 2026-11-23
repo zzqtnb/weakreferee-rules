@@ -1,0 +1,60 @@
+# 判据库
+
+一条一句，挑你要的那几条。这里只写「检查什么、什么时候会撞上、撞上了怎么办」，**具体的判定写在 `packs/` 里**——库里不放正则，就不会出现两份说法对不上的情况。
+
+共 27 条，分 4 个域。动作三档：**拦下**（拒了这次调用）、**提醒**（放行但记一笔）、**记账**（只写日志，不打断）。表里的动作是**默认值**，装到你自己机器上想怎么调都行，改法见 `CONTRIBUTING.md`。
+
+## 编码与行尾（`encoding`，4 条）
+
+| 编号 | 这条管什么 | 什么时候会撞上 | 默认动作 | 文件 |
+|---|---|---|---|---|
+| `J15` | write 往 .ps1 写中文会丢 BOM | 脚本里写了中文注释或中文字符串，落盘后被按本地代码页读成乱码，机器报出一串假的语法错误，人以为是代码逻辑写错。 | block（说明） | `encoding/J15.json` |
+| `J16` | edit 落盘会抹掉 .ps1 的 BOM | 带 BOM 的脚本被普通编辑器改了一次，BOM 悄悄没了；之后运行时中文全乱，从现象上完全看不出是「编辑」这一步造成的。 | block（说明） | `encoding/J16.json` |
+| `J8` | 写文本文件必须带 -Encoding | 导出文本时没写编码，中文落盘变成问号或乱码；当时看着成功，隔天再读才发现内容毁了。 | block（说明） | `encoding/J8.json` |
+| `BAT` | 写 .bat/.cmd 带中文会乱码 | 批处理里写了中文提示，双击运行时显示一串乱码，或者命令解释器读到一半直接停下，人以为是文件坏了。 | steer（说明） | `encoding/BAT.json` |
+
+## 参数与契约（`params`，3 条）
+
+| 编号 | 这条管什么 | 什么时候会撞上 | 默认动作 | 文件 |
+|---|---|---|---|---|
+| `J10` | 别给 PowerShell 自动变量赋值 | 脚本里给保留名赋值，一运行就报只读；改了半天别的行，最后才发现撞的是内建变量。 | block（说明） | `params/J10.json` |
+| `J17` | 命令行里给 PowerShell 自动变量赋值 | 命令行里给 $home 这类保留名赋值，整条命令当场失效，报错信息完全看不出跟赋值有关，来回改别的部分浪费很久。 | block（说明） | `params/J17.json` |
+| `J3` | 调工具前先读参数约束 | 有人让 AI 去抓一个网页，地址写成明文 http，工具连请求都没发出去就回了失败；来回试了几次，才看出是协议写错。 | block（说明） | `params/J3.json` |
+
+## 危险操作（`risky`，16 条）
+
+| 编号 | 这条管什么 | 什么时候会撞上 | 默认动作 | 文件 |
+|---|---|---|---|---|
+| `CAT-RISKY-11` | 删根目录或系统盘根 | 删根目录或系统盘根 | block | `risky/rules.json` |
+| `CAT-RISKY-12` | 整库删除或磁盘格式化 | 整库删除或磁盘格式化 | block | `risky/rules.json` |
+| `CAT-RISKY-01` | 递归强制删除（rm -rf / Remove-Item -Recurse -Force） | 递归强制删除（rm -rf / Remove-Item -Recurse -Force） | warn | `risky/rules.json` |
+| `CAT-RISKY-03` | 数据库删表或清空（DROP / TRUNCATE） | 数据库删表或清空（DROP / TRUNCATE） | warn | `risky/rules.json` |
+| `CAT-RISKY-04` | 没有 WHERE 的 DELETE 或 UPDATE | 没有 WHERE 的 DELETE 或 UPDATE | warn | `risky/rules.json` |
+| `CAT-RISKY-05` | 丢弃未提交改动（git reset --hard / checkout -- . / clean -fd） | 丢弃未提交改动（git reset --hard / checkout -- . / clean -fd） | warn | `risky/rules.json` |
+| `CAT-RISKY-06` | 系统级磁盘或分区操作（diskpart / format / mkfs） | 系统级磁盘或分区操作（diskpart / format / mkfs） | warn | `risky/rules.json` |
+| `CAT-RISKY-07` | 权限全开（chmod -R 777 / icacls Everyone:F） | 权限全开（chmod -R 777 / icacls Everyone:F） | warn | `risky/rules.json` |
+| `CAT-RISKY-09` | 清空日志或审计文件 | 清空日志或审计文件 | warn | `risky/rules.json` |
+| `CAT-RISKY-02` | 变量展开路径的递归删除（rm -rf "$X"/） | 变量展开路径的递归删除（rm -rf "$X"/） | steer | `risky/rules.json` |
+| `CAT-RISKY-08` | 向生产环境发请求（URL 或命令里出现 prod / production） | 向生产环境发请求（URL 或命令里出现 prod / production） | steer | `risky/rules.json` |
+| `CAT-RISKY-10` | 覆盖已存在的脚本或配置文件（重定向 / 写文件到已有路径） | 覆盖已存在的脚本或配置文件（重定向 / 写文件到已有路径） | steer | `risky/rules.json` |
+| `J11` | 整目录镜像前先查目录联接 | 整目录复制或清理时没注意里面有一个指向别处的联接，跟随下去把链接那头的真实文件一起清掉了；删的是「快捷方式」，没的是原件 | steer（说明） | `risky/J11.json` |
+| `J12` | 命令改文件前先落一份可回滚备份 | 一条命令直接覆盖了绝对路径下的配置文件，改错之后没有旧版本可以退回，只能凭记忆重写。 | steer（说明） | `risky/J12.json` |
+| `J13` | 不可逆动作动手前先导出回滚件 | 改注册表、服务或计划任务之前没有导出旧配置，出问题只能靠回忆往回改，改错一处就再也回不到原样。 | steer（说明） | `risky/J13.json` |
+| `J9` | 递归删除先落清单或加 -WhatIf | 一条递归删除直接跑下去，删完才发现目录里还混着不该删的东西，回收站里也未必找得回来。 | steer（说明） | `risky/J9.json` |
+
+## 流程与自检（`workflow`，4 条）
+
+| 编号 | 这条管什么 | 什么时候会撞上 | 默认动作 | 文件 |
+|---|---|---|---|---|
+| `P6` | 判据代码比宿主新——闸跑的还是旧逻辑 | 改完检查规则没有重启程序，后面十几次判断跑的还是旧规则，界面上一直显示通过；这种失效不报错，最难发现。 | block（说明） | `workflow/P6.json` |
+| `J14` | 动手前先查自己建的系统 | 要新建一个脚本，直接动手写了，写完才发现自己以前写过同样的东西、只是起了另一个名字，白写一遍。 | steer（说明） | `workflow/J14.json` |
+| `J5` | 改文件前先确认锚点还在 | 隔了一天再改同一段内容，要替换的原文已经被别的改动挪走了，替换落空，AI 却照样报「已修改」；回头看文件根本没变。 | steer（说明） | `workflow/J5.json` |
+| `J6` | 拿现成文件往下做前先确认它是这一回的 | 接着上周导出的旧清单往下改，没注意那是上一版，改完才发现基线已经过期，后面几处全得重做。 | steer（说明） | `workflow/J6.json` |
+
+---
+
+## 怎么用
+
+- 只看不装：读这一页，挑编号，再打开对应 json 看细节
+- 要真拦：装 `dsh-judge-gate`（见仓库根 README），或把这些条目写进你自己的判据包
+- 想加一条：走 `CONTRIBUTING.md` 的四道关；判据库这边由作者手工合并，不接受直接提 PR 改条目

@@ -77,6 +77,8 @@ profile 的 `cordis.patch.yml` 里对这一条：
 
 `DSH_JUDGE_SHELL` 可以指定判据里认的 shell（默认 pwsh）。
 
+只想用其中几条：`check.cjs` 支持 `--only J8,J12` / `--skip J9`，环境变量 `DSH_JUDGE_ONLY` / `DSH_JUDGE_SKIP` 也认（逗号、分号、空格都行），名字写错会当场点名。**注意范围**：名单管的是规则包引擎那一侧——`check.cjs` 的新引擎列、`DSH_JUDGE_ENGINE=shadow` 的旁路；插件在工具调用前拦的那一下走包内 `lib\paramcheck.js` 的内置判定，不吃名单。
+
 ---
 
 ## 目录

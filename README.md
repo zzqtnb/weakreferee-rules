@@ -194,9 +194,11 @@ node "%USERPROFILE%\weakreferee-rules\dsh-judge-gate\check.cjs" pwsh "command=Ou
 
 细节见 [`dsh-judge-gate/README.md`](dsh-judge-gate/README.md)。
 
+**插件还多一层影子观测（2026-11-24 起，只记不拦）**：判据都在工具调用「之前」看参数，插件额外挂了一个结果监听——某个工具返回失败（报错、找不到文件、空结果）之后 5 分钟内又对同一个文件 `write` / `edit`，就在 `data\j15.log` 里记一行「疑似无视失败」，附上前后两次的工具与目标。它需要宿主的事件流（`tools/result`），规则包引擎没有这条路，所以只有插件版有。看一周，真有东西再谈要不要转正；不需要就设 `DSH_JUDGE_J15=0` 关掉。
+
 ### 五、只装其中几条
 
-目录里的 27 条不必全要。点名要哪几条，其余不加载：
+目录里的判据不必全要。点名要哪几条，其余不加载：
 
 ```
 node weakreferee-cli.js packs --only J8,J12
@@ -208,7 +210,7 @@ node dsh-judge-gate/check.cjs pwsh "command=Out-File D:\a.ps1 -InputObject 中�
 
 两个名字都认：包里那个号（`WIN-ENC-01`）和给人看的号（`J8`）。名字写错会被点名，不会静默少装。
 
-**名单两侧都管**（2026-11-23 改）：插件在工具调用前拦的那一下（`lib/paramcheck.js`）也按同一份名单走，名单外的判据直接跳过；把 `J3` 写进 `--skip`，参数形态整条不判（返回「J3 已按名单关闭」，不静默放行）。配置可以写在 profile 的 `judges.only` / `judges.skipJudges`，也可以写环境变量 `DSH_JUDGE_ONLY` / `DSH_JUDGE_SKIP`。**仍有一处例外**：`J6`（这轮读过的文件是不是这一回的）与 `J14`（一小时内查没查过自己的工具）的判定状态记在进程内，规则包表达不了，名单对它们不起作用。
+**名单两侧都管**（2026-11-23 改）：插件在工具调用前拦的那一下（`lib/paramcheck.js`）也按同一份名单走，名单外的判据直接跳过；把 `J3` 写进 `--skip`，参数形态整条不判（返回「J3 已按名单关闭」，不静默放行）。配置可以写在 profile 的 `judges.only` / `judges.skipJudges`，也可以写环境变量 `DSH_JUDGE_ONLY` / `DSH_JUDGE_SKIP`。**仍有一处例外**：`J6`（这轮读过的文件是不是这一回的）、`J14`（一小时内查没查过自己的工具）与 `J15`（工具失败后又动同一文件）的判定状态记在进程内，规则包表达不了，名单对它们不起作用。
 
 ## 怎么写自己的规矩
 

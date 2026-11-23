@@ -69,6 +69,10 @@ if (!process.env.DSH_JUDGE_TOOLS_DIR) process.env.DSH_JUDGE_TOOLS_DIR = LIB_DIR;
 //    （7 天 2089 条），同类错误不犯第二次。判据库里 J14 仍记「影子期只记不拦」。
 let MARKS_FILE = process.env.DSH_JUDGE_MARKS || join(SELF_DIR, 'data', 'gate-marks.json');
 let J14_LOG = process.env.DSH_JUDGE_J14_LOG || join(dirname(MARKS_FILE), 'j14.log');let J6_LOG = process.env.DSH_JUDGE_J6_LOG || join(dirname(MARKS_FILE), 'j6.log');
+// J15 影子（2026-11-24 加）：工具返回失败之后，模型有没有当没看见接着干。
+//    只记失败的：成功调用占绝大多数，全记会把文件刷成日志垃圾。
+//    只记不拦：判断「无视」靠启发式，影子期先看清长什么样，再谈要不要拦。
+let J15_LOG = process.env.DSH_JUDGE_J15_LOG || join(dirname(MARKS_FILE), 'j15.log');
 // J6 的账只活在这个进程里：按住户进程启动划「本轮」，重启即清空，不落盘。
 // 存 Map 不存数组：同一个文件读多次只留最后一次「什么时候看的」。
 const J6_INPUTS = new Map();   // path -> { mtime, at }
@@ -378,6 +382,73 @@ export function apply(ctx, config) {
     } catch { /* 写不进去不影响判定 */ }
   };
 
+  // ── J15 影子：观测工具结果，只记「失败的那一次」和「失败之后又直接写文件的那一下」。
+  //    为什么用 tools/result 而不是 post-execute：result 是只观测的事件，改不了任何东西，
+  //    最坏情况是这段代码抛错（已 catch），不可能把调用结果弄坏。
+  //    5 MB 滚动：超了改名 .1 再重开，只留一份旧账。
+  const J15_MAX = 5 * 1024 * 1024;
+  let lastFail = null;   // { tool, at }
+  const j15Write = (fields) => {
+    try {
+      mkdirSync(dirname(J15_LOG), { recursive: true });
+      try { if (statSync(J15_LOG).size > J15_MAX) renameSync(J15_LOG, J15_LOG + '.1'); } catch { /* 还没建过 */ }
+      appendFileSync(J15_LOG, [nowStamp(), ...fields].join('\t') + '\n', 'utf8');
+    } catch { /* 记账坏了不影响干活 */ }
+  };
+  const resultLooksFailed = (r) => {
+    if (!r) return false;
+    if (r.isError === true) return true;
+    let text = '';
+    try {
+      if (typeof r.content === 'string') text = r.content;
+      else if (Array.isArray(r.content)) text = r.content.map((x) => (x && (x.text || x.content)) || '').join(' ');
+      else if (r.value !== undefined) text = JSON.stringify(r.value);
+    } catch { text = ''; }
+    const t = String(text).trim();
+    if (t === '') return true;
+    return /(^|\s)Error[:：]|\bnot found\b|no such file|不存在|读取失败/i.test(t.slice(0, 400));
+  };
+  // 逃生门：设 DSH_JUDGE_J15=0 就完全跳过这段（等于这段代码不存在），不用改文件。
+  // 为什么挂在 agent 作用域：dsh-tools 发 tools/result 时用的是 scopeTarget(this, exec.agent)，
+  // 广播目标落在 agent 上，插件根 ctx 收不到（2026-11-24 实测：根 ctx 挂上去一行都没记）。
+  // 所以两件事都做：现有 agent 挨个挂，之后新来的靠 agent/created。
+  if ((process.env.DSH_JUDGE_J15 || '1') !== '0') {
+    const onResult = (exec, result) => {
+      try {
+        if (!resultLooksFailed(result)) return;
+        let brief = '';
+        try {
+          const a = exec && exec.arguments;
+          brief = a && typeof a === 'object'
+            ? String(a.file_path || a.path || a.command || '').replace(/\s+/g, ' ').slice(0, 80) : '';
+        } catch { brief = ''; }
+        const msg = result && result.error && result.error.message
+          ? String(result.error.message).replace(/\s+/g, ' ').slice(0, 80) : '';
+        j15Write(['结果失败', (exec && exec.name) || '?', msg, brief]);
+        lastFail = { tool: (exec && exec.name) || '?', at: Date.now() };
+      } catch { /* 观测失败不影响调用 */ }
+    };
+    const attach = (agent) => {
+      try {
+        const actx = agent && agent.ctx;
+        if (!actx || typeof actx.on !== 'function' || actx === ctx) return;
+        actx.on('tools/result', onResult);
+      } catch { /* 单个 agent 挂不上不影响别的 */ }
+    };
+    // 软注入：agents 服务在时回调才跑；宿主没有这个服务时整段静默，闸照常工作。
+    try {
+      ctx.inject(['agents'], (act) => {
+        try {
+          const live = act.agents && typeof act.agents.list === 'function' ? act.agents.list() : [];
+          for (const a of live) attach(a);
+        } catch { /* 列不出来就只靠 agent/created */ }
+        act.on('agent/created', (payload) => attach(payload && payload.agent));
+      });
+    } catch (err) {
+      ctx.logger?.warn?.(`[judge-gate] J15 观测没注册上：${err && err.message ? err.message : err}（闸照常工作）`);
+    }
+  }
+
   // ── 新引擎旁路（2026-11-22 加）：规则包版引擎跟着判一遍，但**不参与判定**。
   //    为什么要旁路而不是直接换：换掉判定者，新引擎一旦有 bug，坏的是「能不能干活」；
   //    旁路只多写一份对照日志，主机的行为一个字都不变，出问题删掉环境变量就回到原样。
@@ -433,6 +504,15 @@ export function apply(ctx, config) {
     try {
       if (skip.has(exec.name)) return undefined;
       const args = exec.arguments;
+      // J15 影子：上一条工具结果刚失败，这一下又直接写文件——记一笔「可能无视了失败」，不拦
+      try {
+        if (lastFail && Date.now() - lastFail.at < 5 * 60 * 1000 && (exec.name === 'write' || exec.name === 'edit')) {
+          const tgt = args && typeof args === 'object'
+            ? String(args.file_path || args.path || '').replace(/\s+/g, ' ').slice(0, 80) : '';
+          j15Write(['疑似无视失败', exec.name, lastFail.tool, tgt]);
+          lastFail = null;
+        }
+      } catch { /* 同上：记不上不影响干活 */ }
       try { markSelfCheck(exec); } catch { /* 记账坏了不影响判定 */ }
       try { j14Hit = j14Check(exec); } catch { j14Hit = null; }      try { j6TrackRead(exec); } catch { /* 记账坏了不影响判定 */ }
       try { j6Hit = j6Check(exec); } catch { j6Hit = null; }

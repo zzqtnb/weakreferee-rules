@@ -8,10 +8,11 @@
   "license": "AGPL-3.0-only",
   "appliesTo": {},
   "loadOrder": 10,
-  "rules": 2,
+  "rules": 3,
   "ruleIds": [
     "CORE-HTTPS-01",
-    "CORE-PARAMS-GEN"
+    "CORE-PARAMS-GEN",
+    "CORE-ARGTYPE-01"
   ],
   "testedOn": {
     "host": "DSH 桌面版（Windows）",
@@ -22,7 +23,7 @@
     "note": "hits 为 3（CORE-HTTPS-01）+ 165（CORE-PARAMS-GEN）"
   },
   "notes": [
-    "CORE-PARAMS-GEN 不是手写规则，它声明的是一个生成器：读取工具契约表后编译出具体规则。",
+    "CORE-PARAMS-GEN 不是手写规则，它声明的是一个生成器：读取工具契约表后编译出具体规则。CORE-ARGTYPE-01 同理，读契约表逐参数比类型——表里没声明类型的键直接放过。",
     "在 273 个工具的契约表上，它会展开成 451 条规则。",
     "契约表本身不随本包分发——它描述的是某一个具体宿主暴露的工具集，换宿主就会变。"
   ,

@@ -260,9 +260,20 @@ const ID_ALIAS = {
   J15: ['J15', 'WIN-PS1-CJK-01'], J16: ['J16', 'WIN-PS1-BOM-EDIT-01'],
   J17: ['J17', 'WIN-AUTOVAR-CMD-01'], P6: ['P6', 'DSH-STALE-JUDGE-01'],
   BAT: ['BAT', 'WIN-BAT-CJK-01'],
+  // 2026-11-24 补：引擎接入后这七条由引擎判，名单要认它们，否则 J18 这类关不掉
+  J18: ['J18', 'WIN-SQL-DELETE-01'], J19: ['J19', 'WIN-GIT-DISCARD-01'],
+  J20: ['J20', 'WIN-PERM-OPEN-01'], J21: ['J21', 'WIN-VARPATH-RM-01'],
+  J22: ['J22', 'WIN-SQL-DROP-01'], J23: ['J23', 'WIN-LOG-WIPE-01'],
+  J24: ['J24', 'CORE-ARGTYPE-01'],
 };
 function judgeEnabled(id) {
-  const names = ID_ALIAS[id] || [String(id || '').toUpperCase()];
+  const raw = String(id || '');
+  // 双向找：按判据号（J18）或按规则名（WIN-SQL-DELETE-01）都要能认
+  let names = ID_ALIAS[raw];
+  if (!names) {
+    const key = Object.keys(ID_ALIAS).find((k) => ID_ALIAS[k].includes(raw) || ID_ALIAS[k].includes(raw.toUpperCase()));
+    names = key ? ID_ALIAS[key] : [raw.toUpperCase()];
+  }
   if (ONLY_LIST.length && !names.some((n) => ONLY_LIST.includes(n))) return false;
   if (names.some((n) => SKIP_LIST.includes(n))) return false;
   return true;
@@ -574,6 +585,10 @@ function checkText(name, args) {
 
 // 参数形态（J3）也受名单管：关掉就整条不判，返回通过而不是假装没收录
 function checkGuarded(name, args, badJson) {
+  // 2026-11-24：引擎（本体）接管后，这里只留机械能力——JSON 容错解析、备份快照、名单。
+  // 判定交给规则包（插件：一条一个，装不装用户定）。引擎加载成功时 index.js 置这个变量；
+  // 引擎没起来就不置，退回本文件的旧判定，闸不会变成裸奔。
+  if (process.env.DSH_JUDGE_ENGINE_PRIMARY === '1') return { status: '通过', notes: '', judge: undefined };
   if (!judgeEnabled('J3')) return { status: '通过', notes: 'J3 已按名单关闭' };
   return check(name, args, badJson);
 }

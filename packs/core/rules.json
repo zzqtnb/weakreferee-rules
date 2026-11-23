@@ -84,5 +84,82 @@
       "source": "作者环境拦记账本 / 作者环境回放记录（无规则编号的 165 次）"
     },
     "scene": "调用工具时把参数键名记成另一个相近的词，或者漏掉一个必填键，工具只回一句看不懂的报错；人以为是自己的描述不清楚，其实是参数形态不对。"
+  },
+  {
+    "id": "CORE-ARGTYPE-01",
+    "legacyJudge": "J24",
+    "title": "参数类型与契约表不符",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "*"
+    },
+    "condition": {
+      "type": "argTypeMismatch"
+    },
+    "action": "block",
+    "severity": "B",
+    "message": "参数类型跟工具要求的不一样（表里写 string，你给了数组之类）",
+    "fix": "按工具契约改类型：要字符串就传字符串（多个值用逗号连或分多次调用），要整数就别加引号",
+    "reversible": false,
+    "evidence": {
+      "hits": 7,
+      "sessions": 2,
+      "source": "2026-11-24 回扫 226 个会话、23,523 次真实工具调用：命中 6 次调用 / 7 个键（keywords×2、chapter、hidden、forbidden、participants、updates），逐条看过全是真错，零误报"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "tool": "novel_worldbook",
+          "args": {
+            "keywords": [
+              "五行",
+              "属性",
+              "一人一属"
+            ]
+          },
+          "expect": "block"
+        },
+        {
+          "tool": "novel_outline",
+          "args": {
+            "chapter": "1"
+          },
+          "expect": "block"
+        },
+        {
+          "tool": "novel_scene",
+          "args": {
+            "hidden": []
+          },
+          "expect": "block"
+        },
+        {
+          "tool": "novel_worldbook",
+          "args": {
+            "keywords": "五行,属性,一人一属"
+          },
+          "expect": "pass"
+        },
+        {
+          "tool": "memory_remember",
+          "args": {
+            "keywords": [
+              "a",
+              "b"
+            ]
+          },
+          "expect": "pass"
+        },
+        {
+          "tool": "novel_outline",
+          "args": {
+            "chapter": 1
+          },
+          "expect": "pass"
+        }
+      ],
+      "needFs": false
+    },
+    "scene": "给世界书塞关键词时把一串词包成数组传进去，工具照收不误，存下来是一个长字符串；后面按关键词检索，一条都命中不了。"
   }
 ]

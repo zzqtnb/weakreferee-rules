@@ -23,6 +23,7 @@ const KIND = ['core', 'platform', 'model', 'host', 'scene'];
 const SEVERITY = ['S', 'A', 'B', 'C'];
 const CONDITION = [
   'missingKey', 'emptyValue', 'missingAnyOf', 'wrongKey', 'extraKey', 'typeMismatch',
+  'argTypeMismatch',
   'missingFlag', 'regexHit', 'regexMiss', 'fileLacksBom', 'fileHasBom',
   'fileAnchorMissing', 'fileAnchorMultiple', 'fileNewerThan', 'fileNewerThanProcessStart',
   'unknownKey', 'pathOutside', 'cmdAbsPathWritten',

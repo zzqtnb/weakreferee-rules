@@ -453,32 +453,68 @@ export function apply(ctx, config) {
   //    为什么要旁路而不是直接换：换掉判定者，新引擎一旦有 bug，坏的是「能不能干活」；
   //    旁路只多写一份对照日志，主机的行为一个字都不变，出问题删掉环境变量就回到原样。
   //    开关 DSH_JUDGE_ENGINE=shadow；不设或 off ＝ 这段等于不存在（零开销、零风险）。
-  let shadowJudge = null;
+  // 2026-11-24 改：从「按 DSH_JUDGE_ENGINE=shadow 才旁路」升为「总是加载、参与判定」。
+  // 理由（离线对照 9,162 次真实调用，80 个会话）：只有 paramcheck 拦 0 条、只有引擎拦 94 条
+  // → 引擎 21 条是 paramcheck 那 12 条的超集，且多拦的都是真的（写中文 .ps1 不带编码等）。
+  // paramcheck 保留两用：① J14 是进程内状态，引擎表达不了；② 引擎加载失败时兜底。
+  let engineJudge = null;
   let shadowLog = null;
-  if ((process.env.DSH_JUDGE_ENGINE || 'off').toLowerCase() === 'shadow') {
+  {
     try {
       const REQ = createRequire(import.meta.url);
       const JE = REQ(join(ENGINE_DIR, 'judge.js'));
       const EX = REQ(join(ENGINE_DIR, 'expand.js'));
-      const rs0 = JE.load(RULE_DIRS, JE.ENV);
+      // 判据从「安装清单」来（2026-11-24 改）：本体装上是空的，用户用 judge-packs 自己挑
+      //   data/judges-installed.json = { packs: ["core"], rules: ["J16"] }
+      //   环境变量 DSH_JUDGE_PACKS / DSH_JUDGE_RULES 优先（临时试装用）
+      const STORE = join(dirname(MARKS_FILE), 'judges-installed.json');
+      let inst = null;
+      try { inst = JSON.parse(readFileSync(STORE, 'utf8').replace(/^\uFEFF/, '')); } catch { /* 没装就是空的 */ }
+      const split = (s) => String(s || '').split(/[,;\s]+/).map((x) => x.trim()).filter(Boolean);
+      const wantPacks = split(process.env.DSH_JUDGE_PACKS).length
+        ? split(process.env.DSH_JUDGE_PACKS)
+        : (inst && Array.isArray(inst.packs) ? inst.packs : []);
+      const wantRules = split(process.env.DSH_JUDGE_RULES).length
+        ? split(process.env.DSH_JUDGE_RULES)
+        : (inst && Array.isArray(inst.rules) ? inst.rules : []);
+      const picked = [];
+      const rejectedAll = [];
+      for (const d of RULE_DIRS) {
+        const packId = d.split(/[\\/]/).pop();
+        const on = wantPacks.includes(packId);
+        if (!on && !wantRules.length) continue;
+        if (!existsSync(d)) continue;
+        const one = JE.load([d], JE.ENV);
+        if (one.rejected) rejectedAll.push(...one.rejected);
+        for (const r of one.rules) {
+          if (on || wantRules.includes(r.id) || wantRules.includes(r.legacyJudge)) picked.push(r);
+        }
+      }
+      const rs0 = { rules: picked, rejected: rejectedAll };
       const ex = EX.expandAll(rs0.rules, { dir: LIB_DIR });
       // judge() 的数组分支不认 when，这里先自己筛出 tool:pre 那一批
       const pre = ex.rules.filter((r) => (r.when || 'tool:pre') === 'tool:pre');
       shadowLog = opts.shadowLogPath ||
         join(logPath ? dirname(logPath) : join(SELF_DIR, 'data'), '新引擎对照.tsv');
-      shadowJudge = (call) => {
+      engineJudge = (call) => {
         const hits = JE.judge(call, pre);
         const v = JE.adjudicate(hits);
         const ids = hits.map((h) => h.ruleId || (h.rule && h.rule.id) || '?');
-        return { action: (v && v.action) || 'pass', notes: ids.join(',') };
+        const msgs = hits.map((h) => h.message || (h.rule && h.rule.message) || '').filter(Boolean);
+        const fixes = hits.map((h) => h.fix || (h.rule && h.rule.fix) || '').filter(Boolean);
+        return { action: (v && v.action) || 'pass', ids, message: msgs[0] || '', fix: fixes[0] || '' };
       };
       ctx.logger?.info?.(
-        `[judge-gate] 新引擎旁路已开（只对照、不判定）：包 ${rs0.rules.length} 条→展开 ${pre.length} 条` +
-        `${rs0.rejected.length ? `，拒装 ${rs0.rejected.length} 条` : ''}，对照日志 ${shadowLog}`);
+        picked.length
+          ? `[judge-gate] 规则引擎已接入判定：装 ${picked.length} 条规则→展开 ${pre.length} 条` +
+            `${rejectedAll.length ? `，拒装 ${rejectedAll.length} 条` : ''}，记录 ${shadowLog}`
+          : `[judge-gate] 引擎已就绪，但一条判据都没装（装上是空的）。跑 node tools/judge-packs.js list 看看有哪些可装`);
+      // 告诉 paramcheck：判定归引擎了，你只做机械活（容错解析/备份/名单）
+      process.env.DSH_JUDGE_ENGINE_PRIMARY = '1';
     } catch (err) {
-      // 旁路加载失败只降级，绝不牵连主判定
-      shadowJudge = null;
-      ctx.logger?.warn?.(`[judge-gate] 新引擎旁路未启用：${err.message}`);
+      // 引擎加载失败退回 paramcheck 单轨——少一套判据，但闸还能用
+      engineJudge = null;
+      ctx.logger?.warn?.(`[judge-gate] 规则引擎未接入（退回 paramcheck 单轨）：${err.message}`);
     }
   }
 
@@ -540,6 +576,30 @@ export function apply(ctx, config) {
         const r = check(exec.name, badJson ? null : args, badJson);
         status = r.status;
         notes = r.notes || '';
+        if (r.judge) judge = r.judge;
+        // 规则引擎全量判定（2026-11-24 接入）：与 paramcheck 取并集，任一 block 即拦。
+        if (engineJudge) {
+          try {
+            const s = engineJudge({
+              when: 'tool:pre', tool: exec.name, args: badJson ? null : args,
+              platform: 'windows', shell: 'powershell-5.1', host: 'dsh', cwd: process.cwd(),
+            });
+            if (s && s.action === 'block') {
+              // 名单过滤（用户自己的选择优先）：被 skip 的条不拦，只装几条时只拦那几条
+              const live = pc.judgeEnabled ? s.ids.filter((id) => pc.judgeEnabled(id)) : s.ids;
+              if (live.length) {
+                const engNote = s.fix ? `${s.message}（${s.fix}）` : (s.message || live.join(','));
+                if (status === '拦下') {
+                  notes = notes ? `${notes}；引擎另有 ${live.join(',')}` : `${live.join(',')}：${engNote}`;
+                } else {
+                  status = '拦下';
+                  judge = live.join(',') || judge;
+                  notes = engNote;
+                }
+              }
+            }
+          } catch (e) { /* 引擎抛错不影响 paramcheck 的结论 */ }
+        }
         // 文本判据（J8/J9/J10）：J3 已经拦下就不再叠；「提示」只把理由记进日志、不改判定列
         if (status !== '拦下' && checkText) {
           const r2 = checkText(exec.name, badJson ? null : args);

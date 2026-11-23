@@ -1,0 +1,556 @@
+[
+  {
+    "id": "WIN-ENC-01",
+    "legacyJudge": "J8",
+    "title": "写文本文件必须显式指定编码",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "pwsh",
+      "platform": [
+        "windows"
+      ],
+      "shell": [
+        "powershell-5.1"
+      ]
+    },
+    "condition": {
+      "all": [
+        {
+          "any": [
+            {
+              "type": "regexHit",
+              "in": "args.command",
+              "maskQuoted": false,
+              "pattern": "(^|[^0-9*>=])>{1,2}\\s*(\"[^\"]+\\.(?:ps1|md|json|txt|csv|log|yml|yaml|xml|ini)\"|'[^']+\\.(?:ps1|md|json|txt|csv|log|yml|yaml|xml|ini)'|[^\\s|;&<>]+\\.(?:ps1|md|json|txt|csv|log|yml|yaml|xml|ini))"
+            },
+            {
+              "type": "regexHit",
+              "in": "args.command",
+              "maskQuoted": true,
+              "pattern": "\\b(Out-File|Set-Content|Add-Content|Export-Csv|Export-Clixml|Tee-Object)\\b"
+            }
+          ]
+        },
+        {
+          "type": "regexMiss",
+          "in": "args.command",
+          "maskQuoted": true,
+          "pattern": "-Encoding\\b"
+        }
+      ]
+    },
+    "action": "block",
+    "severity": "S",
+    "message": "写文本文件没带 -Encoding，中文会按默认编码落盘，读回来是乱码",
+    "fix": "加 -Encoding utf8，或改用 [System.IO.File]::WriteAllText($p,$s,(New-Object System.Text.UTF8Encoding($true)))",
+    "reversible": false,
+    "evidence": {
+      "hits": 29,
+      "sessions": 16,
+      "source": "作者环境拦记账本 / 作者环境回放记录",
+      "whyRaw": "e-m-02：6 天记了 10 条、从未合并"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "command": "Out-File -FilePath a.txt"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "Get-Content a.md > b.md"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "\"x\" | Set-Content c.json"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "Out-File -FilePath a.txt -Encoding utf8"
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
+            "command": "Select-String -Pattern 'Out-File|Set-Content'"
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
+            "command": "Get-ChildItem | Where-Object { $_.Name -like '*.json' }"
+          },
+          "expect": "pass"
+        }
+      ],
+      "needFs": false
+    },
+    "scene": "导出文本时没写编码，中文落盘变成问号或乱码；当时看着成功，隔天再读才发现内容毁了。"
+  },
+  {
+    "id": "WIN-AUTOVAR-CMD-01",
+    "legacyJudge": "J17",
+    "title": "命令行里不许给 PowerShell 自动变量赋值",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "pwsh",
+      "platform": [
+        "windows"
+      ],
+      "shell": [
+        "powershell-5.1"
+      ]
+    },
+    "condition": {
+      "type": "regexHit",
+      "in": "args.command",
+      "maskQuoted": true,
+      "pattern": "\\$(input|args|error|host|home|pid|matches|this|foreach|psitem)\\s*=(?!=)"
+    },
+    "action": "block",
+    "severity": "S",
+    "message": "给 PowerShell 自动变量赋值（只读，或影响解析）",
+    "fix": "换带固定前缀的多字名，如 $envPath 而不是 $home",
+    "reversible": false,
+    "evidence": {
+      "hits": 12,
+      "sessions": 11,
+      "source": "作者环境拦记账本（累计命中见 hits）"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "command": "$home = 'D:\\x'"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "$args = 1"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "$envPath = 'D:\\x'"
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
+            "command": "Write-Output '$home = 1'"
+          },
+          "expect": "pass"
+        }
+      ],
+      "needFs": false
+    },
+    "scene": "命令行里给 $home 这类保留名赋值，整条命令当场失效，报错信息完全看不出跟赋值有关，来回改别的部分浪费很久。"
+  },
+  {
+    "id": "WIN-PS1-AUTOVAR-01",
+    "legacyJudge": "J10",
+    "title": "往 .ps1 里写自动变量赋值",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tools": [
+        "write",
+        "edit"
+      ],
+      "platform": [
+        "windows"
+      ],
+      "fileMatches": "\\.ps1$"
+    },
+    "condition": {
+      "any": [
+        {
+          "type": "regexHit",
+          "in": "args.content",
+          "pattern": "\\$(input|args|error|host|home|pid|matches|this|foreach|psitem)\\s*=(?!=)"
+        },
+        {
+          "type": "regexHit",
+          "in": "args.new_string",
+          "pattern": "\\$(input|args|error|host|home|pid|matches|this|foreach|psitem)\\s*=(?!=)"
+        }
+      ]
+    },
+    "action": "block",
+    "severity": "S",
+    "message": "往 .ps1 里写了 PowerShell 自动变量赋值（只读或影响解析）",
+    "fix": "换个带前缀的多字名，如 $envPath",
+    "reversible": false,
+    "evidence": {
+      "hits": 1,
+      "sessions": 1,
+      "source": "作者环境拦记账本（累计命中见 hits）"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "file_path": "a.ps1",
+            "content": "$home = 'D:\\x'"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "file_path": "a.txt",
+            "content": "$home = 1"
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
+            "file_path": "b.ps1",
+            "content": "$envPath = 1"
+          },
+          "expect": "pass"
+        }
+      ],
+      "needFs": false,
+      "note": [
+        "原来：write a.ps1 内容含 $home = 'D:\\x'",
+        "原来：write a.txt 内容含 $home = 1（不是 .ps1）"
+      ]
+    },
+    "scene": "脚本里给保留名赋值，一运行就报只读；改了半天别的行，最后才发现撞的是内建变量。"
+  },
+  {
+    "id": "WIN-PS1-CJK-01",
+    "legacyJudge": "J15",
+    "title": "write 往 .ps1 写中文正文",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "write",
+      "platform": [
+        "windows"
+      ],
+      "fileMatches": "\\.ps1$"
+    },
+    "condition": {
+      "type": "regexHit",
+      "in": "args.content",
+      "pattern": "[^\\x00-\\x7F]"
+    },
+    "action": "block",
+    "severity": "S",
+    "message": "write 落盘是无 BOM 的 UTF-8，Windows PowerShell 5.1 会按 GBK 解析中文成乱码、报一串假语法错",
+    "fix": "改用 pwsh 一次写完：[System.IO.File]::WriteAllText($p,$s,(New-Object System.Text.UTF8Encoding($true)))，同一次调用里回读 [System.IO.File]::ReadAllBytes($p)[0..2] 必须是 239,187,191",
+    "reversible": false,
+    "evidence": {
+      "hits": 91,
+      "sessions": 33,
+      "source": "作者环境拦记账本 / 作者环境回放记录"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "file_path": "a.ps1",
+            "content": "写中文"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "file_path": "a.ps1",
+            "content": "ascii only"
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
+            "file_path": "a.txt",
+            "content": "中文"
+          },
+          "expect": "pass"
+        }
+      ],
+      "needFs": false,
+      "note": [
+        "原来：write a.ps1 内容含中文",
+        "原来：write a.ps1 纯 ASCII 内容",
+        "原来：write a.txt 含中文"
+      ]
+    },
+    "scene": "脚本里写了中文注释或中文字符串，落盘后被按本地代码页读成乱码，机器报出一串假的语法错误，人以为是代码逻辑写错。"
+  },
+  {
+    "id": "WIN-PS1-BOM-EDIT-01",
+    "legacyJudge": "J16",
+    "title": "edit 会去掉 .ps1 的 BOM",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "edit",
+      "platform": [
+        "windows"
+      ],
+      "fileMatches": "\\.ps1$"
+    },
+    "condition": {
+      "type": "fileHasBom",
+      "key": "file_path"
+    },
+    "action": "block",
+    "severity": "S",
+    "message": "这个 .ps1 带 BOM，edit 落盘会把 BOM 去掉（实测 73→70 字节，纯 ASCII 替换也会）",
+    "fix": "改用 pwsh 一次改完：ReadAllText 取全文、替换、WriteAllText 带 UTF8Encoding($true) 写回，并回读前三字节确认 239,187,191",
+    "reversible": true,
+    "evidence": {
+      "hits": 100,
+      "sessions": 17,
+      "source": "作者环境拦记账本 / 作者环境回放记录"
+    },
+    "selfTest": {
+      "cases": [],
+      "needFs": true,
+      "note": [
+        "需要真实文件：edit 带 BOM 的 a.ps1 应拦；edit 不带 BOM 的 a.ps1 应放行；edit 带 BOM 的 a.md 应放行",
+        "由集成测试 _selftest4.js 用临时文件验证"
+      ]
+    },
+    "scene": "带 BOM 的脚本被普通编辑器改了一次，BOM 悄悄没了；之后运行时中文全乱，从现象上完全看不出是「编辑」这一步造成的。"
+  },
+  {
+    "id": "WIN-RMDIR-01",
+    "legacyJudge": "J9",
+    "title": "递归删除没带 -WhatIf",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "pwsh",
+      "platform": [
+        "windows"
+      ]
+    },
+    "condition": {
+      "all": [
+        {
+          "type": "regexHit",
+          "in": "args.command",
+          "maskQuoted": true,
+          "pattern": "\\b(Remove-Item|rm|ri|del|erase|rd|rmdir)\\b[^|;]*(-Recurse\\b|/s\\b|-r\\b|/q\\s*/s)"
+        },
+        {
+          "type": "regexMiss",
+          "in": "args.command",
+          "maskQuoted": true,
+          "pattern": "-WhatIf\\b"
+        }
+      ]
+    },
+    "action": "warn",
+    "severity": "A",
+    "message": "递归删除未带 -WhatIf（影子期只记不拦）",
+    "fix": "先落完整清单，或先加 -WhatIf 干跑一遍再删",
+    "reversible": false,
+    "evidence": {
+      "hits": 0,
+      "sessions": 0,
+      "source": "影子期，尚未拦过"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "command": "Remove-Item D:\\x -Recurse"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "Remove-Item D:\\x -Recurse -WhatIf"
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
+            "command": "Get-Content a | Select-String 'Remove-Item -Recurse'"
+          },
+          "expect": "pass"
+        }
+      ],
+      "needFs": false
+    },
+    "scene": "一条递归删除直接跑下去，删完才发现目录里还混着不该删的东西，回收站里也未必找得回来。"
+  },
+  {
+    "id": "WIN-IRREVERSIBLE-01",
+    "legacyJudge": "J13",
+    "title": "不可逆系统动作前先备回滚材料",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "pwsh",
+      "platform": [
+        "windows"
+      ]
+    },
+    "condition": {
+      "type": "regexHit",
+      "in": "args.command",
+      "maskQuoted": true,
+      "pattern": "\\b(reg\\s+(add|delete|import)|New-Service|Set-Service|Remove-Service|Register-ScheduledTask|Unregister-ScheduledTask|Format-Volume|Initialize-Disk|Clear-Disk|vssadmin|wbadmin)\\b|\\bsc(\\.exe)?\\s+(create|delete|config)\\b|\\bschtasks(\\.exe)?\\s+/(create|delete)\\b|\\bnetsh\\s+(int|advfirewall|winsock)\\s+\\w+\\s+(set|reset|delete)\\b|\\bdiskpart\\b"
+    },
+    "action": "warn",
+    "severity": "A",
+    "message": "不可逆动作（改注册表/服务/计划任务/磁盘/网络配置），rewind 与回收站都救不回",
+    "fix": "先导出回滚材料（reg export / 服务定义 / 任务 XML），再执行",
+    "reversible": false,
+    "evidence": {
+      "hits": 0,
+      "sessions": 0,
+      "source": "影子期，尚未拦过"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "command": "reg add HKCU\\Software\\x /v y /d z"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "sc delete SomeService"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "Get-Service"
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
+            "command": "reg query HKCU\\Software"
+          },
+          "expect": "pass"
+        }
+      ],
+      "needFs": false
+    },
+    "scene": "改注册表、服务或计划任务之前没有导出旧配置，出问题只能靠回忆往回改，改错一处就再也回不到原样。"
+  },
+  {
+    "id": "WIN-MIRROR-01",
+    "legacyJudge": "J11",
+    "title": "整目录镜像前先查目录联接",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "pwsh",
+      "platform": [
+        "windows"
+      ]
+    },
+    "condition": {
+      "type": "regexHit",
+      "in": "args.command",
+      "maskQuoted": true,
+      "pattern": "(?:^|[\\r\\n;|&({])\\s*(?:&|\\.\\s+)?robocopy\\b[^|;\\r\\n]*/(MIR|PURGE)\\b"
+    },
+    "action": "warn",
+    "severity": "A",
+    "message": "整目录镜像/清理未先查目录联接：robocopy 跟随 junction，镜像一个含联接的目录等于清空链接目标",
+    "fix": "先 Get-ChildItem -Force 看目标里有没有 ReparsePoint，有就只删链接不动内容",
+    "reversible": false,
+    "evidence": {
+      "hits": 0,
+      "sessions": 0,
+      "source": "作者环境实测会话：跟随式复制把 junction 指向的真实源码一并清空，30 秒清掉三个插件"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "command": "robocopy D:\\a D:\\b /MIR"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "robocopy D:\\a D:\\b /E"
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
+            "command": "Write-Output 'robocopy D:\\a D:\\b /MIR'"
+          },
+          "expect": "pass"
+        }
+      ],
+      "needFs": false
+    },
+    "scene": "整目录复制或清理时没注意里面有一个指向别处的联接，跟随下去把链接那头的真实文件一起清掉了；删的是「快捷方式」，没的是原件。"
+  },
+  {
+    "id": "WIN-BAT-CJK-01",
+    "legacyJudge": "mine",
+    "title": "write 往 .bat/.cmd 写中文正文",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "write",
+      "platform": [
+        "windows"
+      ],
+      "fileMatches": "\\.(bat|cmd)$"
+    },
+    "condition": {
+      "type": "regexHit",
+      "in": "args.content",
+      "pattern": "[^\\x00-\\x7F]"
+    },
+    "action": "warn",
+    "severity": "S",
+    "message": "批处理文件按本地代码页解析（中文系统是 GBK），写进去的中文会变乱码，或者让 cmd 读到一半报错",
+    "fix": "批处理里只写 ASCII；必须输出中文时，在文件开头加 chcp 65001，并让 bat 用 type 输出一个外部 UTF-8 文本文件",
+    "reversible": true,
+    "evidence": {
+      "hits": 9,
+      "sessions": 4,
+      "source": "mine：作者环境 195 个会话、20,107 次调用里统计到 9 次（write 调用 1,107 次）"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "file_path": "a.bat",
+            "content": "echo 中文"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "file_path": "a.bat",
+            "content": "echo hello"
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
+            "file_path": "a.txt",
+            "content": "中文"
+          },
+          "expect": "pass"
+        }
+      ],
+      "needFs": false,
+      "note": [
+        "原来：write a.bat 含中文",
+        "原来：write a.bat 纯 ASCII",
+        "原来：write a.txt 含中文（.txt 不归它管）"
+      ]
+    },
+    "scene": "批处理里写了中文提示，双击运行时显示一串乱码，或者命令解释器读到一半直接停下，人以为是文件坏了。"
+  }
+]

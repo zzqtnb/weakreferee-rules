@@ -1,0 +1,64 @@
+[
+  {
+    "id": "CORE-HTTPS-01",
+    "title": "web_fetch 只接受 https",
+    "domain": "protocol",
+    "evidence": {
+      "level": "实测",
+      "hits": 3,
+      "sessions": 3,
+      "source": "作者环境拦记账本（累计命中见 hits）"
+    },
+    "falsePositiveRisk": "low",
+    "defaultAction": "block",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "web_fetch"
+    },
+    "condition": {
+      "any": [
+        {
+          "type": "regexHit",
+          "in": "args.url",
+          "pattern": "^http://"
+        },
+        {
+          "type": "regexHit",
+          "in": "args.urls",
+          "pattern": "^http://"
+        }
+      ]
+    },
+    "message": "web_fetch 只收 https，http:// 会被工具直接拒绝",
+    "fix": "把 http:// 换成 https://",
+    "severity": "B",
+    "reversible": false,
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "url": "http://example.com"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "url": "https://example.com"
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
+            "urls": [
+              "http://a.com",
+              "https://b.com"
+            ]
+          },
+          "expect": "block"
+        }
+      ],
+      "needFs": false
+    },
+    "promotedTo": "core/CORE-HTTPS-01"
+  }
+]

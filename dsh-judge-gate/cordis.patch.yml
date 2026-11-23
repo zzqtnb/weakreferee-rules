@@ -1,0 +1,17 @@
+# dsh-judge-gate bundle patch.
+#
+# One host row: a monotonic `tools/pre-execute` guard that runs the bundled
+# paramcheck table (判据 J3) before any tool dispatches, and appends every
+# decision to a tsv.
+#
+# 一切默认值都相对插件自身目录（lib/ engine/ rules/），装到哪台机器都能跑。
+# 需要覆盖时在 profile 自己的 cordis.patch.yml 里按 id: judge-gate 覆盖：
+#   paramcheckPath — paramcheck.js 的路径，默认 <包>/lib/paramcheck.js
+#   logPath        — tsv 日志路径，默认自动挑第一个写得进的
+#                    （包内 data/ → DSH_HOME/logs/judge-gate → 家目录 → 临时目录）
+#   enforce        — true：拦下即拒；false：只记不拦（影子模式）
+#   skip           — 永不接管的工具名列表
+#   shadowLogPath  — 新引擎对照日志（仅 DSH_JUDGE_ENGINE=shadow 时有意义）
+- insert:
+    - id: judge-gate
+      name: dsh-judge-gate

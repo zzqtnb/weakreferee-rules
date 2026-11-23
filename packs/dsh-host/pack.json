@@ -1,0 +1,36 @@
+{
+  "id": "dsh-host",
+  "name": "DSH 宿主包",
+  "version": "0.1.0",
+  "kind": "host",
+  "description": "依赖 DSH 宿主自身状态的规则（判据文件比进程新、编辑锚点是否还在、写绝对路径前有没有备份）。换宿主后这一包不装。",
+  "author": "ZQ",
+  "license": "AGPL-3.0-only",
+  "appliesTo": {
+    "host": [
+      "dsh"
+    ]
+  },
+  "loadOrder": 30,
+  "rules": 3,
+  "ruleIds": [
+    "DSH-ANCHOR-01",
+    "DSH-STALE-JUDGE-01",
+    "SCENE-BACKUP-01"
+  ],
+  "testedOn": {
+    "host": "DSH 桌面版（Windows）",
+    "model": "deepseek-chat",
+    "period": "2026-11-19 ~ 2026-11-22",
+    "calls": 18360,
+    "hits": 13,
+    "note": "DSH-ANCHOR-01 1 / DSH-STALE-JUDGE-01 12 / SCENE-BACKUP-01 0（影子期，只记不拦）"
+  },
+  "notes": [
+    "DSH-STALE-JUDGE-01 拦的是「改了判据代码但没重启宿主」——这时闸跑的还是旧逻辑，而且不报错、继续显示「通过」。这是最隐蔽的一类失效。",
+    "DSH-ANCHOR-01 在离线回放里必须降为 warn：回放拿的是文件此刻内容，历史调用对应的是当时内容，两者错位会产生大量假命中。",
+    "SCENE-BACKUP-01 目前是 steer（只提示不拦），因为它的判据是「命令里有写动词且带绝对路径」，这类操作并不都危险。"
+  ,
+    "testedOn 里的数字来自作者环境（2026-11，Windows 上的 DSH 桌面版）。换环境后请用你自己的账本覆盖它——别人的命中率不代表你的。"
+  ]
+}

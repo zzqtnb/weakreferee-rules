@@ -1,0 +1,138 @@
+[
+  {
+    "id": "WIN-AUTOVAR-CMD-01",
+    "title": "命令行里不许给 PowerShell 自动变量赋值",
+    "domain": "path",
+    "evidence": {
+      "level": "实测",
+      "hits": 12,
+      "sessions": 11,
+      "source": "作者环境拦记账本（累计命中见 hits）"
+    },
+    "falsePositiveRisk": "low",
+    "defaultAction": "block",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "pwsh",
+      "platform": [
+        "windows"
+      ],
+      "shell": [
+        "powershell-5.1"
+      ]
+    },
+    "condition": {
+      "type": "regexHit",
+      "in": "args.command",
+      "maskQuoted": true,
+      "pattern": "\\$(input|args|error|host|home|pid|matches|this|foreach|psitem)\\s*=(?!=)"
+    },
+    "message": "给 PowerShell 自动变量赋值（只读，或影响解析）",
+    "fix": "换带固定前缀的多字名，如 $envPath 而不是 $home",
+    "severity": "S",
+    "reversible": false,
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "command": "$home = 'D:\\x'"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "$args = 1"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "$envPath = 'D:\\x'"
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
+            "command": "Write-Output '$home = 1'"
+          },
+          "expect": "pass"
+        }
+      ],
+      "needFs": false
+    },
+    "promotedTo": "windows-powershell/WIN-AUTOVAR-CMD-01"
+  },
+  {
+    "id": "WIN-PS1-AUTOVAR-01",
+    "title": "往 .ps1 里写自动变量赋值",
+    "domain": "path",
+    "evidence": {
+      "level": "实测",
+      "hits": 1,
+      "sessions": 1,
+      "source": "作者环境拦记账本（累计命中见 hits）"
+    },
+    "falsePositiveRisk": "low",
+    "defaultAction": "block",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tools": [
+        "write",
+        "edit"
+      ],
+      "platform": [
+        "windows"
+      ],
+      "fileMatches": "\\.ps1$"
+    },
+    "condition": {
+      "any": [
+        {
+          "type": "regexHit",
+          "in": "args.content",
+          "pattern": "\\$(input|args|error|host|home|pid|matches|this|foreach|psitem)\\s*=(?!=)"
+        },
+        {
+          "type": "regexHit",
+          "in": "args.new_string",
+          "pattern": "\\$(input|args|error|host|home|pid|matches|this|foreach|psitem)\\s*=(?!=)"
+        }
+      ]
+    },
+    "message": "往 .ps1 里写了 PowerShell 自动变量赋值（只读或影响解析）",
+    "fix": "换个带前缀的多字名，如 $envPath",
+    "severity": "S",
+    "reversible": false,
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "file_path": "a.ps1",
+            "content": "$home = 'D:\\x'"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "file_path": "a.txt",
+            "content": "$home = 1"
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
+            "file_path": "b.ps1",
+            "content": "$envPath = 1"
+          },
+          "expect": "pass"
+        }
+      ],
+      "needFs": false,
+      "note": [
+        "原来：write a.ps1 内容含 $home = 'D:\\x'",
+        "原来：write a.txt 内容含 $home = 1（不是 .ps1）"
+      ]
+    },
+    "promotedTo": "windows-powershell/WIN-PS1-AUTOVAR-01"
+  }
+]

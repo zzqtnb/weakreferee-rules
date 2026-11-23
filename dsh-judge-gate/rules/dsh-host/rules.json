@@ -1,0 +1,167 @@
+[
+  {
+    "id": "DSH-ANCHOR-01",
+    "legacyJudge": "J5",
+    "title": "改文件之前先确认要替换的原文还在",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "edit"
+    },
+    "condition": {
+      "type": "fileAnchorMissing"
+    },
+    "action": "warn",
+    "severity": "B",
+    "message": "要替换的原文在这个文件里已经找不到（文件被改过，或你要改的是另一个版本）",
+    "fix": "先用 read 看一眼当前内容，再照实际内容改；如果确认内容没变还报，点「这条不对」",
+    "reversible": false,
+    "evidence": {
+      "hits": 1,
+      "sessions": 1,
+      "source": "作者环境拦记账本（这一条命中的是：要替换的原文在文件里找不到）"
+    },
+    "selfTest": {
+      "cases": [],
+      "needFs": true,
+      "note": [
+        "需要真实文件：old_string 不在文件里应拦",
+        "old_string 确实在文件里应放行",
+        "file_path 指向不存在的文件应放行（没得比）",
+        "文件不是 utf8 应放行（字面比较不可信）",
+        "由集成测试 _selftest4.js 验证"
+      ]
+    },
+    "scene": "隔了一天再改同一段内容，要替换的原文已经被别的改动挪走了，替换落空，AI 却照样报「已修改」；回头看文件根本没变。"
+  },
+  {
+    "id": "DSH-STALE-JUDGE-01",
+    "legacyJudge": "P6",
+    "title": "判据改过但宿主没重启，闸跑的还是旧代码",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "*",
+      "platform": [
+        "windows"
+      ]
+    },
+    "condition": {
+      "any": [
+        {
+          "type": "fileNewerThanProcessStart",
+          "file": "{DSH_JUDGE_TOOLS_DIR|SELF_LIB}\\paramcheck.js"
+        },
+        {
+          "type": "fileNewerThanProcessStart",
+          "file": "{DSH_JUDGE_TOOLS_DIR|SELF_LIB}\\tool-params.json"
+        }
+      ]
+    },
+    "action": "block",
+    "severity": "A",
+    "message": "判据文件比宿主进程新——闸正在用旧逻辑判定，等于没装",
+    "fix": "完全退出宿主再打开（不是关窗口，是退出进程）",
+    "reversible": false,
+    "evidence": {
+      "hits": 12,
+      "sessions": 12,
+      "source": "作者环境拦记账本，重复 12 次"
+    },
+    "selfTest": {
+      "cases": [],
+      "needFs": true,
+      "note": [
+        "需要真实 mtime 与进程启动时刻：paramcheck.js 的 mtime 晚于进程启动应拦",
+        "判据文件没动过应放行",
+        "环境变量 DSH_JUDGE_TOOLS_DIR 未设置时用包内 lib\\ 兜底（2026-11-23 起不再拒装）"
+      ]
+    },
+    "scene": "改完检查规则没有重启程序，后面十几次判断跑的还是旧规则，界面上一直显示通过；这种失效不报错，最难发现。"
+  },
+  {
+    "id": "SCENE-BACKUP-01",
+    "legacyJudge": "J12",
+    "title": "用命令改文件前先留个底",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "pwsh",
+      "platform": [
+        "windows"
+      ]
+    },
+    "condition": {
+      "all": [
+        {
+          "type": "regexHit",
+          "in": "args.command",
+          "maskQuoted": true,
+          "pattern": "\\b(Out-File|Set-Content|Add-Content|Tee-Object|Export-Csv|Copy-Item|Move-Item|Remove-Item|Rename-Item)\\b"
+        },
+        {
+          "type": "cmdAbsPathWritten",
+          "in": "args.command",
+          "maskQuoted": true,
+          "anyPath": true,
+          "pattern": "(?:-Path|-Destination|-FilePath)?\\s*['\"]?([A-Za-z]:\\\\[^'\"\\s|;&]+)"
+        },
+        {
+          "type": "regexMiss",
+          "in": "args.command",
+          "maskQuoted": true,
+          "pattern": "-WhatIf\\b"
+        }
+      ]
+    },
+    "action": "steer",
+    "severity": "C",
+    "message": "这条命令会覆盖或删掉一个绝对路径下的文件",
+    "fix": "先把它挪进回收站再动手：recycle.ps1 -Put <路径>",
+    "reversible": false,
+    "evidence": {
+      "hits": 0,
+      "sessions": 0,
+      "source": "影子规则，上线后尚未命中（只提示不拦）"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "command": "Remove-Item -Path D:\\x\\a.txt -Force"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "Copy-Item a.txt D:\\y\\b.txt"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "Get-ChildItem D:\\x"
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
+            "command": "Remove-Item .\\a.tmp"
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
+            "command": "Remove-Item D:\\x -Recurse -WhatIf"
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
+            "command": "Select-String -Pattern 'Remove-Item'"
+          },
+          "expect": "pass"
+        }
+      ],
+      "needFs": false
+    },
+    "scene": "一条命令直接覆盖了绝对路径下的配置文件，改错之后没有旧版本可以退回，只能凭记忆重写。"
+  }
+]

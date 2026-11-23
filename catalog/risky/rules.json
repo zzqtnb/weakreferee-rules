@@ -1,0 +1,708 @@
+[
+  {
+    "id": "WIN-RMDIR-01",
+    "title": "递归删除没带 -WhatIf",
+    "domain": "risky",
+    "evidence": {
+      "level": "实测",
+      "hits": 0,
+      "sessions": 0,
+      "source": "影子期，尚未拦过"
+    },
+    "falsePositiveRisk": "medium",
+    "defaultAction": "warn",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "pwsh",
+      "platform": [
+        "windows"
+      ]
+    },
+    "condition": {
+      "all": [
+        {
+          "type": "regexHit",
+          "in": "args.command",
+          "maskQuoted": true,
+          "pattern": "\\b(Remove-Item|rm|ri|del|erase|rd|rmdir)\\b[^|;]*(-Recurse\\b|/s\\b|-r\\b|/q\\s*/s)"
+        },
+        {
+          "type": "regexMiss",
+          "in": "args.command",
+          "maskQuoted": true,
+          "pattern": "-WhatIf\\b"
+        },
+        {
+          "type": "regexMiss",
+          "in": "args.command",
+          "maskQuoted": true,
+          "pattern": "_tmp|\\\\[Tt]mp\\\\|\\\\temp\\\\|[Cc]ache|\\bbuild\\b|\\bdist\\b|node_modules"
+        }
+      ]
+    },
+    "message": "递归删除未带 -WhatIf（影子期只记不拦）",
+    "fix": "先落完整清单，或先加 -WhatIf 干跑一遍再删",
+    "severity": "A",
+    "reversible": false,
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "command": "Remove-Item D:\\x -Recurse"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "Remove-Item D:\\x -Recurse -WhatIf"
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
+            "command": "Get-Content a | Select-String 'Remove-Item -Recurse'"
+          },
+          "expect": "pass"
+        }
+      ],
+      "needFs": false
+    },
+    "promotedTo": "windows-powershell/WIN-RMDIR-01",
+    "notes": " 2026-11-22 自测：只查 -WhatIf 会把删自己项目临时目录也报出来，已加与 CAT-RISKY-01 相同的临时目录排除。"
+  },
+  {
+    "id": "WIN-IRREVERSIBLE-01",
+    "title": "不可逆系统动作前先备回滚材料",
+    "domain": "risky",
+    "evidence": {
+      "level": "实测",
+      "hits": 0,
+      "sessions": 0,
+      "source": "影子期，尚未拦过"
+    },
+    "falsePositiveRisk": "medium",
+    "defaultAction": "warn",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "pwsh",
+      "platform": [
+        "windows"
+      ]
+    },
+    "condition": {
+      "type": "regexHit",
+      "in": "args.command",
+      "maskQuoted": true,
+      "pattern": "\\b(reg\\s+(add|delete|import)|New-Service|Set-Service|Remove-Service|Register-ScheduledTask|Unregister-ScheduledTask|Format-Volume|Initialize-Disk|Clear-Disk|vssadmin|wbadmin)\\b|\\bsc(\\.exe)?\\s+(create|delete|config)\\b|\\bschtasks(\\.exe)?\\s+/(create|delete)\\b|\\bnetsh\\s+(int|advfirewall|winsock)\\s+\\w+\\s+(set|reset|delete)\\b|\\bdiskpart\\b"
+    },
+    "message": "不可逆动作（改注册表/服务/计划任务/磁盘/网络配置），rewind 与回收站都救不回",
+    "fix": "先导出回滚材料（reg export / 服务定义 / 任务 XML），再执行",
+    "severity": "A",
+    "reversible": false,
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "command": "reg add HKCU\\Software\\x /v y /d z"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "sc delete SomeService"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "Get-Service"
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
+            "command": "reg query HKCU\\Software"
+          },
+          "expect": "pass"
+        }
+      ],
+      "needFs": false
+    },
+    "promotedTo": "windows-powershell/WIN-IRREVERSIBLE-01"
+  },
+  {
+    "id": "WIN-MIRROR-01",
+    "title": "整目录镜像前先查目录联接",
+    "domain": "risky",
+    "evidence": {
+      "level": "实测",
+      "hits": 0,
+      "sessions": 0,
+      "source": "作者环境实测会话：跟随式复制把 junction 指向的真实源码一并清空，30 秒清掉三个插件"
+    },
+    "falsePositiveRisk": "medium",
+    "defaultAction": "warn",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "pwsh",
+      "platform": [
+        "windows"
+      ]
+    },
+    "condition": {
+      "type": "regexHit",
+      "in": "args.command",
+      "maskQuoted": true,
+      "pattern": "(?:^|[\\r\\n;|&({])\\s*(?:&|\\.\\s+)?robocopy\\b[^|;\\r\\n]*/(MIR|PURGE)\\b"
+    },
+    "message": "整目录镜像/清理未先查目录联接：robocopy 跟随 junction，镜像一个含联接的目录等于清空链接目标",
+    "fix": "先 Get-ChildItem -Force 看目标里有没有 ReparsePoint，有就只删链接不动内容",
+    "severity": "A",
+    "reversible": false,
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "command": "robocopy D:\\a D:\\b /MIR"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "robocopy D:\\a D:\\b /E"
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
+            "command": "Write-Output 'robocopy D:\\a D:\\b /MIR'"
+          },
+          "expect": "pass"
+        }
+      ],
+      "needFs": false
+    },
+    "promotedTo": "windows-powershell/WIN-MIRROR-01"
+  },
+  {
+    "id": "SCENE-BACKUP-01",
+    "title": "用命令改文件前先留个底",
+    "domain": "risky",
+    "evidence": {
+      "level": "实测",
+      "hits": 0,
+      "sessions": 0,
+      "source": "影子规则，上线后尚未命中（只提示不拦）"
+    },
+    "falsePositiveRisk": "medium",
+    "defaultAction": "steer",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "pwsh",
+      "platform": [
+        "windows"
+      ]
+    },
+    "condition": {
+      "all": [
+        {
+          "type": "regexHit",
+          "in": "args.command",
+          "maskQuoted": true,
+          "pattern": "\\b(Out-File|Set-Content|Add-Content|Tee-Object|Export-Csv|Copy-Item|Move-Item|Remove-Item|Rename-Item)\\b"
+        },
+        {
+          "type": "cmdAbsPathWritten",
+          "in": "args.command",
+          "maskQuoted": true,
+          "anyPath": true,
+          "pattern": "(?:-Path|-Destination|-FilePath)?\\s*['\"]?([A-Za-z]:\\\\[^'\"\\s|;&]+)"
+        },
+        {
+          "type": "regexMiss",
+          "in": "args.command",
+          "maskQuoted": true,
+          "pattern": "-WhatIf\\b"
+        }
+      ]
+    },
+    "message": "这条命令会覆盖或删掉一个绝对路径下的文件",
+    "fix": "先把它挪进回收站再动手：recycle.ps1 -Put <路径>",
+    "severity": "C",
+    "reversible": false,
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "command": "Remove-Item -Path D:\\x\\a.txt -Force"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "Copy-Item a.txt D:\\y\\b.txt"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "Get-ChildItem D:\\x"
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
+            "command": "Remove-Item .\\a.tmp"
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
+            "command": "Select-String -Pattern 'Remove-Item'"
+          },
+          "expect": "pass"
+        }
+      ],
+      "needFs": false
+    },
+    "promotedTo": "dsh-host/SCENE-BACKUP-01"
+  },
+  {
+    "id": "CAT-RISKY-01",
+    "title": "递归强制删除（rm -rf / Remove-Item -Recurse -Force）",
+    "domain": "risky",
+    "evidence": {
+      "level": "文献",
+      "hits": 0,
+      "sessions": 0,
+      "source": "依据：Google Gemini CLI 曾清空用户整个 D 盘 8000+ 文件（avakill README 汇总引用，二手资料）。"
+    },
+    "falsePositiveRisk": "medium",
+    "defaultAction": "warn",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "pwsh",
+      "commandMatches": "rm\\s+-|Remove-Item"
+    },
+    "condition": {
+      "all": [
+        {
+          "type": "regexHit",
+          "in": "args.command",
+          "pattern": "(^|[;&|]\\s*)rm\\s+-[A-Za-z-]*r|Remove-Item[^;\\n]{0,80}-Recurse"
+        },
+        {
+          "type": "regexMiss",
+          "in": "args.command",
+          "pattern": "_tmp|\\\\[Tt]mp\\\\|\\\\temp\\\\|\\bbuild\\b|\\bdist\\b|node_modules|[Cc]ache|\\.git"
+        }
+      ]
+    },
+    "message": "这条命令会递归强删，删掉的东西进不了回收站",
+    "fix": "先确认目标路径；能列出来看一眼就先列；需要保留的先复制一份",
+    "severity": "S",
+    "reversible": false,
+    "notes": [
+      "依据：Google Gemini CLI 曾清空用户整个 D 盘 8000+ 文件（avakill README 汇总引用，二手资料）。",
+      "这条只提示不拦——删目录在某些正当任务里就是要做，拦死会挡住真需求。",
+      "2026-11-22 历史回放校准：初版把 -Force 也算上、共命中 405 次（2.16%），绝大多数是清 _tmp；改为只认 -Recurse 且排除临时/构建目录后降到个位数。"
+    ]
+  },
+  {
+    "id": "CAT-RISKY-02",
+    "title": "变量展开路径的递归删除（rm -rf \"$X\"/）",
+    "domain": "risky",
+    "evidence": {
+      "level": "文献",
+      "hits": 0,
+      "sessions": 0,
+      "source": "这是经典事故模式：变量没赋值 → rm -rf \\\"/\\\" 或 rm -rf \\\"./\\\" 全清。"
+    },
+    "falsePositiveRisk": "high",
+    "defaultAction": "steer",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "pwsh",
+      "commandMatches": "rm\\s"
+    },
+    "condition": {
+      "all": [
+        {
+          "type": "regexHit",
+          "in": "args.command",
+          "pattern": "rm\\s+-[A-Za-z-]*[rf][^\\n]*\\$\\{?[A-Za-z_]"
+        },
+        {
+          "type": "regexMiss",
+          "in": "args.command",
+          "pattern": "_tmp|\\\\[Tt]mp\\\\|\\\\temp\\\\|[Cc]ache|\\bbuild\\b|\\bdist\\b|node_modules"
+        }
+      ]
+    },
+    "message": "路径来自变量，变量为空时这条命令可能删到当前目录或更上层",
+    "fix": "先回显变量确认非空（echo \"$X\"），并在命令里加非空判断",
+    "severity": "S",
+    "reversible": false,
+    "notes": "这是经典事故模式：变量没赋值 → rm -rf \"/\" 或 rm -rf \"./\" 全清。,误拦风险标 high：变量通常是有值的，多数情况会误报，所以只能提示。 2026-11-22 自测：不加临时目录排除会把「删 $env:TEMP\\build」当危险动作报出来，已加排除。"
+  },
+  {
+    "id": "CAT-RISKY-03",
+    "title": "数据库删表或清空（DROP / TRUNCATE）",
+    "domain": "risky",
+    "evidence": {
+      "level": "文献",
+      "hits": 0,
+      "sessions": 0,
+      "source": "依据：Replit 的 agent 删掉生产数据库并伪造约 4000 个假用户记录掩盖（avakill README 汇总引用，二手资料）。"
+    },
+    "falsePositiveRisk": "medium",
+    "defaultAction": "warn",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "pwsh",
+      "commandMatches": "DROP\\s+TABLE|TRUNCATE\\s+TABLE|deleteMany|dropDatabase"
+    },
+    "condition": {
+      "type": "regexHit",
+      "in": "args.command",
+      "pattern": "(DROP|TRUNCATE)\\s+(TABLE|DATABASE|SCHEMA)|dropDatabase|deleteMany\\(\\s*\\{\\s*\\}"
+    },
+    "message": "这是删表/清库操作，数据不在文件系统里，快照回退救不回来",
+    "fix": "确认连的是哪个库；有备份就从备份恢复；没有就先导出一份",
+    "severity": "S",
+    "reversible": false,
+    "notes": [
+      "依据：Replit 的 agent 删掉生产数据库并伪造约 4000 个假用户记录掩盖（avakill README 汇总引用，二手资料）。",
+      "deleteMany({}) 与 DROP 同效，一并算上。"
+    ]
+  },
+  {
+    "id": "CAT-RISKY-04",
+    "title": "没有 WHERE 的 DELETE 或 UPDATE",
+    "domain": "risky",
+    "evidence": {
+      "level": "文献",
+      "hits": 0,
+      "sessions": 0,
+      "source": "依据：通用数据库安全常识，也是 agent 手滑的高频形态。"
+    },
+    "falsePositiveRisk": "medium",
+    "defaultAction": "warn",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "pwsh",
+      "commandMatches": "DELETE\\s+FROM|UPDATE\\s+[A-Za-z_\"]+\\s+SET"
+    },
+    "condition": {
+      "all": [
+        {
+          "type": "regexHit",
+          "in": "args.command",
+          "pattern": "(DELETE|UPDATE)\\s"
+        },
+        {
+          "type": "regexMiss",
+          "in": "args.command",
+          "pattern": "\\bWHERE\\b"
+        }
+      ]
+    },
+    "message": "这条 SQL 没有 WHERE，整张表都会被改或删",
+    "fix": "先写 SELECT 数一下影响行数，再加 WHERE",
+    "severity": "S",
+    "reversible": false,
+    "notes": [
+      "依据：通用数据库安全常识，也是 agent 手滑的高频形态。"
+    ]
+  },
+  {
+    "id": "CAT-RISKY-05",
+    "title": "丢弃未提交改动（git reset --hard / checkout -- . / clean -fd）",
+    "domain": "risky",
+    "evidence": {
+      "level": "文献",
+      "hits": 0,
+      "sessions": 0,
+      "source": "依据：通用版本控制常识；AI 修 bug 时最常用来「回到干净状态」，而用户的未提交改动就在里面。"
+    },
+    "falsePositiveRisk": "medium",
+    "defaultAction": "warn",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "pwsh",
+      "commandMatches": "git\\s+(reset|checkout|clean)"
+    },
+    "condition": {
+      "type": "regexHit",
+      "in": "args.command",
+      "pattern": "git\\s+reset\\s+--hard|git\\s+checkout\\s+--\\s+\\.|git\\s+clean\\s+-(?![a-zA-Z]*n)[a-zA-Z]*[fd]"
+    },
+    "message": "这条命令会丢弃未提交的改动，代码找不回来",
+    "fix": "先 git stash 或 git commit 存一下；确认没有要留的改动再执行",
+    "severity": "S",
+    "reversible": false,
+    "notes": "依据：通用版本控制常识；AI 修 bug 时最常用来「回到干净状态」，而用户的未提交改动就在里面。 2026-11-22 自测：-n 是只看会删什么（dry-run），必须排除，否则 git clean -nd 被误报。"
+  },
+  {
+    "id": "CAT-RISKY-06",
+    "title": "系统级磁盘或分区操作（diskpart / format / mkfs）",
+    "domain": "risky",
+    "evidence": {
+      "level": "文献",
+      "hits": 0,
+      "sessions": 0,
+      "source": "依据：不可逆系统操作清单；出现在 agent 调用里本身就是异常信号。"
+    },
+    "falsePositiveRisk": "low",
+    "defaultAction": "warn",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "pwsh",
+      "commandMatches": "diskpart|Format-Volume|Clear-Disk|mkfs"
+    },
+    "condition": {
+      "type": "regexHit",
+      "in": "args.command",
+      "pattern": "\\bdiskpart\\b|Format-Volume|Clear-Disk|Initialize-Disk|\\bmkfs"
+    },
+    "message": "这是磁盘级操作，影响范围超出本项目和本目录",
+    "fix": "确认盘符与卷标；这类操作应当人工执行，不要交给自动化",
+    "severity": "S",
+    "reversible": false,
+    "notes": [
+      "依据：不可逆系统操作清单；出现在 agent 调用里本身就是异常信号。"
+    ]
+  },
+  {
+    "id": "CAT-RISKY-07",
+    "title": "权限全开（chmod -R 777 / icacls Everyone:F）",
+    "domain": "risky",
+    "evidence": {
+      "level": "文献",
+      "hits": 0,
+      "sessions": 0,
+      "source": "依据：通用安全常识；Windows 侧对应 icacls Everyone:(F)。"
+    },
+    "falsePositiveRisk": "low",
+    "defaultAction": "warn",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "pwsh",
+      "commandMatches": "chmod|icacls"
+    },
+    "condition": {
+      "type": "regexHit",
+      "in": "args.command",
+      "pattern": "chmod\\s+-R\\s+777|icacls[^\\n]*Everyone[^\\n]*\\(F\\)"
+    },
+    "message": "这是把权限开到最大，且递归生效",
+    "fix": "只给需要的用户和需要的权限；递归前确认目录范围",
+    "severity": "A",
+    "reversible": true,
+    "notes": [
+      "依据：通用安全常识；Windows 侧对应 icacls Everyone:(F)。"
+    ]
+  },
+  {
+    "id": "CAT-RISKY-08",
+    "title": "向生产环境发请求（URL 或命令里出现 prod / production）",
+    "domain": "risky",
+    "evidence": {
+      "level": "文献",
+      "hits": 0,
+      "sessions": 0,
+      "source": "依据：Amazon Q 在排障会话中终止 EC2 实例并删除周边基础设施（avakill README 汇总引用，二手资料）。"
+    },
+    "falsePositiveRisk": "high",
+    "defaultAction": "steer",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "pwsh",
+      "commandMatches": "curl|Invoke-WebRequest|Invoke-RestMethod|http"
+    },
+    "condition": {
+      "type": "regexHit",
+      "in": "args.command",
+      "pattern": "([Pp]roduction|[Pp]rod\\.|/[Pp]rod/|-prod\\b|生产环境)"
+    },
+    "message": "这条请求看起来指向生产环境",
+    "fix": "确认是否该在生产上试；能先在测试环境验就先去测试环境",
+    "severity": "A",
+    "reversible": false,
+    "notes": [
+      "依据：Amazon Q 在排障会话中终止 EC2 实例并删除周边基础设施（avakill README 汇总引用，二手资料）。",
+      "误拦风险 high：变量名里带 prod 的测试脚本很多，所以只能提示。"
+    ]
+  },
+  {
+    "id": "CAT-RISKY-09",
+    "title": "清空日志或审计文件",
+    "domain": "risky",
+    "evidence": {
+      "level": "文献",
+      "hits": 0,
+      "sessions": 0,
+      "source": "依据：审计留痕原则；这类操作会让「事后复盘」这条路断掉。"
+    },
+    "falsePositiveRisk": "medium",
+    "defaultAction": "warn",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "pwsh",
+      "commandMatches": "Clear-Content|Set-Content|>|Truncate"
+    },
+    "condition": {
+      "type": "regexHit",
+      "in": "args.command",
+      "pattern": "Clear-Content[^;\\n]{0,60}(\\.log|audit|history|拦截\\.tsv|账本)|Set-Content[^;\\n]{0,60}(\\.log|audit|history|拦截\\.tsv|账本)[^;\\n]{0,20}(\\$null|''|\"\"|\\(\\))"
+    },
+    "message": "这条命令会清空日志或账本，出事后就查不到发生过什么",
+    "fix": "日志只追加不覆盖；要缩小体积就归档旧的，不要清空",
+    "severity": "A",
+    "reversible": false,
+    "notes": [
+      "依据：审计留痕原则；这类操作会让「事后复盘」这条路断掉。"
+    ]
+  },
+  {
+    "id": "CAT-RISKY-10",
+    "title": "覆盖已存在的脚本或配置文件（重定向 / 写文件到已有路径）",
+    "domain": "risky",
+    "evidence": {
+      "level": "文献",
+      "hits": 0,
+      "sessions": 0,
+      "source": "依据：本轮开发中真实发生——改 .ps1 时整篇覆盖，把原文件里别的内容一起带走了。"
+    },
+    "falsePositiveRisk": "high",
+    "defaultAction": "steer",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "pwsh",
+      "commandMatches": "Out-File|Set-Content|>|Copy-Item|Move-Item"
+    },
+    "condition": {
+      "type": "regexHit",
+      "in": "args.command",
+      "pattern": "(Out-File|Set-Content)\\s+[^;\\n]{0,60}\\.(ps1|json|yml|yaml|toml|ini|env)\\b"
+    },
+    "message": "这条命令会写到配置或脚本文件上，原内容会被覆盖",
+    "fix": "写之前先看一眼原文件；能只改一处就别整篇覆盖",
+    "severity": "S",
+    "reversible": true,
+    "notes": [
+      "依据：本轮开发中真实发生——改 .ps1 时整篇覆盖，把原文件里别的内容一起带走了。",
+      "2026-11-22 历史回放校准：初版含 Copy-Item/Move-Item，145 次里绝大多数是打包复制；只留 Out-File/Set-Content 后大幅下降。"
+    ]
+  },
+  {
+    "id": "CAT-RISKY-11",
+    "title": "删根目录或系统盘根",
+    "domain": "risky",
+    "evidence": {
+      "level": "文献",
+      "hits": 0,
+      "sessions": 0,
+      "source": "没有正当理由会执行；无法从历史日志取证据，因为从未发生过"
+    },
+    "falsePositiveRisk": "low",
+    "defaultAction": "block",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "pwsh",
+      "commandMatches": "rm\\s+-|Remove-Item"
+    },
+    "condition": {
+      "type": "regexHit",
+      "in": "args.command",
+      "pattern": "rm\\s+-[A-Za-z-]*r[A-Za-z-]*\\s+(\\/\\*?|~\\/?|\\$HOME)\\/?\\s*($|[;&|)])|(Remove-Item|rmdir|rd)\\b[^;|\\n]{0,60}(-Recurse|\\/s)[^;|\\n]{0,40}[A-Za-z]:[\\\\/]?\\s*($|[;&|)])"
+    },
+    "message": "这条命令删的是根目录或整个系统盘，删掉就回不来了",
+    "fix": "确认要删的具体是哪个子目录，把路径写全；只删自己创建的东西",
+    "severity": "S",
+    "reversible": false,
+    "notes": "2026-11-22 用户批准破例：动作几乎没有正当理由，允许越过「文献级最多 warn」的限制直接拦。",
+    "hardline": true,
+    "selfTest": {
+      "needFs": false,
+      "cases": [
+        {
+          "args": {
+            "command": "rm -rf /",
+            "description": "删根"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "Remove-Item -Recurse -Force C:\\",
+            "description": "删系统盘"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "rm -rf D:\\work\\src",
+            "description": "删某个子目录"
+          },
+          "expect": "pass"
+        }
+      ]
+    }
+  },
+  {
+    "id": "CAT-RISKY-12",
+    "title": "整库删除或磁盘格式化",
+    "domain": "risky",
+    "evidence": {
+      "level": "文献",
+      "hits": 0,
+      "sessions": 0,
+      "source": "同上——没有正当理由会执行"
+    },
+    "falsePositiveRisk": "low",
+    "defaultAction": "block",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "pwsh",
+      "commandMatches": "rm\\s+-|Remove-Item"
+    },
+    "condition": {
+      "type": "regexHit",
+      "in": "args.command",
+      "pattern": "\\bDROP\\s+(DATABASE|SCHEMA)\\b|Format-Volume|Clear-Disk|Initialize-Disk|\\bmkfs(\\.\\w+)?\\b|diskpart[^;|\\n]{0,40}\\bclean\\b"
+    },
+    "message": "这条命令会删掉整个数据库或格式化磁盘，数据恢复不了",
+    "fix": "先确认连的是哪个库/哪块盘；数据库用带条件的 DELETE，磁盘操作走备份流程",
+    "severity": "S",
+    "reversible": false,
+    "notes": "2026-11-22 用户批准破例。注意 DROP TABLE 不在这条里——删单表有时是迁移脚本的正常动作，仍由 CAT-RISKY-03 只提示。",
+    "hardline": true,
+    "selfTest": {
+      "needFs": false,
+      "cases": [
+        {
+          "args": {
+            "command": "DROP DATABASE prod;",
+            "description": "删库"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "Format-Volume -DriveLetter D",
+            "description": "格式化"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "DROP TABLE users;",
+            "description": "删表（较常见，交 CAT-RISKY-03 提示）"
+          },
+          "expect": "pass"
+        }
+      ]
+    }
+  }
+]

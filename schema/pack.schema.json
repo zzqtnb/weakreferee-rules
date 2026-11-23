@@ -1,0 +1,250 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "弱裁判规则包元数据 / Pack Metadata",
+  "description": "每个规则包目录下有一个 pack.json，描述这个包是给谁用的、依据什么数据、测到什么程度。规则本体在 rules.json。",
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "version",
+    "kind",
+    "description",
+    "license",
+    "rules"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{2,47}$",
+      "description": "包的唯一标识，小写连字符。例如 windows-powershell、model-deepseek-v3、host-dsh。"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 2,
+      "description": "人话名称，例如「Windows + PowerShell 环境包」。"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "语义化版本。规矩判定条件变化时升次版本号，仅文案变化升修订号。"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "core",
+        "platform",
+        "model",
+        "host",
+        "scene"
+      ],
+      "description": "这个包按哪一维切。core=安全底线包，任何环境都装、不可被覆盖；platform=操作系统与 shell；model=某个 AI 模型的短板；host=某个宿主软件的钩子特性；scene=某个业务场景的额外要求。"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 10,
+      "description": "两三句话：这个包管什么、什么情况下不该装。"
+    },
+    "author": {
+      "type": "string",
+      "description": "作者署名。请不要写真名、学校名、单位名，用 ID 或昵称。"
+    },
+    "license": {
+      "type": "string",
+      "description": "许可证标识（SPDX）。本仓库的代码与规则包统一用 AGPL-3.0-only；文档用 CC-BY-4.0。想闭源商用需单独授权。"
+    },
+    "appliesTo": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "整个包的生效范围。包里每条规矩另有自己的 appliesTo，两者取交集。",
+      "properties": {
+        "platform": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "win32",
+              "darwin",
+              "linux"
+            ]
+          },
+          "description": "操作系统。不写表示全平台。"
+        },
+        "shell": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "shell 标识，例如 powershell-5.1、pwsh、bash、zsh。不写表示不限制。"
+        },
+        "host": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "宿主软件标识，例如 dsh、cursor、claude-code、vscode。不写表示不限制。"
+        },
+        "models": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "适用的模型标识。kind=model 时应与 modelProfile.model 一致。"
+        }
+      }
+    },
+    "modelProfile": {
+      "type": "object",
+      "description": "当 kind=model 时必填：这份包依据的是这个模型的什么特点。没有这一段，别人无法判断这些规矩凭什么属于这个模型。",
+      "additionalProperties": false,
+      "required": [
+        "model",
+        "basedOn"
+      ],
+      "properties": {
+        "model": {
+          "type": "string",
+          "description": "模型标识，例如 deepseek-v3、qwen-max、glm-4、kimi-k2。"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "人话名称。"
+        },
+        "knownWeaknesses": {
+          "type": "array",
+          "description": "这个模型的已知短板，每条都要能对到至少一条规矩。",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "text"
+            ],
+            "properties": {
+              "text": {
+                "type": "string",
+                "description": "短板描述，一句话。例如「工具参数用单数形式，url 写成 urls」。"
+              },
+              "evidence": {
+                "type": "string",
+                "description": "证据：时间戳、次数、或日志片段。没有证据请写「观测到 N 次，未留日志」。"
+              },
+              "rules": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "针对这条短板的规矩编号。"
+              }
+            }
+          }
+        },
+        "toolCallHabits": {
+          "type": "string",
+          "description": "这个模型调工具的习惯，例如「倾向一次调一个工具，不爱并行」「喜欢把多个命令用分号串成一条」。"
+        },
+        "basedOn": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "calls"
+          ],
+          "properties": {
+            "calls": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "观察了多少次工具调用。不要估算，写实际数。"
+            },
+            "errors": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "其中判为错误的次数。"
+            },
+            "sessions": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "分布在多少个会话里。只在一个会话里出现的现象请单独标注为「局部经验」。"
+            },
+            "period": {
+              "type": "string",
+              "description": "数据时间范围，例如 2026-11-19 ~ 2026-11-22。"
+            },
+            "host": {
+              "type": "string",
+              "description": "在什么宿主里观察的。API 直连与真实宿主的行为不同，请写明。"
+            }
+          }
+        }
+      }
+    },
+    "loadOrder": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "装载顺序，小的先装。同名规矩后装的覆盖先装的（core 层不可覆盖项除外）。平台包建议 10-29，模型包 30-59，宿主包 60-79，场景包 80-99。"
+    },
+    "rules": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "本包规矩条数。"
+    },
+    "ruleIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "本包全部规矩编号，便于快速核对。"
+    },
+    "testedOn": {
+      "type": "object",
+      "description": "实测信息。没有实测数据的包请写 calls: 0，并在 notes 里说明是预防性规则。",
+      "additionalProperties": false,
+      "properties": {
+        "host": {
+          "type": "string"
+        },
+        "model": {
+          "type": "string"
+        },
+        "period": {
+          "type": "string"
+        },
+        "calls": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "hits": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "selfTest": {
+      "type": "object",
+      "description": "整包自测汇总。规矩本体里的 selfTest 是必填的，这里只是统计。",
+      "additionalProperties": false,
+      "properties": {
+        "cases": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "needFs": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "装包的人需要知道的事：哪些规矩零命中属预防性、哪些规矩不能在什么情况下启用、改这个包要注意什么。"
+    }
+  }
+}

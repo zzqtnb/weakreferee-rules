@@ -1,0 +1,215 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "弱裁判规则包 / Rule Pack",
+  "description": "一个规则包是一个数组，每个元素是一条规则。本 Schema 描述单条规则的结构。",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["id", "title", "when", "action"],
+    "additionalProperties": false,
+    "properties": {
+      "id": {
+        "type": "string",
+        "pattern": "^[A-Z][A-Z0-9-]{2,63}$",
+        "description": "规则唯一编号，大写出。同一包内不得重复。建议格式 <包前缀>-<主题>-<序号>。"
+      },
+      "legacyJudge": {
+        "type": "string",
+        "description": "可选的旧编号，用于和改造前的实现逐条对账。"
+      },
+      "title": {
+        "type": "string",
+        "minLength": 4,
+        "description": "一句话说明这条规矩拦什么，要求非技术人员也能读懂。"
+      },
+      "when": {
+        "type": "string",
+        "enum": [
+          "session:start",
+          "turn:start",
+          "completion:pre",
+          "tool:pre",
+          "tool:post",
+          "file:post",
+          "turn:end",
+          "session:end"
+        ],
+        "default": "tool:pre",
+        "description": "在会话的哪个时点判定。不写等于 tool:pre。"
+      },
+      "appliesTo": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "在什么范围内这条规矩才需要考虑。全部省略表示任何情况都考虑。",
+        "properties": {
+          "tool": {
+            "type": "string",
+            "description": "工具名，精确匹配。"
+          },
+          "tools": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "多个工具名。"
+          },
+          "commandMatches": {
+            "type": "string",
+            "description": "正则，匹配命令行文本。只对带命令参数的工具有效。"
+          },
+          "fileMatches": {
+            "type": "string",
+            "description": "正则，匹配被写入或编辑的文件路径。用于把规矩限定在某类文件上（例如只对 .ps1 生效）。"
+          },
+          "platform": {
+            "type": "array",
+            "items": { "enum": ["win32", "linux", "darwin"] },
+            "description": "生效的操作系统。"
+          },
+          "shell": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "生效的 shell 标识，例如 powershell-5.1、pwsh、bash。"
+          },
+          "host": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "生效的宿主标识，例如 dsh、cursor、cli。"
+          }
+        }
+      },
+      "condition": {
+        "type": "object",
+        "description": "判定条件。可以是单一条件、all、any、not 四种之一。",
+        "oneOf": [
+          { "$ref": "#/definitions/leaf" },
+          { "$ref": "#/definitions/group" }
+        ]
+      },
+      "generator": {
+        "type": "object",
+        "description": "不写 condition 而写 generator 时，这条是一个规则生成器：装载阶段读取外部契约表，编译成若干条具体规则。",
+        "required": ["kind", "emit"],
+        "additionalProperties": false,
+        "properties": {
+          "kind": { "enum": ["contractTable"] },
+          "emit": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "要生成哪几类条件。"
+          },
+          "legacyJudge": { "type": "string" }
+        }
+      },
+      "action": {
+        "type": "string",
+        "enum": ["block", "warn", "steer", "default"],
+        "description": "block 拒绝执行；warn 放行并记账；steer 放行并附一句提示；default 只在参数缺失时补一个默认值，已写的值不动。"
+      },
+      "severity": {
+        "type": "string",
+        "enum": ["S", "A", "B", "C"],
+        "description": "后果分级。S 静默损坏（不报错但结果错），A 机制失效，B 工具报错，C 策略拦截。"
+      },
+      "message": {
+        "type": "string",
+        "description": "给人看的一句话：违反了哪条、为什么。"
+      },
+      "fix": {
+        "type": "string",
+        "description": "给人看的一句话：怎么改。"
+      },
+      "reversible": {
+        "type": "boolean",
+        "description": "这个动作能不能靠事前快照退回来。false 表示退不回，动手前必须让人确认。"
+      },
+      "evidence": {
+        "type": "object",
+        "description": "这条规矩从哪来。没有 evidence 的规矩可以装，但体检报告会把它列进「从没命中过」。",
+        "additionalProperties": false,
+        "properties": {
+          "hits": { "type": "integer", "minimum": 0 },
+          "sessions": { "type": "integer", "minimum": 0 },
+          "source": { "type": "string" },
+          "lastHit": { "type": "string" }
+        }
+      },
+      "selfTest": {
+        "type": "object",
+        "description": "装前自测。每条规矩至少要有一个应拦的例子和一个应放的例子，否则体检报告会标「没有用例」。",
+        "additionalProperties": false,
+        "properties": {
+          "needFs": {
+            "type": "boolean",
+            "description": "true 表示用例依赖真实文件，静态自测跑不了，需要单独验。"
+          },
+          "cases": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["args", "expect"],
+              "additionalProperties": false,
+              "properties": {
+                "args": { "type": "object" },
+                "expect": { "enum": ["block", "pass"], "description": "期望结果：block=期望命中、pass=期望放行。与规则的 action 无关。" },
+                "note": { "type": "string" }
+              }
+            }
+          }
+        }
+      },
+      "notes": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "写包人自己的备注，装载时不参与判定。"
+      }
+    }
+  },
+  "definitions": {
+    "leaf": {
+      "type": "object",
+      "description": "十八种叶子条件之一。用 type 区分。",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "enum": [
+            "missingKey",
+            "emptyValue",
+            "missingAnyOf",
+            "wrongKey",
+            "extraKey",
+            "typeMismatch",
+            "missingFlag",
+            "regexHit",
+            "regexMiss",
+            "fileLacksBom",
+            "fileHasBom",
+            "fileAnchorMissing",
+            "fileAnchorMultiple",
+            "fileNewerThan",
+            "fileNewerThanProcessStart",
+            "unknownKey",
+            "pathOutside",
+            "cmdAbsPathWritten"
+          ]
+        }
+      }
+    },
+    "group": {
+      "type": "object",
+      "description": "条件组合。all 要求全真，any 要求至少一真，not 取反。三者可嵌套。",
+      "oneOf": [
+        {
+          "required": ["all"],
+          "properties": { "all": { "type": "array", "items": { "oneOf": [{ "$ref": "#/definitions/leaf" }, { "$ref": "#/definitions/group" }] } } }
+        },
+        {
+          "required": ["any"],
+          "properties": { "any": { "type": "array", "items": { "oneOf": [{ "$ref": "#/definitions/leaf" }, { "$ref": "#/definitions/group" }] } } }
+        },
+        {
+          "required": ["not"],
+          "properties": { "not": { "oneOf": [{ "$ref": "#/definitions/leaf" }, { "$ref": "#/definitions/group" }] } }
+        }
+      ]
+    }
+  }
+}

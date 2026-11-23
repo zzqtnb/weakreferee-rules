@@ -1,0 +1,84 @@
+[
+  {
+    "id": "DSH-ANCHOR-01",
+    "title": "改文件之前先确认要替换的原文还在",
+    "domain": "workflow",
+    "evidence": {
+      "level": "实测",
+      "hits": 1,
+      "sessions": 1,
+      "source": "作者环境拦记账本（这一条命中的是：要替换的原文在文件里找不到）"
+    },
+    "falsePositiveRisk": "medium",
+    "defaultAction": "warn",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "edit"
+    },
+    "condition": {
+      "type": "fileAnchorMissing"
+    },
+    "message": "要替换的原文在这个文件里已经找不到（文件被改过，或你要改的是另一个版本）",
+    "fix": "先用 read 看一眼当前内容，再照实际内容改；如果确认内容没变还报，点「这条不对」",
+    "severity": "B",
+    "reversible": false,
+    "selfTest": {
+      "cases": [],
+      "needFs": true,
+      "note": [
+        "需要真实文件：old_string 不在文件里应拦",
+        "old_string 确实在文件里应放行",
+        "file_path 指向不存在的文件应放行（没得比）",
+        "文件不是 utf8 应放行（字面比较不可信）",
+        "由集成测试 _selftest4.js 验证"
+      ]
+    },
+    "promotedTo": "dsh-host/DSH-ANCHOR-01"
+  },
+  {
+    "id": "DSH-STALE-JUDGE-01",
+    "title": "判据改过但宿主没重启，闸跑的还是旧代码",
+    "domain": "workflow",
+    "evidence": {
+      "level": "实测",
+      "hits": 12,
+      "sessions": 12,
+      "source": "作者环境拦记账本，重复 12 次"
+    },
+    "falsePositiveRisk": "low",
+    "defaultAction": "block",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "*",
+      "platform": [
+        "windows"
+      ]
+    },
+    "condition": {
+      "any": [
+        {
+          "type": "fileNewerThanProcessStart",
+          "file": "{DSH_JUDGE_TOOLS_DIR}\\paramcheck.js"
+        },
+        {
+          "type": "fileNewerThanProcessStart",
+          "file": "{DSH_JUDGE_TOOLS_DIR}\\tool-params.json"
+        }
+      ]
+    },
+    "message": "判据文件比宿主进程新——闸正在用旧逻辑判定，等于没装",
+    "fix": "完全退出宿主再打开（不是关窗口，是退出进程）",
+    "severity": "A",
+    "reversible": false,
+    "selfTest": {
+      "cases": [],
+      "needFs": true,
+      "note": [
+        "需要真实 mtime 与进程启动时刻：paramcheck.js 的 mtime 晚于进程启动应拦",
+        "判据文件没动过应放行",
+        "环境变量 DSH_JUDGE_TOOLS_DIR 未设置时应在装载阶段就拒装（不进自测）"
+      ]
+    },
+    "promotedTo": "dsh-host/DSH-STALE-JUDGE-01"
+  }
+]

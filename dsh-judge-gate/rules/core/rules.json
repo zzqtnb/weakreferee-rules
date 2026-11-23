@@ -1,0 +1,88 @@
+[
+  {
+    "id": "CORE-HTTPS-01",
+    "legacyJudge": "J3",
+    "title": "web_fetch 只接受 https",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "web_fetch"
+    },
+    "condition": {
+      "any": [
+        {
+          "type": "regexHit",
+          "in": "args.url",
+          "pattern": "^http://"
+        },
+        {
+          "type": "regexHit",
+          "in": "args.urls",
+          "pattern": "^http://"
+        }
+      ]
+    },
+    "action": "block",
+    "severity": "B",
+    "message": "web_fetch 只收 https，http:// 会被工具直接拒绝",
+    "fix": "把 http:// 换成 https://",
+    "reversible": false,
+    "evidence": {
+      "hits": 3,
+      "sessions": 3,
+      "source": "作者环境拦记账本（累计命中见 hits）"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "url": "http://example.com"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "url": "https://example.com"
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
+            "urls": [
+              "http://a.com",
+              "https://b.com"
+            ]
+          },
+          "expect": "block"
+        }
+      ],
+      "needFs": false
+    },
+    "scene": "有人让 AI 去抓一个网页，地址写成明文 http，工具连请求都没发出去就回了失败；来回试了几次，才看出是协议写错。"
+  },
+  {
+    "id": "CORE-PARAMS-GEN",
+    "title": "参数形态（由工具契约表编译，不手写）",
+    "when": "tool:pre",
+    "generator": {
+      "kind": "contractTable",
+      "emit": [
+        "missingKey",
+        "emptyValue",
+        "missingAnyOf",
+        "wrongKey",
+        "extraKey",
+        "unknownKey",
+        "itemUnknownKey"
+      ],
+      "legacyJudge": "PARAM"
+    },
+    "action": "block",
+    "severity": "B",
+    "evidence": {
+      "hits": 165,
+      "sessions": 45,
+      "source": "作者环境拦记账本 / 作者环境回放记录（无规则编号的 165 次）"
+    },
+    "scene": "调用工具时把参数键名记成另一个相近的词，或者漏掉一个必填键，工具只回一句看不懂的报错；人以为是自己的描述不清楚，其实是参数形态不对。"
+  }
+]

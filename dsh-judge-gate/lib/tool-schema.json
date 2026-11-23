@@ -1,0 +1,3894 @@
+{
+ "generatedAt": "2026-11-19T03:40:25.625Z",
+ "sources": [
+  {
+   "file": "session-40e772cf.txt",
+   "tools": 259
+  },
+  {
+   "file": "19333fc3.txt",
+   "tools": 259
+  },
+  {
+   "file": "2163139a.txt",
+   "tools": 259
+  },
+  {
+   "file": "5ff97019.txt",
+   "tools": 178
+  }
+ ],
+ "totals": {
+  "tools": 273,
+  "withRequired": 195,
+  "closed": 25,
+  "anyOfOnly": 0
+ },
+ "tools": {
+  "acp_cache": {
+   "name": "acp_cache",
+   "req": [],
+   "props": [
+    "detail"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "acp_read_original_image": {
+   "name": "acp_read_original_image",
+   "req": [
+    "ref"
+   ],
+   "props": [
+    "ref"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "acp_status": {
+   "name": "acp_status",
+   "req": [],
+   "props": [],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "activate_tools": {
+   "name": "activate_tools",
+   "req": [
+    "identifiers",
+    "reason"
+   ],
+   "props": [
+    "identifiers",
+    "reason"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "advanced_search": {
+   "name": "advanced_search",
+   "req": [],
+   "props": [
+    "query",
+    "maxResults",
+    "timeRange",
+    "engine"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "ask_user_question": {
+   "name": "ask_user_question",
+   "req": [
+    "questions"
+   ],
+   "props": [
+    "questions"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "automation_create": {
+   "name": "automation_create",
+   "req": [
+    "name",
+    "prompt",
+    "kind",
+    "time_zone"
+   ],
+   "props": [
+    "name",
+    "prompt",
+    "kind",
+    "time_zone",
+    "at",
+    "every_minutes",
+    "minute",
+    "time",
+    "weekdays",
+    "month_day",
+    "every_days",
+    "max_concurrent_runs",
+    "permission",
+    "workspace",
+    "cross_workspace",
+    "provider",
+    "model",
+    "reasoning_effort"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "automation_delete": {
+   "name": "automation_delete",
+   "req": [
+    "id"
+   ],
+   "props": [
+    "id",
+    "cross_workspace"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "automation_list": {
+   "name": "automation_list",
+   "req": [],
+   "props": [
+    "all_workspaces"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "automation_run_now": {
+   "name": "automation_run_now",
+   "req": [
+    "id"
+   ],
+   "props": [
+    "id",
+    "cross_workspace"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "automation_runs": {
+   "name": "automation_runs",
+   "req": [],
+   "props": [],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "automation_update": {
+   "name": "automation_update",
+   "req": [
+    "id"
+   ],
+   "props": [
+    "id",
+    "name",
+    "prompt",
+    "status",
+    "workspace",
+    "cross_workspace",
+    "kind",
+    "time_zone",
+    "at",
+    "every_minutes",
+    "minute",
+    "time",
+    "weekdays",
+    "month_day",
+    "every_days",
+    "max_concurrent_runs",
+    "permission",
+    "provider",
+    "model",
+    "reasoning_effort"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "ba_exec": {
+   "name": "ba_exec",
+   "req": [
+    "command"
+   ],
+   "props": [
+    "command",
+    "cwd",
+    "timeoutMs"
+   ],
+   "closed": true,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "ba_read": {
+   "name": "ba_read",
+   "req": [
+    "path"
+   ],
+   "props": [
+    "path",
+    "offset",
+    "limit"
+   ],
+   "closed": true,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "ba_write": {
+   "name": "ba_write",
+   "req": [
+    "path",
+    "content"
+   ],
+   "props": [
+    "path",
+    "content",
+    "append"
+   ],
+   "closed": true,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cache_search": {
+   "name": "cache_search",
+   "req": [],
+   "props": [
+    "query",
+    "limit"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_assembly_connect": {
+   "name": "cad_assembly_connect",
+   "req": [
+    "instanceId",
+    "parent",
+    "parentLabel",
+    "childLabel"
+   ],
+   "props": [
+    "instanceId",
+    "parent",
+    "parentLabel",
+    "childLabel",
+    "value"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_assembly_drive": {
+   "name": "cad_assembly_drive",
+   "req": [
+    "instanceId",
+    "label",
+    "value"
+   ],
+   "props": [
+    "instanceId",
+    "label",
+    "value"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_assembly_explode": {
+   "name": "cad_assembly_explode",
+   "req": [
+    "factor"
+   ],
+   "props": [
+    "factor"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_assembly_info": {
+   "name": "cad_assembly_info",
+   "req": [],
+   "props": [],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_assembly_insert": {
+   "name": "cad_assembly_insert",
+   "req": [
+    "bodyId"
+   ],
+   "props": [
+    "bodyId",
+    "at",
+    "rotate",
+    "name"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_assembly_joint": {
+   "name": "cad_assembly_joint",
+   "req": [
+    "instanceId",
+    "label",
+    "joint"
+   ],
+   "props": [
+    "instanceId",
+    "label",
+    "joint"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_assembly_move": {
+   "name": "cad_assembly_move",
+   "req": [
+    "instanceId"
+   ],
+   "props": [
+    "instanceId",
+    "at",
+    "rotate"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_assembly_remove": {
+   "name": "cad_assembly_remove",
+   "req": [
+    "instanceId"
+   ],
+   "props": [
+    "instanceId"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_assembly_solve": {
+   "name": "cad_assembly_solve",
+   "req": [],
+   "props": [],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_boolean": {
+   "name": "cad_boolean",
+   "req": [
+    "op",
+    "target",
+    "tools"
+   ],
+   "props": [
+    "op",
+    "target",
+    "tools"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_chamfer": {
+   "name": "cad_chamfer",
+   "req": [
+    "target",
+    "distance"
+   ],
+   "props": [
+    "target",
+    "distance"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_constraint": {
+   "name": "cad_constraint",
+   "req": [],
+   "props": [
+    "entities",
+    "constraints",
+    "clear"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_create_prim": {
+   "name": "cad_create_prim",
+   "req": [
+    "kind"
+   ],
+   "props": [
+    "kind",
+    "dx",
+    "dy",
+    "dz",
+    "radius",
+    "radius1",
+    "radius2",
+    "height",
+    "majorRadius",
+    "minorRadius",
+    "at",
+    "axis",
+    "name"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_delete": {
+   "name": "cad_delete",
+   "req": [
+    "target"
+   ],
+   "props": [
+    "target"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_doc_delete": {
+   "name": "cad_doc_delete",
+   "req": [
+    "doc",
+    "confirm"
+   ],
+   "props": [
+    "doc",
+    "confirm"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_doc_new": {
+   "name": "cad_doc_new",
+   "req": [],
+   "props": [
+    "name"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_doc_open": {
+   "name": "cad_doc_open",
+   "req": [
+    "doc"
+   ],
+   "props": [
+    "doc"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_doc_rename": {
+   "name": "cad_doc_rename",
+   "req": [
+    "doc",
+    "name"
+   ],
+   "props": [
+    "doc",
+    "name"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_docs": {
+   "name": "cad_docs",
+   "req": [],
+   "props": [],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_draft": {
+   "name": "cad_draft",
+   "req": [
+    "target",
+    "angle"
+   ],
+   "props": [
+    "target",
+    "angle",
+    "direction"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_drawing": {
+   "name": "cad_drawing",
+   "req": [],
+   "props": [
+    "target",
+    "paper",
+    "name"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_export": {
+   "name": "cad_export",
+   "req": [
+    "path"
+   ],
+   "props": [
+    "target",
+    "path"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_extrude_profile": {
+   "name": "cad_extrude_profile",
+   "req": [],
+   "props": [
+    "points",
+    "profile",
+    "sketch",
+    "height",
+    "base",
+    "name"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_fillet": {
+   "name": "cad_fillet",
+   "req": [
+    "target",
+    "radius"
+   ],
+   "props": [
+    "target",
+    "radius"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_freecad": {
+   "name": "cad_freecad",
+   "req": [
+    "steps"
+   ],
+   "props": [
+    "steps",
+    "input",
+    "exportPath",
+    "headless"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_fusion": {
+   "name": "cad_fusion",
+   "req": [
+    "steps"
+   ],
+   "props": [
+    "steps",
+    "exportPath"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_image_profile": {
+   "name": "cad_image_profile",
+   "req": [
+    "path"
+   ],
+   "props": [
+    "path",
+    "threshold",
+    "invert",
+    "tolerance",
+    "scale"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_info": {
+   "name": "cad_info",
+   "req": [
+    "path"
+   ],
+   "props": [
+    "path"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_loft": {
+   "name": "cad_loft",
+   "req": [
+    "sections"
+   ],
+   "props": [
+    "sections",
+    "smooth",
+    "ruled",
+    "solid",
+    "name"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_motion": {
+   "name": "cad_motion",
+   "req": [
+    "constraintId",
+    "from",
+    "to"
+   ],
+   "props": [
+    "constraintId",
+    "from",
+    "to",
+    "frames"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_onshape": {
+   "name": "cad_onshape",
+   "req": [
+    "steps"
+   ],
+   "props": [
+    "steps",
+    "documentId",
+    "workspaceId",
+    "elementId",
+    "documentName",
+    "readback",
+    "exportPath"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_pattern": {
+   "name": "cad_pattern",
+   "req": [
+    "target",
+    "mode",
+    "count"
+   ],
+   "props": [
+    "target",
+    "mode",
+    "count",
+    "delta",
+    "axis",
+    "at",
+    "angle"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_revolve": {
+   "name": "cad_revolve",
+   "req": [
+    "profile"
+   ],
+   "props": [
+    "profile",
+    "sketch",
+    "angle",
+    "axis",
+    "at",
+    "name"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_script": {
+   "name": "cad_script",
+   "req": [
+    "language",
+    "code"
+   ],
+   "props": [
+    "language",
+    "code",
+    "timeoutMs"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_shell": {
+   "name": "cad_shell",
+   "req": [
+    "target",
+    "thickness"
+   ],
+   "props": [
+    "target",
+    "thickness",
+    "open"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_sketch_delete": {
+   "name": "cad_sketch_delete",
+   "req": [
+    "name"
+   ],
+   "props": [
+    "name"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_sketch_edit": {
+   "name": "cad_sketch_edit",
+   "req": [
+    "name",
+    "profile"
+   ],
+   "props": [
+    "name",
+    "profile"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_sketch_list": {
+   "name": "cad_sketch_list",
+   "req": [],
+   "props": [],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_sketch_new": {
+   "name": "cad_sketch_new",
+   "req": [
+    "profile"
+   ],
+   "props": [
+    "profile",
+    "name"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_solve": {
+   "name": "cad_solve",
+   "req": [],
+   "props": [],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_step_import": {
+   "name": "cad_step_import",
+   "req": [
+    "file"
+   ],
+   "props": [
+    "file"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_sweep": {
+   "name": "cad_sweep",
+   "req": [
+    "profile",
+    "path"
+   ],
+   "props": [
+    "profile",
+    "sketch",
+    "path",
+    "name"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_transform": {
+   "name": "cad_transform",
+   "req": [
+    "target"
+   ],
+   "props": [
+    "target",
+    "translate",
+    "rotate",
+    "mirror"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_view": {
+   "name": "cad_view",
+   "req": [
+    "path"
+   ],
+   "props": [
+    "path"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cad_volume": {
+   "name": "cad_volume",
+   "req": [
+    "target"
+   ],
+   "props": [
+    "target"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cite_batch": {
+   "name": "cite_batch",
+   "req": [
+    "action"
+   ],
+   "props": [
+    "action",
+    "kind",
+    "text",
+    "label",
+    "preview",
+    "selection",
+    "ids",
+    "revision",
+    "job",
+    "style",
+    "lang"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cite_bibtex": {
+   "name": "cite_bibtex",
+   "req": [
+    "doi"
+   ],
+   "props": [
+    "doi",
+    "key"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cite_check": {
+   "name": "cite_check",
+   "req": [
+    "text"
+   ],
+   "props": [
+    "text",
+    "maxChecks"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cite_format": {
+   "name": "cite_format",
+   "req": [
+    "doi"
+   ],
+   "props": [
+    "doi",
+    "style",
+    "lang"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cite_health": {
+   "name": "cite_health",
+   "req": [],
+   "props": [],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "cite_lookup": {
+   "name": "cite_lookup",
+   "req": [],
+   "props": [
+    "doi",
+    "query",
+    "limit"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "compress": {
+   "name": "compress",
+   "req": [],
+   "props": [
+    "content"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "create_goal": {
+   "name": "create_goal",
+   "req": [
+    "objective"
+   ],
+   "props": [
+    "objective",
+    "max_goal_rounds"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "create_skill": {
+   "name": "create_skill",
+   "req": [
+    "name",
+    "description",
+    "body"
+   ],
+   "props": [
+    "name",
+    "description",
+    "body"
+   ],
+   "closed": true,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "decompress": {
+   "name": "decompress",
+   "req": [
+    "blockId"
+   ],
+   "props": [
+    "blockId",
+    "toFile",
+    "full",
+    "imageRef"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "domain_search": {
+   "name": "domain_search",
+   "req": [],
+   "props": [
+    "engine",
+    "query"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "doubao_paint": {
+   "name": "doubao_paint",
+   "req": [],
+   "props": [
+    "prompt",
+    "prompts",
+    "ref_images",
+    "out_dir",
+    "timeout_ms"
+   ],
+   "closed": true,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "doubao_status": {
+   "name": "doubao_status",
+   "req": [],
+   "props": [],
+   "closed": true,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_a11y": {
+   "name": "dsh_browser_a11y",
+   "req": [],
+   "props": [
+    "includeHidden",
+    "maxNodes",
+    "coords"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_assert": {
+   "name": "dsh_browser_assert",
+   "req": [],
+   "props": [
+    "selector",
+    "text",
+    "url",
+    "js"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_auth": {
+   "name": "dsh_browser_auth",
+   "req": [
+    "action"
+   ],
+   "props": [
+    "action",
+    "cookies"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_back": {
+   "name": "dsh_browser_back",
+   "req": [],
+   "props": [],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_challenge": {
+   "name": "dsh_browser_challenge",
+   "req": [],
+   "props": [],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_check": {
+   "name": "dsh_browser_check",
+   "req": [
+    "target"
+   ],
+   "props": [
+    "target",
+    "checked"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_clear": {
+   "name": "dsh_browser_clear",
+   "req": [
+    "target"
+   ],
+   "props": [
+    "target"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_click": {
+   "name": "dsh_browser_click",
+   "req": [],
+   "props": [
+    "target",
+    "x",
+    "y"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_click_sequence": {
+   "name": "dsh_browser_click_sequence",
+   "req": [
+    "points"
+   ],
+   "props": [
+    "points",
+    "intervalMs"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_close_tab": {
+   "name": "dsh_browser_close_tab",
+   "req": [
+    "tabId"
+   ],
+   "props": [
+    "tabId"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_console": {
+   "name": "dsh_browser_console",
+   "req": [],
+   "props": [
+    "limit",
+    "filter",
+    "clear"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_content": {
+   "name": "dsh_browser_content",
+   "req": [
+    "format"
+   ],
+   "props": [
+    "format",
+    "selector",
+    "maxChars",
+    "timeoutMs"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_dialog": {
+   "name": "dsh_browser_dialog",
+   "req": [],
+   "props": [
+    "policy",
+    "limit"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_do": {
+   "name": "dsh_browser_do",
+   "req": [
+    "steps"
+   ],
+   "props": [
+    "steps",
+    "timeoutMs",
+    "autoDismiss"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_doctor": {
+   "name": "dsh_browser_doctor",
+   "req": [],
+   "props": [],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_download": {
+   "name": "dsh_browser_download",
+   "req": [
+    "url",
+    "savePath"
+   ],
+   "props": [
+    "url",
+    "savePath"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_drag": {
+   "name": "dsh_browser_drag",
+   "req": [
+    "fromX",
+    "fromY",
+    "toX",
+    "toY"
+   ],
+   "props": [
+    "fromX",
+    "fromY",
+    "toX",
+    "toY",
+    "steps"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_execute": {
+   "name": "dsh_browser_execute",
+   "req": [
+    "script"
+   ],
+   "props": [
+    "script",
+    "args"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_fill": {
+   "name": "dsh_browser_fill",
+   "req": [
+    "fields"
+   ],
+   "props": [
+    "fields",
+    "submit"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_find": {
+   "name": "dsh_browser_find",
+   "req": [
+    "text"
+   ],
+   "props": [
+    "text",
+    "all"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_forward": {
+   "name": "dsh_browser_forward",
+   "req": [],
+   "props": [],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_get_value": {
+   "name": "dsh_browser_get_value",
+   "req": [
+    "target"
+   ],
+   "props": [
+    "target"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_help": {
+   "name": "dsh_browser_help",
+   "req": [],
+   "props": [
+    "topic"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_history": {
+   "name": "dsh_browser_history",
+   "req": [],
+   "props": [
+    "verbose"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_hover": {
+   "name": "dsh_browser_hover",
+   "req": [
+    "target"
+   ],
+   "props": [
+    "target",
+    "settleMs"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_key": {
+   "name": "dsh_browser_key",
+   "req": [
+    "key"
+   ],
+   "props": [
+    "key"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_list_tabs": {
+   "name": "dsh_browser_list_tabs",
+   "req": [],
+   "props": [],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_network": {
+   "name": "dsh_browser_network",
+   "req": [],
+   "props": [
+    "limit",
+    "filter",
+    "onlyFailures",
+    "clear"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_open": {
+   "name": "dsh_browser_open",
+   "req": [
+    "url"
+   ],
+   "props": [
+    "url",
+    "newTab"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_refresh": {
+   "name": "dsh_browser_refresh",
+   "req": [],
+   "props": [],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_replay": {
+   "name": "dsh_browser_replay",
+   "req": [
+    "seq"
+   ],
+   "props": [
+    "seq"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_reset": {
+   "name": "dsh_browser_reset",
+   "req": [],
+   "props": [],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_reset_session": {
+   "name": "dsh_browser_reset_session",
+   "req": [],
+   "props": [],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_restrict": {
+   "name": "dsh_browser_restrict",
+   "req": [],
+   "props": [
+    "allowed"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_scrape": {
+   "name": "dsh_browser_scrape",
+   "req": [
+    "item",
+    "fields"
+   ],
+   "props": [
+    "item",
+    "fields",
+    "timeoutMs"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_screenshot": {
+   "name": "dsh_browser_screenshot",
+   "req": [],
+   "props": [
+    "fullPage",
+    "savePath",
+    "format",
+    "quality",
+    "maxWidth",
+    "maxHeight"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_scroll": {
+   "name": "dsh_browser_scroll",
+   "req": [],
+   "props": [
+    "deltaX",
+    "deltaY",
+    "selector",
+    "toTop",
+    "toBottom"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_select": {
+   "name": "dsh_browser_select",
+   "req": [
+    "target"
+   ],
+   "props": [
+    "target",
+    "optionValue",
+    "optionText",
+    "optionIndex"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_session": {
+   "name": "dsh_browser_session",
+   "req": [],
+   "props": [],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_set_value": {
+   "name": "dsh_browser_set_value",
+   "req": [
+    "target",
+    "value"
+   ],
+   "props": [
+    "target",
+    "value"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_snapshot": {
+   "name": "dsh_browser_snapshot",
+   "req": [],
+   "props": [
+    "coords"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_state": {
+   "name": "dsh_browser_state",
+   "req": [],
+   "props": [],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_switch_tab": {
+   "name": "dsh_browser_switch_tab",
+   "req": [
+    "tabId"
+   ],
+   "props": [
+    "tabId"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_type": {
+   "name": "dsh_browser_type",
+   "req": [
+    "text"
+   ],
+   "props": [
+    "text",
+    "target"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_upload": {
+   "name": "dsh_browser_upload",
+   "req": [
+    "target",
+    "path"
+   ],
+   "props": [
+    "target",
+    "path",
+    "mime"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_visited": {
+   "name": "dsh_browser_visited",
+   "req": [],
+   "props": [
+    "limit",
+    "domain",
+    "query",
+    "session"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_wait": {
+   "name": "dsh_browser_wait",
+   "req": [],
+   "props": [
+    "timeoutMs",
+    "url",
+    "selector"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_browser_wait_for_response": {
+   "name": "dsh_browser_wait_for_response",
+   "req": [
+    "urlContains"
+   ],
+   "props": [
+    "urlContains",
+    "status",
+    "timeoutMs"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_im_group_file": {
+   "name": "dsh_im_group_file",
+   "req": [
+    "attachmentId"
+   ],
+   "props": [
+    "attachmentId"
+   ],
+   "closed": true,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_im_group_history": {
+   "name": "dsh_im_group_history",
+   "req": [],
+   "props": [
+    "kind",
+    "from",
+    "to",
+    "keyword",
+    "cursor",
+    "limit"
+   ],
+   "closed": true,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "dsh_im_return_file": {
+   "name": "dsh_im_return_file",
+   "req": [
+    "path"
+   ],
+   "props": [
+    "path"
+   ],
+   "closed": true,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "edit": {
+   "name": "edit",
+   "req": [
+    "file_path",
+    "old_string",
+    "new_string"
+   ],
+   "props": [
+    "file_path",
+    "old_string",
+    "new_string",
+    "replace_all",
+    "sandbox_permissions",
+    "justification"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "excel_create": {
+   "name": "excel_create",
+   "req": [
+    "path",
+    "sheets"
+   ],
+   "props": [
+    "path",
+    "sheets",
+    "overwrite"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "excel_read": {
+   "name": "excel_read",
+   "req": [
+    "path"
+   ],
+   "props": [
+    "path",
+    "sheet",
+    "max_rows"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "excel_update": {
+   "name": "excel_update",
+   "req": [
+    "path"
+   ],
+   "props": [
+    "path",
+    "sheets",
+    "cell_updates"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "exit_plan_mode": {
+   "name": "exit_plan_mode",
+   "req": [
+    "plan"
+   ],
+   "props": [
+    "plan"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "ffmpeg_adjust": {
+   "name": "ffmpeg_adjust",
+   "req": [
+    "input"
+   ],
+   "props": [
+    "input",
+    "speed",
+    "volume",
+    "mute",
+    "rotate",
+    "output"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "ffmpeg_concat": {
+   "name": "ffmpeg_concat",
+   "req": [
+    "inputs"
+   ],
+   "props": [
+    "inputs",
+    "output",
+    "reencode",
+    "width",
+    "height",
+    "fps"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "ffmpeg_cut": {
+   "name": "ffmpeg_cut",
+   "req": [
+    "input"
+   ],
+   "props": [
+    "input",
+    "start",
+    "end",
+    "duration",
+    "output",
+    "reencode"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "ffmpeg_encode": {
+   "name": "ffmpeg_encode",
+   "req": [
+    "input"
+   ],
+   "props": [
+    "input",
+    "preset",
+    "crf",
+    "fps",
+    "scale",
+    "output"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "ffmpeg_extract": {
+   "name": "ffmpeg_extract",
+   "req": [
+    "input",
+    "what"
+   ],
+   "props": [
+    "input",
+    "what",
+    "output",
+    "start",
+    "duration",
+    "fps",
+    "streamIndex"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "ffmpeg_frames": {
+   "name": "ffmpeg_frames",
+   "req": [
+    "input"
+   ],
+   "props": [
+    "input",
+    "every",
+    "times",
+    "maxFrames",
+    "outputDir",
+    "format"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "ffmpeg_gif": {
+   "name": "ffmpeg_gif",
+   "req": [
+    "input"
+   ],
+   "props": [
+    "input",
+    "start",
+    "duration",
+    "fps",
+    "width",
+    "output"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "ffmpeg_health": {
+   "name": "ffmpeg_health",
+   "req": [],
+   "props": [],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "ffmpeg_probe": {
+   "name": "ffmpeg_probe",
+   "req": [
+    "input"
+   ],
+   "props": [
+    "input"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "ffmpeg_storyboard": {
+   "name": "ffmpeg_storyboard",
+   "req": [
+    "input"
+   ],
+   "props": [
+    "input",
+    "output",
+    "count",
+    "columns",
+    "width",
+    "start",
+    "end"
+   ],
+   "closed": true,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "ffmpeg_subtitle": {
+   "name": "ffmpeg_subtitle",
+   "req": [
+    "input",
+    "subtitle"
+   ],
+   "props": [
+    "input",
+    "subtitle",
+    "output"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "fishtalk_check": {
+   "name": "fishtalk_check",
+   "req": [
+    "text"
+   ],
+   "props": [
+    "text",
+    "keep"
+   ],
+   "closed": true,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "fishtalk_deep": {
+   "name": "fishtalk_deep",
+   "req": [],
+   "props": [
+    "scene",
+    "save",
+    "n"
+   ],
+   "closed": true,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "fishtalk_feed": {
+   "name": "fishtalk_feed",
+   "req": [
+    "lines"
+   ],
+   "props": [
+    "lines",
+    "where",
+    "source",
+    "scene"
+   ],
+   "closed": true,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "fishtalk_learn": {
+   "name": "fishtalk_learn",
+   "req": [
+    "site",
+    "target"
+   ],
+   "props": [
+    "site",
+    "target",
+    "limit"
+   ],
+   "closed": true,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "fishtalk_pack": {
+   "name": "fishtalk_pack",
+   "req": [],
+   "props": [
+    "scene",
+    "like",
+    "n",
+    "scenes"
+   ],
+   "closed": true,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "free_search_test": {
+   "name": "free_search_test",
+   "req": [],
+   "props": [
+    "engines",
+    "query"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "get_goal": {
+   "name": "get_goal",
+   "req": [],
+   "props": [],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "glob": {
+   "name": "glob",
+   "req": [
+    "pattern"
+   ],
+   "props": [
+    "pattern",
+    "path"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "grep": {
+   "name": "grep",
+   "req": [
+    "pattern"
+   ],
+   "props": [
+    "pattern",
+    "path",
+    "include"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "interrupt_agent": {
+   "name": "interrupt_agent",
+   "req": [
+    "agent_id"
+   ],
+   "props": [
+    "agent_id"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "job_kill": {
+   "name": "job_kill",
+   "req": [
+    "job_id"
+   ],
+   "props": [
+    "job_id",
+    "reason"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "job_list": {
+   "name": "job_list",
+   "req": [],
+   "props": [],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "job_output": {
+   "name": "job_output",
+   "req": [
+    "job_id"
+   ],
+   "props": [
+    "job_id",
+    "wait",
+    "timeout_ms"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "list_agents": {
+   "name": "list_agents",
+   "req": [],
+   "props": [
+    "scope"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "list_mcp_resource_templates": {
+   "name": "list_mcp_resource_templates",
+   "req": [
+    "server"
+   ],
+   "props": [
+    "server",
+    "cursor"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "list_mcp_resources": {
+   "name": "list_mcp_resources",
+   "req": [
+    "server"
+   ],
+   "props": [
+    "server",
+    "cursor"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "load_workspace_dependencies": {
+   "name": "load_workspace_dependencies",
+   "req": [],
+   "props": [],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "map_bicycling_route": {
+   "name": "map_bicycling_route",
+   "req": [
+    "origin",
+    "destination"
+   ],
+   "props": [
+    "origin",
+    "destination",
+    "waypoints",
+    "alternatives"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "map_driving_route": {
+   "name": "map_driving_route",
+   "req": [
+    "origin",
+    "destination"
+   ],
+   "props": [
+    "origin",
+    "destination",
+    "waypoints",
+    "alternatives"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "map_geocode": {
+   "name": "map_geocode",
+   "req": [
+    "address"
+   ],
+   "props": [
+    "address"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "map_poi_search": {
+   "name": "map_poi_search",
+   "req": [
+    "keywords"
+   ],
+   "props": [
+    "keywords",
+    "location",
+    "radiusM",
+    "region",
+    "types"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "map_reverse_geocode": {
+   "name": "map_reverse_geocode",
+   "req": [
+    "location"
+   ],
+   "props": [
+    "location"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "map_transit_route": {
+   "name": "map_transit_route",
+   "req": [
+    "origin",
+    "destination"
+   ],
+   "props": [
+    "origin",
+    "destination",
+    "waypoints",
+    "alternatives"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "map_walking_route": {
+   "name": "map_walking_route",
+   "req": [
+    "origin",
+    "destination"
+   ],
+   "props": [
+    "origin",
+    "destination",
+    "waypoints",
+    "alternatives"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "mcp__autocad__call_tool": {
+   "name": "mcp__autocad__call_tool",
+   "req": [
+    "name"
+   ],
+   "props": [
+    "name",
+    "arguments"
+   ],
+   "closed": true,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "mcp__autocad__search_tools": {
+   "name": "mcp__autocad__search_tools",
+   "req": [
+    "query"
+   ],
+   "props": [
+    "query",
+    "limit",
+    "risk"
+   ],
+   "closed": true,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "mnemon_document_create": {
+   "name": "mnemon_document_create",
+   "req": [
+    "title",
+    "content"
+   ],
+   "props": [
+    "title",
+    "description",
+    "content",
+    "sourcePaths"
+   ],
+   "closed": true,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "mnemon_document_manage": {
+   "name": "mnemon_document_manage",
+   "req": [
+    "action"
+   ],
+   "props": [
+    "action",
+    "id",
+    "title",
+    "description",
+    "content",
+    "sourcePaths"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "mnemon_document_search": {
+   "name": "mnemon_document_search",
+   "req": [
+    "query"
+   ],
+   "props": [
+    "query",
+    "includeArchived",
+    "limit"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "mnemon_forget": {
+   "name": "mnemon_forget",
+   "req": [
+    "id"
+   ],
+   "props": [
+    "id",
+    "memoryBodyId"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "mnemon_link": {
+   "name": "mnemon_link",
+   "req": [
+    "sourceId",
+    "targetId"
+   ],
+   "props": [
+    "sourceId",
+    "targetId",
+    "type",
+    "weight",
+    "reason",
+    "memoryBodyId"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "mnemon_memory_bodies": {
+   "name": "mnemon_memory_bodies",
+   "req": [],
+   "props": [],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "mnemon_memory_body_create": {
+   "name": "mnemon_memory_body_create",
+   "req": [
+    "name",
+    "description"
+   ],
+   "props": [
+    "name",
+    "description",
+    "providerId",
+    "reason",
+    "confidence"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "mnemon_memory_body_merge": {
+   "name": "mnemon_memory_body_merge",
+   "req": [
+    "targetMemoryBodyId",
+    "sourceMemoryBodyIds"
+   ],
+   "props": [
+    "targetMemoryBodyId",
+    "sourceMemoryBodyIds",
+    "deactivateSources"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "mnemon_memory_body_update": {
+   "name": "mnemon_memory_body_update",
+   "req": [
+    "memoryBodyId"
+   ],
+   "props": [
+    "memoryBodyId",
+    "name",
+    "description",
+    "active"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "mnemon_recall": {
+   "name": "mnemon_recall",
+   "req": [
+    "query"
+   ],
+   "props": [
+    "query",
+    "mode",
+    "limit",
+    "memoryBodyIds"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "mnemon_related": {
+   "name": "mnemon_related",
+   "req": [
+    "id"
+   ],
+   "props": [
+    "id",
+    "depth",
+    "edge",
+    "memoryBodyId"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "mnemon_remember": {
+   "name": "mnemon_remember",
+   "req": [
+    "content"
+   ],
+   "props": [
+    "content",
+    "category",
+    "importance",
+    "tags",
+    "entities",
+    "source",
+    "memoryBodyId"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "mnemon_runtime_memory": {
+   "name": "mnemon_runtime_memory",
+   "req": [
+    "action",
+    "target"
+   ],
+   "props": [
+    "action",
+    "target",
+    "content",
+    "old_text",
+    "importance",
+    "branches"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "mnemon_status": {
+   "name": "mnemon_status",
+   "req": [],
+   "props": [],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "mnemon_subagent_result": {
+   "name": "mnemon_subagent_result",
+   "req": [
+    "requestId",
+    "result"
+   ],
+   "props": [
+    "requestId",
+    "result"
+   ],
+   "closed": true,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "mnemon_view_action": {
+   "name": "mnemon_view_action",
+   "req": [
+    "offerId",
+    "input"
+   ],
+   "props": [
+    "offerId",
+    "input"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "mnemon_view_route": {
+   "name": "mnemon_view_route",
+   "req": [
+    "routeId",
+    "input"
+   ],
+   "props": [
+    "routeId",
+    "input"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "modlens_read_image": {
+   "name": "modlens_read_image",
+   "req": [
+    "path"
+   ],
+   "props": [
+    "path",
+    "prompt"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "multi_search": {
+   "name": "multi_search",
+   "req": [],
+   "props": [
+    "query",
+    "maxResults",
+    "engines"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "novel_arc": {
+   "name": "novel_arc",
+   "req": [
+    "action",
+    "book"
+   ],
+   "props": [
+    "action",
+    "book",
+    "updates",
+    "character",
+    "dimension",
+    "at",
+    "chapter"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "novel_audit": {
+   "name": "novel_audit",
+   "req": [
+    "book",
+    "chapter"
+   ],
+   "props": [
+    "book",
+    "chapter",
+    "continuity",
+    "voice",
+    "platform",
+    "censor",
+    "exempt"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "novel_briefing": {
+   "name": "novel_briefing",
+   "req": [
+    "book",
+    "chapter"
+   ],
+   "props": [
+    "book",
+    "chapter",
+    "cast"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "novel_character": {
+   "name": "novel_character",
+   "req": [
+    "action",
+    "book"
+   ],
+   "props": [
+    "action",
+    "book",
+    "name",
+    "card",
+    "voice",
+    "apply"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "novel_clone_project": {
+   "name": "novel_clone_project",
+   "req": [
+    "from_book",
+    "new_book"
+   ],
+   "props": [
+    "from_book",
+    "new_book",
+    "title"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "novel_diagnose": {
+   "name": "novel_diagnose",
+   "req": [
+    "book"
+   ],
+   "props": [
+    "book",
+    "chapters"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "novel_export": {
+   "name": "novel_export",
+   "req": [
+    "book"
+   ],
+   "props": [
+    "book",
+    "format",
+    "file"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "novel_extract": {
+   "name": "novel_extract",
+   "req": [
+    "book"
+   ],
+   "props": [
+    "book",
+    "from",
+    "to",
+    "kind"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "novel_glossary": {
+   "name": "novel_glossary",
+   "req": [
+    "action",
+    "book"
+   ],
+   "props": [
+    "action",
+    "book",
+    "term",
+    "definition"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "novel_import": {
+   "name": "novel_import",
+   "req": [
+    "action",
+    "book"
+   ],
+   "props": [
+    "action",
+    "approve",
+    "book",
+    "title",
+    "genre",
+    "logline",
+    "content",
+    "file"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "novel_ledger": {
+   "name": "novel_ledger",
+   "req": [
+    "action",
+    "book"
+   ],
+   "props": [
+    "action",
+    "book",
+    "entity",
+    "key",
+    "since",
+    "at",
+    "chapter",
+    "updates",
+    "setup",
+    "plan",
+    "id"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "novel_library": {
+   "name": "novel_library",
+   "req": [
+    "action"
+   ],
+   "props": [
+    "action",
+    "title",
+    "id",
+    "path",
+    "text",
+    "from",
+    "to",
+    "dimensions",
+    "compare_book"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "novel_noai_scan": {
+   "name": "novel_noai_scan",
+   "req": [],
+   "props": [
+    "text",
+    "book",
+    "chapter"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "novel_outline": {
+   "name": "novel_outline",
+   "req": [
+    "action",
+    "book"
+   ],
+   "props": [
+    "action",
+    "book",
+    "chapter",
+    "outline"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "novel_polish": {
+   "name": "novel_polish",
+   "req": [
+    "action",
+    "book",
+    "chapter"
+   ],
+   "props": [
+    "action",
+    "book",
+    "chapter",
+    "content",
+    "reason",
+    "review_quotes"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "novel_project": {
+   "name": "novel_project",
+   "req": [
+    "action",
+    "book"
+   ],
+   "props": [
+    "action",
+    "platform",
+    "chars",
+    "force",
+    "book",
+    "title",
+    "genre",
+    "logline",
+    "stage",
+    "promise",
+    "preference",
+    "preferenceId",
+    "confirmed",
+    "from",
+    "to",
+    "fullscan"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "novel_propose": {
+   "name": "novel_propose",
+   "req": [
+    "action",
+    "book"
+   ],
+   "props": [
+    "action",
+    "book",
+    "chapter",
+    "content",
+    "patches",
+    "base_version",
+    "reason"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "novel_quality": {
+   "name": "novel_quality",
+   "req": [
+    "action",
+    "book"
+   ],
+   "props": [
+    "action",
+    "book",
+    "chapter"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "novel_relation": {
+   "name": "novel_relation",
+   "req": [
+    "action",
+    "book"
+   ],
+   "props": [
+    "action",
+    "book",
+    "updates",
+    "a",
+    "b",
+    "dimension",
+    "at",
+    "chapter"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "novel_scene": {
+   "name": "novel_scene",
+   "req": [
+    "action",
+    "book"
+   ],
+   "props": [
+    "action",
+    "book",
+    "chapter",
+    "scene",
+    "participants",
+    "hidden",
+    "settings",
+    "forbidden",
+    "notes"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "novel_search": {
+   "name": "novel_search",
+   "req": [
+    "action",
+    "book"
+   ],
+   "props": [
+    "action",
+    "book",
+    "q",
+    "limit",
+    "min_hit",
+    "corpus",
+    "chapters",
+    "top"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "novel_style": {
+   "name": "novel_style",
+   "req": [
+    "action",
+    "book"
+   ],
+   "props": [
+    "action",
+    "book",
+    "chapter",
+    "text",
+    "tolerance"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "novel_worldbook": {
+   "name": "novel_worldbook",
+   "req": [
+    "action",
+    "book"
+   ],
+   "props": [
+    "action",
+    "book",
+    "id",
+    "keywords",
+    "priority",
+    "content",
+    "always",
+    "payload"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "novel_write_chapter": {
+   "name": "novel_write_chapter",
+   "req": [
+    "book",
+    "chapter",
+    "title",
+    "content",
+    "summary"
+   ],
+   "props": [
+    "book",
+    "chapter",
+    "title",
+    "content",
+    "summary",
+    "cast",
+    "facts_updates",
+    "facts_evidence",
+    "cognition_updates",
+    "basis",
+    "force"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "office_close": {
+   "name": "office_close",
+   "req": [],
+   "props": [
+    "doc",
+    "app",
+    "save"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "office_edit": {
+   "name": "office_edit",
+   "req": [
+    "ops"
+   ],
+   "props": [
+    "doc",
+    "app",
+    "ops"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "office_help": {
+   "name": "office_help",
+   "req": [
+    "app"
+   ],
+   "props": [
+    "app"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "office_open": {
+   "name": "office_open",
+   "req": [],
+   "props": [
+    "path",
+    "template",
+    "app",
+    "show"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "office_read": {
+   "name": "office_read",
+   "req": [],
+   "props": [
+    "doc",
+    "app",
+    "from",
+    "count",
+    "full",
+    "footnotes",
+    "table",
+    "sheet",
+    "range",
+    "profile",
+    "slide"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "office_render": {
+   "name": "office_render",
+   "req": [],
+   "props": [
+    "doc",
+    "app",
+    "page",
+    "slide",
+    "to",
+    "overview",
+    "sheet",
+    "range",
+    "chart"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "office_save": {
+   "name": "office_save",
+   "req": [],
+   "props": [
+    "doc",
+    "app",
+    "path"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "office_status": {
+   "name": "office_status",
+   "req": [],
+   "props": [],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "platform_search": {
+   "name": "platform_search",
+   "req": [],
+   "props": [
+    "platform",
+    "query",
+    "maxResults"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "ppt_create": {
+   "name": "ppt_create",
+   "req": [
+    "path"
+   ],
+   "props": [
+    "path",
+    "title",
+    "slides",
+    "overwrite"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "ppt_read": {
+   "name": "ppt_read",
+   "req": [
+    "path"
+   ],
+   "props": [
+    "path",
+    "max_chars"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "present": {
+   "name": "present",
+   "req": [
+    "files"
+   ],
+   "props": [
+    "files"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "purge_apply": {
+   "name": "purge_apply",
+   "req": [],
+   "props": [],
+   "closed": true,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "purge_revert": {
+   "name": "purge_revert",
+   "req": [],
+   "props": [],
+   "closed": true,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "purge_status": {
+   "name": "purge_status",
+   "req": [],
+   "props": [],
+   "closed": true,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "pwsh": {
+   "name": "pwsh",
+   "req": [
+    "description",
+    "command"
+   ],
+   "props": [
+    "description",
+    "command",
+    "timeoutMs",
+    "workdir",
+    "run_in_background",
+    "sandbox_permissions",
+    "justification"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "read": {
+   "name": "read",
+   "req": [
+    "file_path"
+   ],
+   "props": [
+    "file_path",
+    "offset",
+    "limit"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "read_image": {
+   "name": "read_image",
+   "req": [
+    "file_path"
+   ],
+   "props": [
+    "file_path"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "read_mcp_resource": {
+   "name": "read_mcp_resource",
+   "req": [
+    "server",
+    "uri"
+   ],
+   "props": [
+    "server",
+    "uri"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "research": {
+   "name": "research",
+   "req": [],
+   "props": [
+    "question",
+    "depth"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "schedule_create": {
+   "name": "schedule_create",
+   "req": [
+    "prompt",
+    "title"
+   ],
+   "props": [
+    "prompt",
+    "title",
+    "after_seconds",
+    "every_seconds",
+    "daily",
+    "weekly",
+    "cron",
+    "at"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "schedule_delete": {
+   "name": "schedule_delete",
+   "req": [
+    "id"
+   ],
+   "props": [
+    "id"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "schedule_list": {
+   "name": "schedule_list",
+   "req": [],
+   "props": [],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "schedule_update": {
+   "name": "schedule_update",
+   "req": [
+    "id"
+   ],
+   "props": [
+    "id",
+    "title",
+    "prompt",
+    "every_seconds",
+    "daily",
+    "weekly",
+    "cron",
+    "at"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "search_context": {
+   "name": "search_context",
+   "req": [
+    "query"
+   ],
+   "props": [
+    "query",
+    "limit"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "search_meme_wiki": {
+   "name": "search_meme_wiki",
+   "req": [],
+   "props": [
+    "query"
+   ],
+   "closed": true,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "send_message": {
+   "name": "send_message",
+   "req": [
+    "agent_id",
+    "message"
+   ],
+   "props": [
+    "agent_id",
+    "message"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "skill": {
+   "name": "skill",
+   "req": [
+    "name"
+   ],
+   "props": [
+    "name"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "subagent": {
+   "name": "subagent",
+   "req": [
+    "description",
+    "prompt"
+   ],
+   "props": [
+    "cwd",
+    "description",
+    "prompt"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "subagent_fork": {
+   "name": "subagent_fork",
+   "req": [
+    "description",
+    "prompt"
+   ],
+   "props": [
+    "cwd",
+    "description",
+    "prompt"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "todo_write": {
+   "name": "todo_write",
+   "req": [
+    "todos"
+   ],
+   "props": [
+    "todos"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "update_goal": {
+   "name": "update_goal",
+   "req": [
+    "goal_id",
+    "revision",
+    "action"
+   ],
+   "props": [
+    "goal_id",
+    "revision",
+    "action",
+    "objective",
+    "max_goal_rounds",
+    "blocked_reason"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "video_locate": {
+   "name": "video_locate",
+   "req": [
+    "input",
+    "query"
+   ],
+   "props": [
+    "input",
+    "query",
+    "from",
+    "to",
+    "max",
+    "transcriptFile",
+    "cookies",
+    "allowAnonymous"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "video_outline": {
+   "name": "video_outline",
+   "req": [
+    "input"
+   ],
+   "props": [
+    "input",
+    "windows",
+    "top"
+   ],
+   "closed": true,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "video_probe": {
+   "name": "video_probe",
+   "req": [
+    "input"
+   ],
+   "props": [
+    "input",
+    "cookies",
+    "allowAnonymous"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "video_read": {
+   "name": "video_read",
+   "req": [
+    "input"
+   ],
+   "props": [
+    "input",
+    "start",
+    "end",
+    "maxScreens",
+    "transcriptFile",
+    "out"
+   ],
+   "closed": true,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "video_search": {
+   "name": "video_search",
+   "req": [],
+   "props": [
+    "query",
+    "source",
+    "maxResults"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "video_storyboard": {
+   "name": "video_storyboard",
+   "req": [
+    "input"
+   ],
+   "props": [
+    "input",
+    "from",
+    "to",
+    "cells",
+    "sheets",
+    "need",
+    "budget",
+    "maxPerSheet",
+    "segment",
+    "pick",
+    "burn",
+    "minGap",
+    "adaptive",
+    "tileFirst",
+    "transcript",
+    "transcriptFile",
+    "planThresholds",
+    "ocr",
+    "hotwords",
+    "size",
+    "quality",
+    "scanHeight",
+    "cookies",
+    "allowAnonymous",
+    "detail",
+    "cellRange",
+    "textOnly",
+    "sourceHash"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "video_subtitles": {
+   "name": "video_subtitles",
+   "req": [
+    "input"
+   ],
+   "props": [
+    "input",
+    "from",
+    "to",
+    "maxStrips",
+    "stepSec",
+    "band",
+    "cookies",
+    "allowAnonymous"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "video_zoom": {
+   "name": "video_zoom",
+   "req": [
+    "input"
+   ],
+   "props": [
+    "input",
+    "from",
+    "to",
+    "cells",
+    "pick",
+    "burn",
+    "transcript",
+    "transcriptFile",
+    "detail",
+    "cellId",
+    "minGap",
+    "quality",
+    "size",
+    "zoomHeight",
+    "scanHeight",
+    "ocr",
+    "cookies",
+    "allowAnonymous",
+    "sourceHash"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "weather": {
+   "name": "weather",
+   "req": [],
+   "props": [
+    "location",
+    "days"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "web_fetch": {
+   "name": "web_fetch",
+   "req": [
+    "url"
+   ],
+   "props": [
+    "url"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "web_search": {
+   "name": "web_search",
+   "req": [
+    "queries"
+   ],
+   "props": [
+    "queries"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "word_create": {
+   "name": "word_create",
+   "req": [
+    "path"
+   ],
+   "props": [
+    "path",
+    "title",
+    "paragraphs",
+    "bullets",
+    "table",
+    "overwrite"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "word_read": {
+   "name": "word_read",
+   "req": [
+    "path"
+   ],
+   "props": [
+    "path",
+    "max_chars",
+    "format"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "word_update": {
+   "name": "word_update",
+   "req": [
+    "path"
+   ],
+   "props": [
+    "path",
+    "paragraphs",
+    "bullets",
+    "table"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "workflow": {
+   "name": "workflow",
+   "req": [
+    "script",
+    "meta"
+   ],
+   "props": [
+    "script",
+    "meta",
+    "args",
+    "run_in_background"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "working_directory": {
+   "name": "working_directory",
+   "req": [],
+   "props": [
+    "cd"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "write": {
+   "name": "write",
+   "req": [
+    "file_path",
+    "content"
+   ],
+   "props": [
+    "file_path",
+    "content",
+    "sandbox_permissions",
+    "justification"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "group_tools": {
+   "name": "group_tools",
+   "req": [
+    "action"
+   ],
+   "props": [
+    "action",
+    "ops"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "list_papers": {
+   "name": "list_papers",
+   "req": [],
+   "props": [
+    "topic"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "search_paper": {
+   "name": "search_paper",
+   "req": [
+    "query"
+   ],
+   "props": [
+    "query",
+    "k",
+    "path",
+    "topic",
+    "name"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "study_progress": {
+   "name": "study_progress",
+   "req": [],
+   "props": [
+    "path",
+    "topic",
+    "name"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "study_update": {
+   "name": "study_update",
+   "req": [
+    "action"
+   ],
+   "props": [
+    "action",
+    "steps",
+    "step_id",
+    "note",
+    "score",
+    "total",
+    "summary",
+    "path",
+    "topic",
+    "name"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "task_board_create": {
+   "name": "task_board_create",
+   "req": [
+    "title"
+   ],
+   "props": [
+    "title",
+    "description",
+    "prompt",
+    "parentId",
+    "workspaceId",
+    "mode",
+    "permission",
+    "model",
+    "reasoningEffort",
+    "reuseSession",
+    "goalRun",
+    "skipVerification",
+    "tags",
+    "schedule"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "task_board_get": {
+   "name": "task_board_get",
+   "req": [
+    "taskId"
+   ],
+   "props": [
+    "taskId"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "task_board_list": {
+   "name": "task_board_list",
+   "req": [],
+   "props": [
+    "status",
+    "parentId",
+    "rootsOnly",
+    "includeArchived",
+    "tag",
+    "query",
+    "limit"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "task_board_manage": {
+   "name": "task_board_manage",
+   "req": [
+    "taskId",
+    "action"
+   ],
+   "props": [
+    "taskId",
+    "action",
+    "result",
+    "initiatedBy",
+    "summary"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "task_board_run": {
+   "name": "task_board_run",
+   "req": [
+    "taskId"
+   ],
+   "props": [
+    "taskId",
+    "rerun"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "task_board_schedule": {
+   "name": "task_board_schedule",
+   "req": [
+    "taskId"
+   ],
+   "props": [
+    "taskId",
+    "enabled",
+    "mode",
+    "cron",
+    "at",
+    "timeZone",
+    "maxRuns"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "task_board_set_parent": {
+   "name": "task_board_set_parent",
+   "req": [
+    "taskId",
+    "parentId"
+   ],
+   "props": [
+    "taskId",
+    "parentId"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "task_board_update": {
+   "name": "task_board_update",
+   "req": [
+    "taskId"
+   ],
+   "props": [
+    "taskId",
+    "title",
+    "description",
+    "prompt",
+    "workspaceId",
+    "mode",
+    "permission",
+    "model",
+    "reasoningEffort",
+    "reuseSession",
+    "goalRun",
+    "skipVerification",
+    "tags"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  },
+  "transcribe_pdf": {
+   "name": "transcribe_pdf",
+   "req": [],
+   "props": [
+    "path",
+    "topic",
+    "name",
+    "force",
+    "source"
+   ],
+   "closed": false,
+   "anyOf": [],
+   "hasSchema": true
+  }
+ }
+}

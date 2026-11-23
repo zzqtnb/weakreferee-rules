@@ -1,0 +1,31 @@
+{
+  "id": "core",
+  "name": "基础包",
+  "version": "0.1.0",
+  "kind": "core",
+  "description": "不依赖任何操作系统或宿主的规则。换平台、换模型、换宿主都成立。",
+  "author": "ZQ",
+  "license": "AGPL-3.0-only",
+  "appliesTo": {},
+  "loadOrder": 10,
+  "rules": 2,
+  "ruleIds": [
+    "CORE-HTTPS-01",
+    "CORE-PARAMS-GEN"
+  ],
+  "testedOn": {
+    "host": "DSH 桌面版（Windows）",
+    "model": "deepseek-chat",
+    "period": "2026-11-19 ~ 2026-11-22",
+    "calls": 18360,
+    "hits": 168,
+    "note": "hits 为 3（CORE-HTTPS-01）+ 165（CORE-PARAMS-GEN）"
+  },
+  "notes": [
+    "CORE-PARAMS-GEN 不是手写规则，它声明的是一个生成器：读取工具契约表后编译出具体规则。",
+    "在 273 个工具的契约表上，它会展开成 451 条规则。",
+    "契约表本身不随本包分发——它描述的是某一个具体宿主暴露的工具集，换宿主就会变。"
+  ,
+    "testedOn 里的数字来自作者环境（2026-11，Windows 上的 DSH 桌面版）。换环境后请用你自己的账本覆盖它——别人的命中率不代表你的。"
+  ]
+}

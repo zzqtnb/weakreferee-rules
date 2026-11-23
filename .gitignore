@@ -1,0 +1,16 @@
+# 忽略
+node_modules/
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# 本地私有配置（不入库）
+*.local.json
+private/
+*.bak-*
+*.bak*
+
+# 闸的运行时数据：备份与自查标记都落这里，属于本机产物
+dsh-judge-gate/data/
+**/data/回收站/

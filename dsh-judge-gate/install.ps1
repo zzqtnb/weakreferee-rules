@@ -25,7 +25,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $Pkg = 'dsh-judge-gate'
-$Bundled = @('index.js', 'check.cjs', 'package.json', 'cordis.patch.yml', 'README.md', 'CHANGELOG.md', 'LICENSE', 'install.ps1', 'lib', 'engine', 'rules')
+$Bundled = @('index.js', 'check.cjs', 'package.json', 'cordis.patch.yml', 'README.md', 'CHANGELOG.md', 'LICENSE', 'install.ps1', 'tools', 'lib', 'engine', 'rules')
 
 function Write-Step([string]$n, [string]$m) { Write-Host ("STEP {0} {1}" -f $n, $m) }
 
@@ -205,6 +205,16 @@ foreach ($item in $Bundled) {
 }
 Write-Step 4 "已复制到 $target"
 
+# ── 判据清单的落点 ──────────────────────────────────────────────────
+# 判据清单必须落在插件目录这一份里才算数：插件读的是自己的 data\judges-installed.json，
+# 在克隆目录里装判据只会写进克隆目录那份，插件看不到。
+New-Item -ItemType Directory -Force -Path (Join-Path $target 'data') | Out-Null
+$srcList = Join-Path (Join-Path $Source 'data') 'judges-installed.json'
+if (Test-Path -LiteralPath $srcList) {
+  Copy-Item -LiteralPath $srcList -Destination (Join-Path $target 'data\judges-installed.json') -Force
+  Write-Step 4 '已把源目录的判据清单抄进插件目录（data\judges-installed.json）'
+}
+
 # 依赖
 $dep = Find-JsonBlock $lines 'dependencies'
 $depEntry = '"' + $Pkg + '": "file:' + $fileSpec + '"'
@@ -222,7 +232,7 @@ if ($null -eq $dep) {
 $bun = Find-JsonBlock $lines 'bundles'
 if ($null -eq $bun) {
   if (Add-InlineEntry $lines 'bundles' ('"' + $Pkg + '"')) { Write-Step 6 'bundle 已登记（单行 JSON）' }
-  else { Write-Host 'WARN package.json 里没有 dsh.profile.bundles 块，跳过 bundle 登记（插件不会自动加载，需手工加一行）' }
+    Write-Host 'WARN package.json 里没有 dsh.profile.bundles 块，bundle 没登记（插件不会自动加载）。下一步：打开 profile 的 package.json，手工把 "dsh-judge-gate" 加进 dsh.profile.bundles 数组'
 } elseif ($bun.text -match [regex]::Escape('"' + $Pkg + '"')) {
   Write-Step 6 'bundle 已存在，不动'
 } else {
@@ -273,6 +283,10 @@ if (-not $node) {
 }
 
 Write-Step 8 '装好了。完全退出 DSH（含托盘）再打开，闸就挂上了。'
+
+Write-Host '装判据要用插件目录里那份工具（写进插件自己的清单才算数，写进克隆目录的不算）：'
+if ($node) { Write-Host ('  "{0}" "{1}" add core' -f $node, (Join-Path $target 'tools\judge-packs.cjs')) }
+Write-Host '  装完再完全退出 DSH 重开一次，判据才生效'
 Write-Host ''
 Write-Host '验一句（这条会被拦）：'
 if ($node) { Write-Host ('  "{0}" "{1}" pwsh "command=Out-File D:\a.ps1 -InputObject 中文"' -f $node, (Join-Path $target 'check.cjs')) } else { Write-Host ('  找到 node 后跑：node "{0}" pwsh "command=Out-File D:\a.ps1 -InputObject 中文"' -f (Join-Path $target 'check.cjs')) }

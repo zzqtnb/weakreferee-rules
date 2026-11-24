@@ -234,6 +234,16 @@ docs/                     怎么写一条规矩、跟同类项目差在哪
 node "%USERPROFILE%\weakreferee-rules\dsh-judge-gate\check.cjs" pwsh "command=Out-File D:\a.ps1 -InputObject 中文"
 ```
 
+装完还不判东西——本体装上空转是设计。要它真拦，接着装判据包，注意**用插件目录里那份工具**（写进插件自己的清单才算数）：
+
+```
+node "<profile>\node_modules\dsh-judge-gate\tools\judge-packs.cjs" list
+node "<profile>\node_modules\dsh-judge-gate\tools\judge-packs.cjs" add core
+```
+
+`<profile>` 是 install.ps1 打印的那条路径（它装完会把这条命令原样打在屏幕上，复制即可）。
+**为什么不能在本仓库目录里装**：`judge-packs.cjs` 写的是自己所在包里的 `data/judges-installed.json`，在克隆目录跑就写进克隆目录那份，而插件读的是自己目录那一份，两边不是一个文件——屏幕显示「已装 18 条」，插件那边还是空的，且不报错。装完再完全退出 DSH 重开一次才生效。
+
 卸载：第 2 行同一条命令加 `-Uninstall`，profile 的 `package.json` 退回装之前的样子，一行不剩。
 
 装脚本只碰三样东西：把插件目录复制进 profile 的 `node_modules`、在 profile 的 `package.json` 里加一条依赖与一个 bundle、
@@ -246,7 +256,7 @@ node "%USERPROFILE%\weakreferee-rules\dsh-judge-gate\check.cjs" pwsh "command=Ou
 
 ### 五、只装其中几条
 
-装卸整包或单条，用上面的 `tools/judge-packs.cjs`（推荐，会写进安装清单、重启后仍生效）。
+装卸整包或单条，用 `tools/judge-packs.cjs`（推荐，会写进安装清单、重启后仍生效）。**装成插件之后，要用插件目录里那份**（`<profile>\node_modules\dsh-judge-gate\tools\judge-packs.cjs`），理由同上段：清单写在哪一份，决定插件看不看得到。
 
 命令行临时试判、或不想动清单时，用下面的 `--only` / `--skip`：
 

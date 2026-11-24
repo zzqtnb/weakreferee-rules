@@ -25,7 +25,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $Pkg = 'dsh-judge-gate'
-$Bundled = @('index.js', 'check.cjs', 'package.json', 'cordis.patch.yml', 'README.md', 'CHANGELOG.md', 'LICENSE', 'install.ps1', 'tools', 'lib', 'engine', 'rules')
+$Bundled = @('index.js', 'check.cjs', 'mcp-server.cjs', 'package.json', 'cordis.patch.yml', 'README.md', 'CHANGELOG.md', 'LICENSE', 'install.ps1', 'tools', 'lib', 'engine', 'rules')
 
 function Write-Step([string]$n, [string]$m) { Write-Host ("STEP {0} {1}" -f $n, $m) }
 

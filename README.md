@@ -14,6 +14,29 @@
 
 它先在第 1 步证明「引擎能判」（不装任何东西），再问你要不要挂到 DSH 上。判据清单默认是空的——装上不装判据等于空转，这是有意的。
 
+## 接进 MCP 客户端（不装 DSH 也能用）
+
+`dsh-judge-gate/mcp-server.cjs` 是个零依赖的 MCP stdio 服务器，判定用的是同一份 `lib/` 与 `engine/`，不是另写一套。
+
+Claude Code：
+
+```bash
+claude mcp add weakreferee -- node <仓库路径>/dsh-judge-gate/mcp-server.cjs
+```
+
+Cursor（`~/.cursor/mcp.json`）或任何写 json 的客户端：
+
+```json
+{
+  "mcpServers": {
+    "weakreferee": { "command": "node", "args": ["<仓库路径>/dsh-judge-gate/mcp-server.cjs"] }
+  }
+}
+```
+
+三个工具：`judge_check`（判一次调用，拦下时 `isError: true`，文本里给判据编号）、`judge_packs`（这台机器装了哪些包、展开多少条）、`judge_rules`（已装判据的编号与一句话说明）。
+判定读的是 `dsh-judge-gate/data/judges-installed.json`——**清单空着＝判据包空转**（跟插件一致）；参数形态的基础判定（缺必填键、http 只收 https）不依赖清单，照样生效。
+
 ## 一句话
 
 市面上的 agent 安全工具大多在管 **该不该做**（这条命令危不危险、要不要人工批准）。
@@ -60,7 +83,7 @@
 
 | 件 | 位置 | 是什么 | 装上之后 |
 |---|---|---|---|
-| **本体** | `dsh-judge-gate/` | 引擎（插件）与便携包，会跑、会判 | **一条判据都没装时，它什么都不拦** |
+| **本体** | `dsh-judge-gate/` | 引擎（插件）与便携包，会跑、会判 | **一条判据都没装时，判据包不拦东西**（插件形态只剩非法 JSON、写文件前备份等基础动作；命令行与 MCP 形态仍判最基础的参数形态） |
 | **判据库** | `catalog/` | 市场：一条一个条目，看「都查些什么」 | 看到的不等于装上的 |
 | **判据包** | `packs/` | 别人挑好的一批：按域整包装 | 装上才进判定 |
 

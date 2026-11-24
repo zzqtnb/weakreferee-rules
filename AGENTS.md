@@ -35,9 +35,11 @@ node weakreferee-cli.js check pwsh "command=Get-ChildItem -Path ."
 
 三条对得上，说明引擎和判据在这台机器上可用；对不上就停，把原始输出贴给用户，别自己改判据。
 
-## 第 2 步：要真挂到 DSH 上，再装（没装 DSH 就跳过这一步）
+## 第 2 步：挂上去（两条路，按用户用的宿主选一条）
 
-Windows，仓库根执行：
+### 2A：用户用 DSH（Windows）
+
+仓库根执行：
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File dsh-judge-gate\install.ps1
@@ -56,6 +58,28 @@ node "<上一步的插件目录>\tools\judge-packs.cjs" add windows-powershell
 
 然后让用户**完全退出 DSH 再打开**（托盘退出，不是关窗口）。不重启，加载的还是旧代码。
 
+### 2B：用户用 Claude Code / Cursor / 其它 MCP 客户端
+
+不装插件，只注册一个 MCP 服务器（零依赖，判定用同一份引擎）：
+
+```bash
+claude mcp add weakreferee -- node <仓库绝对路径>/dsh-judge-gate/mcp-server.cjs
+```
+
+写 json 的客户端（Cursor 的 `~/.cursor/mcp.json` 等）：
+
+```json
+{ "mcpServers": { "weakreferee": { "command": "node", "args": ["<仓库绝对路径>/dsh-judge-gate/mcp-server.cjs"] } } }
+```
+
+注册完让它调一次 `judge_packs` 验证：应打出「实际生效 N 条」或「空转」（清单空＝空转，正常）。要继续装判据，用仓库里那份工具：
+
+```bash
+node dsh-judge-gate/tools/judge-packs.cjs add core
+```
+
+**必须跟用户讲清一条**：MCP 形态没有钩子，管不到客户端自己的工具派发——它只能靠模型在动手前主动调 `judge_check`。所以要让它真起作用，得在客户端的规则文件里加一句「每次调工具前先 judge_check 一次」。强制卡口只有插件形态（2A）才有。
+
 ## 第 3 步：验收（三条，缺一条都不算装好）
 
 ```bash
@@ -68,9 +92,9 @@ node "<插件目录>\check.cjs" web_fetch url=http://example.com
 |---|---|
 | judge-packs（不带参数） | 打出「来源：…node_modules\dsh-judge-gate\data\judges-installed.json」与「实际生效 N 条」，N ≥ 6 |
 | selfcheck | exit 0，末两行 `规则包: 装 N 条，展开后 M 条，拒装 0 条` 与 `自检通过` |
-| 第 3 条 | exit 1，理由是 `CORE-HTTPS-01`（明文 http 不收） |
+| 第 3 条 | 输出里有 `引擎：block [CORE-HTTPS-01:block]` 且 exit 1 |
 
-第三行为什么用它做验收：装对了就会发现「http 被拦、https 放行」，装错了就是空转但照样「通过」——这个差别只有真喂一次才看得出来。
+第三行为什么用它做验收：`CORE-HTTPS-01` 是**规则包**里的判据，只有包真的装上了才会出现在「引擎」那一行。清单空着时它不会出现（那时只剩基础参数判定在拦），所以看的是这行文字，不是退出码。
 
 ## 失败怎么办（照顺序，别乱试）
 

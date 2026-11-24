@@ -25,7 +25,7 @@ const CONDITION = [
   'missingKey', 'emptyValue', 'missingAnyOf', 'wrongKey', 'extraKey', 'typeMismatch',
   'argTypeMismatch',
   'missingFlag', 'regexHit', 'regexMiss', 'fileLacksBom', 'fileHasBom',
-  'fileAnchorMissing', 'fileAnchorMultiple', 'fileNewerThan', 'fileNewerThanProcessStart',
+  'fileAnchorMissing', 'fileAnchorMultiple', 'fileNewerThan', 'fileNewerThanProcessStart', 'fileExistsBefore',
   'unknownKey', 'pathOutside', 'cmdAbsPathWritten',
   'noCallSince', 'callCountSince', 'argRepeat',
 ];

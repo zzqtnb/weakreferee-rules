@@ -11,6 +11,7 @@
   },
   "falsePositiveRisk": "medium",
   "defaultAction": "steer",
+  "promotedTo": "core#CAT-NAMING-01",
   "message": "交上来的文件叫「最终版2-真的最终版(1).docx」，或者全是乱码名",
   "fix": "按「谁-什么-什么时候」命名，带日期，别用括号副本后缀",
   "reversible": true,

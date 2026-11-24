@@ -14,6 +14,7 @@
   },
   "falsePositiveRisk": "medium",
   "defaultAction": "warn",
+  "promotedTo": "core#CAT-OVERWRITE-01",
   "message": "这个位置已经有一个同名文件，覆盖之前没有确认或备份",
   "fix": "先把它复制一份带日期的副本，或者换一个输出名",
   "reversible": false,

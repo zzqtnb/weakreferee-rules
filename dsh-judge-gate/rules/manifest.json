@@ -1,12 +1,12 @@
 {
   "_说明": "每个包的 rules.json 指纹。改规则要重新生成这份清单，否则加载时会提示不符。它只能发现文件被改动，不是签名。",
-  "generatedAt": "2026-11-24T16:01:59.858Z",
+  "generatedAt": "2026-11-24T16:06:46.926Z",
   "packs": {
     "core": {
       "file": "rules.json",
-      "rules": 8,
-      "bytes": 14074,
-      "sha256": "64acafd57192b095fcf32aa2c3441041dcfd11959d2ab9ae8a902d1e47f6af8c"
+      "rules": 10,
+      "bytes": 16824,
+      "sha256": "73b5b4f529cfa908533c49253c56848109e222aa761f770a73a9da5242dd9841"
     },
     "dsh-host": {
       "file": "rules.json",

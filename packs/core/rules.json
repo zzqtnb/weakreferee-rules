@@ -455,5 +455,102 @@
       "needFs": false
     },
     "scene": "构建脚本其实什么都没干，只是正常退出了。同步报告里写着「✅ 成功、无错误无警告」，群里没人再问，问题留到下一版发布才爆。"
+  },
+  {
+    "id": "CAT-NAMING-01",
+    "title": "交付物名字里带「最终版」这类说法",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "write"
+    },
+    "condition": {
+      "type": "regexHit",
+      "in": "args.file_path",
+      "pattern": "(最终版|最后版|真的最终|终极版|最新版最终)"
+    },
+    "action": "steer",
+    "severity": "C",
+    "message": "文件名里带着「最终版」这类说法，过几天就分不清哪个才是最后一版",
+    "fix": "改成带日期或版本号的名字，例如 项目A-技术报告-20261124.md",
+    "reversible": true,
+    "evidence": {
+      "hits": 0,
+      "sessions": 0,
+      "source": "2026-11-24 四模型 × 43 情景实测，qwen3.8-flash 犯过"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "file_path": "D:\\演示\\工作区\\交付\\最终版2-真的最终版.docx",
+            "content": "x"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "file_path": "D:\\演示\\工作区\\交付\\项目A-技术报告-20261124.md",
+            "content": "x"
+          },
+          "expect": "pass"
+        }
+      ]
+    }
+  },
+  {
+    "id": "CAT-OVERWRITE-01",
+    "title": "往一个早就存在的文件上写，本轮没读过也没备份过",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "write"
+    },
+    "condition": {
+      "all": [
+        {
+          "type": "fileExistsBefore",
+          "key": "file_path"
+        },
+        {
+          "type": "noCallSince",
+          "tools": [
+            "read",
+            "edit",
+            "copy_file",
+            "move_file"
+          ],
+          "within": 30
+        }
+      ]
+    },
+    "action": "warn",
+    "severity": "B",
+    "message": "这个位置本来就有一份文件（不是本轮新建的），这轮一次没读过也没备份就直接写",
+    "fix": "先 read 看一眼，或者复制一份带日期的副本再覆盖",
+    "reversible": false,
+    "evidence": {
+      "hits": 0,
+      "sessions": 0,
+      "source": "2026-11-24 四模型 × 43 情景实测，deepseek-v4-pro / qwen3.8-flash / qwen3.8-max / doubao-seed-2.1-turbo 四家全犯"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "file_path": "D:\\演示\\工作区\\交付\\报告.md",
+            "content": "新内容"
+          },
+          "expect": "pass",
+          "note": "文件不存在，不该命中"
+        },
+        {
+          "args": {
+            "file_path": "D:/deepseek/工作区/weakreferee-rules/README.md",
+            "content": "新内容"
+          },
+          "expect": "block",
+          "note": "仓库里本来就有的文件"
+        }
+      ]
+    }
   }
 ]

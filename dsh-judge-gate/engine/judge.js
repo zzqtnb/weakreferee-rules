@@ -249,6 +249,17 @@ const CONDITION = {
     } catch { return false; }
   },
 
+  // 目标文件已经存在，而且不是本轮新建的（mtime 早于宿主启动）。
+  // 判「要覆盖一份旧文件」用它；**不能靠 not fileNewerThanProcessStart 取反**——
+  // 那个函数在文件不存在时返回 false，取反后会把「文件根本没有」也算成命中。
+  fileExistsBefore(p, ctx) {
+    try {
+      const fp = String(expandEnv(pick(ctx, 'args.' + (p.key || 'file_path'))));
+      if (!fp) return false;
+      return fs.statSync(fp).mtimeMs < processStartMs();
+    } catch { return false; }
+  },
+
   unknownKey(p, ctx) {
     // 检查「对象里有没有不在白名单内的键」
     // in 支持 "args"（顶层）与 "args.files[]"（数组项层）

@@ -321,7 +321,7 @@ function printHits(hits, action) {
 
 function printFooter(st) {
   const L = [];
-  L.push('装载 ' + st.expanded + ' 条（手写 ' + st.handwritten + ' + 生成器展开 ' + st.emitted + '）');
+  L.push('装载 ' + st.handwritten + ' 条判据（展开 ' + st.expanded + ' 条规则）');
   if (st.unverified && st.unverified.length) L.push('  · ' + st.unverified.length + ' 个工具无必填声明，参数形态未验（不算通过）');
   if (st.rejected && st.rejected.length) L.push('  ⚠ 拒装 ' + st.rejected.length + ' 条：' + st.rejected.map(r => r.id).join(', '));
   return L.join('\n');

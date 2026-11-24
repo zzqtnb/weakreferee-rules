@@ -6,7 +6,7 @@
 
 ### 1. 改底稿
 
-底稿在 `参赛\软件\judges\<ID>.json`（或发行包里的 `judges\<ID>.json`），一条一个文件。
+底稿就是 `packs\<域>\rules.json` 里的一个对象，一条一个 `id`。作者的机器上另有一份分文件底稿与生成器（`judges\<ID>.json` → `rules\*\rules.json`），那是私货，不在仓库里；照着改 `rules.json` 一样成立，`pkgOrder` 决定顺序。
 
 一个条目长这样：
 
@@ -57,10 +57,11 @@ node <工作区>\_tmp\judgectl.js emit   --write   # 生成 rules\*\rules.json �
 ### 3. 搬进正式位置
 
 ```powershell
-Copy-Item _gen\判据库.md $env:USERPROFILE\..\经验库\判据库.md -Force
-Copy-Item _gen\rules\* 参赛\软件\rules\ -Recurse -Force
-node 参赛\软件\tools\gen-manifest.js 参赛\软件\rules
+Copy-Item packs\<域>\rules.json dsh-judge-gate\rules\<域>\rules.json -Force
+node tools\gen-manifest.js dsh-judge-gate\rules
 ```
+
+改完两处必须逐字节相同：`packs/<域>/rules.json` 给只拿规则包的人，`dsh-judge-gate/rules/<域>/rules.json` 是插件真跑的那份。
 
 `gen-manifest.js` 重算每个包的条数、字节数与 sha256。**manifest 里的 `generatedAt` 每次都变，比对一致性只能比 `rules.json` 的哈希，不能拿 manifest 比。**
 
@@ -76,13 +77,12 @@ node dsh-judge-gate\check.cjs --selfcheck        # 装 N 条、展开 M 条、�
 
 ### 5. 同步三处副本并重启
 
-判据插件有三份实体副本，**没有软链**：
+判据插件是实体副本，**没有软链**：
 
-1. `D:\deepseek\deepseek插件\本地插件\dsh-judge-gate`（开发位置）
-2. `%APPDATA%\dsh\profiles\desktop\node_modules\dsh-judge-gate`（DSH 真正加载的那份）
-3. 仓库 `weakreferee-rules\dsh-judge-gate`（推送 GitHub 的位置）
+1. 仓库 `dsh-judge-gate\`（唯一能改的那份，也是推 GitHub 的位置）
+2. `<DSH_HOME>\profiles\desktop\node_modules\dsh-judge-gate`（DSH 真正加载的那份）
 
-三处的 `index.js`、`engine\`、`rules\`、`lib\` 都要一致，改完比一次哈希再重启。**完全退出 DSH 再打开**，托盘也要退。
+两份的 `index.js`、`engine\`、`rules\`、`lib\` 要一致：改仓库那份，把整个目录再复制一次过去，比一遍哈希再重启。**完全退出 DSH 再打开**，托盘也要退。
 
 ## 判据库条目固定四行
 

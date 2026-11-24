@@ -61,15 +61,28 @@
 判据包是**配方**：`rules.json` 里是真的条件与正则，机器读这个。同一个域在 `packs/` 和 `dsh-judge-gate/rules/` 各存一份，必须逐字节相同，`tools/validate.js` 会查。
 
 引擎是**两个能跑的东西**：装进 DSH 的插件（每次工具调用前同步判），和不依赖 DSH 的便携包（对已有会话事后体检）。同一个引擎，同一份判据。
+### 仓库里直接跑命令行
+
+不装插件也能用：克隆下来就能对一次调用判一遍，需要 Node.js 18 及以上。
+
+```
+node weakreferee-cli.js check pwsh "command=Out-File a.txt -InputObject 中文"
+node weakreferee-cli.js check write "file_path=D:\a.ps1" "content=中文"
+node weakreferee-cli.js packs        # 看装到了哪些包、几条
+node weakreferee-cli.js selftest     # 自检：装载、忽略、草案、记账、脱敏
+```
+
+命令行读的是 `dsh-judge-gate/` 下的引擎、契约表与规则包，和插件跑的是同一份代码，
+所以在仓库根跑还是装成插件，结论一致。退出码：0 通过、1 拦下、2 提示、3 判不了。
 
 ### 装判据
 
 ```
-node tools/judge-packs.cjs list                     # 看市场，* 是已装的
-node tools/judge-packs.cjs add windows-powershell   # 整包装
-node tools/judge-packs.cjs add WIN-ENC-01 WIN-RMDIR-01   # 只挑两条
-node tools/judge-packs.cjs remove core              # 卸掉一个包
-node tools/judge-packs.cjs status                   # 现在实际生效几条
+node dsh-judge-gate/tools/judge-packs.cjs list                     # 看市场，* 是已装的
+node dsh-judge-gate/tools/judge-packs.cjs add windows-powershell   # 整包装
+node dsh-judge-gate/tools/judge-packs.cjs add WIN-ENC-01 WIN-RMDIR-01   # 只挑两条
+node dsh-judge-gate/tools/judge-packs.cjs remove core              # 卸掉一个包
+node dsh-judge-gate/tools/judge-packs.cjs status                   # 现在实际生效几条
 ```
 
 清单写在 `data/judges-installed.json`，改完重启 DSH 生效。插件包里没有 `judges/` 源文件时，`list` 直接从 `rules/*/rules.json` 读——你看到的就是能装的。
@@ -78,7 +91,7 @@ node tools/judge-packs.cjs status                   # 现在实际生效几条
 
 **一条人挑**：上面那些命令，`list` 看市场、`add` 装包或单条。适合「我知道我要防什么」。
 
-**一条机器挑**：`weakreferee mine` 扫自己的会话历史，把反复出现、现在没人管的写法列成草案；确认后 `judge-packs add --draft mine-rules.json` 把它装成一个自建包（落在 `data/custom/mine/`）。适合「我不知道自己会被什么坑，让记录说话」。草案的 `action` 一律是 `warn`（只提示不拦），看过没问题自己改成 `block`。
+**一条机器挑**：`node weakreferee-cli.js mine` 扫自己的会话历史，把反复出现、现在没人管的写法列成草案；确认后 `judge-packs.cjs add --draft mine-rules.json` 把它装成一个自建包（落在 `data/custom/mine/`）。适合「我不知道自己会被什么坑，让记录说话」。草案的 `action` 一律是 `warn`（只提示不拦），看过没问题自己改成 `block`。
 
 两条路的落点都是同一份清单，装载时不区分来源。哪条路进来都一样：装几条、拦几条、误拦归谁，账上都记着。
 
@@ -104,6 +117,8 @@ packs/
   windows-powershell/     只在 Windows + PowerShell 生效，换 Linux 整包不装
   dsh-host/               依赖宿主自身状态，换宿主整包不装
   community/              社区贡献的包（<作者>/<域>）
+weakreferee-cli.js        命令行入口：不装插件也能判
+guide.js                  向导：引导第一次运行、把结果写到桌面
 dsh-judge-gate/           引擎：装进 DSH 的插件（含 installer 与自检）
 skills/weakreferee/       给 agent 看的用法说明，不含判据
 tools/                    validate.js（结构校验）、gen-manifest.js（清单重算）

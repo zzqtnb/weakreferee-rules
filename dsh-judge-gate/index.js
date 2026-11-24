@@ -449,64 +449,57 @@ export function apply(ctx, config) {
     }
   }
 
-  // ── 新引擎旁路（2026-11-22 加）：规则包版引擎跟着判一遍，但**不参与判定**。
-  //    为什么要旁路而不是直接换：换掉判定者，新引擎一旦有 bug，坏的是「能不能干活」；
-  //    旁路只多写一份对照日志，主机的行为一个字都不变，出问题删掉环境变量就回到原样。
-  //    开关 DSH_JUDGE_ENGINE=shadow；不设或 off ＝ 这段等于不存在（零开销、零风险）。
-  // 2026-11-24 改：从「按 DSH_JUDGE_ENGINE=shadow 才旁路」升为「总是加载、参与判定」。
-  // 理由（离线对照 9,162 次真实调用，80 个会话）：只有 paramcheck 拦 0 条、只有引擎拦 94 条
-  // → 引擎 21 条是 paramcheck 那 12 条的超集，且多拦的都是真的（写中文 .ps1 不带编码等）。
-  // paramcheck 保留两用：① J14 是进程内状态，引擎表达不了；② 引擎加载失败时兜底。
-  let engineJudge = null;
-  let shadowLog = null;
+  // ── 规则引擎（2026-11-24 起是额定判定者，不再是旁路）：插件与便携包同一个引擎、
+  //    同一份规则。装哪几条由 data/judges-installed.json 决定；清单为空＝一条都不装，
+  //    本体空转（这是有意的：什么该拦应该是使用者的决定）。
+  //    变量名沿用 shadowJudge：2026-11-24 改名 engineJudge 时漏改后面一处引用，
+  //    守卫每次抛 ReferenceError，所有工具调用全失败——名字不重要，改全才重要。
+  let shadowJudge = null;
+  let engineRuleCount = 0;
+  const DATA_DIR = process.env.DSH_JUDGE_DATA || join(SELF_DIR, 'data');
+  const PACK_DIRS = {
+    core: join(SELF_DIR, 'rules', 'core'),
+    'windows-powershell': join(SELF_DIR, 'rules', 'windows-powershell'),
+    'dsh-host': join(SELF_DIR, 'rules', 'dsh-host'),
+  };
   {
     try {
       const REQ = createRequire(import.meta.url);
       const JE = REQ(join(ENGINE_DIR, 'judge.js'));
       const EX = REQ(join(ENGINE_DIR, 'expand.js'));
-      // 判据从「安装清单」来（2026-11-24 改）：本体装上是空的，用户用 judge-packs 自己挑
-      //   data/judges-installed.json = { packs: ["core"], rules: ["J16"] }
-      //   环境变量 DSH_JUDGE_PACKS / DSH_JUDGE_RULES 优先（临时试装用）
-      const STORE = join(dirname(MARKS_FILE), 'judges-installed.json');
-      let inst = null;
-      try { inst = JSON.parse(readFileSync(STORE, 'utf8').replace(/^\uFEFF/, '')); } catch { /* 没装就是空的 */ }
-      const split = (s) => String(s || '').split(/[,;\s]+/).map((x) => x.trim()).filter(Boolean);
-      const wantPacks = split(process.env.DSH_JUDGE_PACKS).length
-        ? split(process.env.DSH_JUDGE_PACKS)
-        : (inst && Array.isArray(inst.packs) ? inst.packs : []);
-      const wantRules = split(process.env.DSH_JUDGE_RULES).length
-        ? split(process.env.DSH_JUDGE_RULES)
-        : (inst && Array.isArray(inst.rules) ? inst.rules : []);
-      const picked = [];
-      const rejectedAll = [];
-      // 自建包：data/custom/<包名>/rules.json
-      //   判据有两条来路——人从市场里挑（judge-packs add 包或单条），
-      //   机器从自己的历史调用里挖（mine 出草案 → judge-packs add --draft 装成 custom 包）。
-      //   两条路的落点都是这里的清单，装载时不区分来源。
-      try {
-        const CUSTOM_ROOT = join(dirname(MARKS_FILE), 'custom');
-        for (const d of readdirSync(CUSTOM_ROOT, { withFileTypes: true })) {
-          if (d.isDirectory()) RULE_DIRS.push(join(CUSTOM_ROOT, d.name));
-        }
-      } catch { /* 没有自建包 */ }
-      for (const d of RULE_DIRS) {
-        const packId = d.split(/[\\/]/).pop();
-        const on = wantPacks.includes(packId);
-        if (!on && !wantRules.length) continue;
-        if (!existsSync(d)) continue;
-        const one = JE.load([d], JE.ENV);
-        if (one.rejected) rejectedAll.push(...one.rejected);
-        for (const r of one.rules) {
-          if (on || wantRules.includes(r.id) || wantRules.includes(r.legacyJudge)) picked.push(r);
-        }
+      let packs = (process.env.DSH_JUDGE_PACKS || '').split(',').map((s) => s.trim()).filter(Boolean);
+      let only = (process.env.DSH_JUDGE_RULES || '').split(',').map((s) => s.trim()).filter(Boolean);
+      if (!packs.length && !only.length) {
+        try {
+          const raw = readFileSync(join(DATA_DIR, 'judges-installed.json'), 'utf8').replace(/^\uFEFF/, '');
+          const j = JSON.parse(raw);
+          packs = Array.isArray(j.packs) ? j.packs : [];
+          only = Array.isArray(j.rules) ? j.rules : [];
+        } catch { /* 没有清单＝什么都没装 */ }
       }
-      const rs0 = { rules: picked, rejected: rejectedAll };
-      const ex = EX.expandAll(rs0.rules, { dir: LIB_DIR });
-      // judge() 的数组分支不认 when，这里先自己筛出 tool:pre 那一批
+      const dirs = [];
+      for (const p of packs) if (PACK_DIRS[p]) dirs.push(PACK_DIRS[p]);
+      const CUSTOM_ROOT = join(DATA_DIR, 'custom');
+      if (packs.includes('mine') || packs.includes('custom')) {
+        try {
+          for (const d of readdirSync(CUSTOM_ROOT)) {
+            if (existsSync(join(CUSTOM_ROOT, d, 'rules.json'))) dirs.push(join(CUSTOM_ROOT, d));
+          }
+        } catch { /* 还没有自建包 */ }
+      }
+      const rs0 = JE.load(dirs, JE.ENV);
+      let ruleList = rs0.rules;
+      if (only.length) {
+        ruleList = ruleList.filter((r) => only.includes(r.id) || only.includes(r.legacyJudge));
+      }
+      const ex = EX.expandAll(ruleList, { dir: LIB_DIR });
       const pre = ex.rules.filter((r) => (r.when || 'tool:pre') === 'tool:pre');
-      shadowLog = opts.shadowLogPath ||
-        join(logPath ? dirname(logPath) : join(SELF_DIR, 'data'), '新引擎对照.tsv');
-      engineJudge = (call) => {
+      engineRuleCount = pre.length;
+      // 引擎接上了：告诉参数表「别自作主张判了」——它退成 JSON 容错 + 备份 + J14。
+      // 2026-11-24 六条裁定之一：同一件事只能有一个判定者，两套并存就是两套标准。
+      if (engineRuleCount > 0) process.env.DSH_JUDGE_ENGINE_PRIMARY = '1';
+      else delete process.env.DSH_JUDGE_ENGINE_PRIMARY;
+      shadowJudge = (call) => {
         const hits = JE.judge(call, pre);
         const v = JE.adjudicate(hits);
         const ids = hits.map((h) => h.ruleId || (h.rule && h.rule.id) || '?');
@@ -514,17 +507,12 @@ export function apply(ctx, config) {
         const fixes = hits.map((h) => h.fix || (h.rule && h.rule.fix) || '').filter(Boolean);
         return { action: (v && v.action) || 'pass', ids, message: msgs[0] || '', fix: fixes[0] || '' };
       };
-      ctx.logger?.info?.(
-        picked.length
-          ? `[judge-gate] 规则引擎已接入判定：装 ${picked.length} 条规则→展开 ${pre.length} 条` +
-            `${rejectedAll.length ? `，拒装 ${rejectedAll.length} 条` : ''}，记录 ${shadowLog}`
-          : `[judge-gate] 引擎已就绪，但一条判据都没装（装上是空的）。跑 node tools/judge-packs.js list 看看有哪些可装`);
-      // 告诉 paramcheck：判定归引擎了，你只做机械活（容错解析/备份/名单）
-      process.env.DSH_JUDGE_ENGINE_PRIMARY = '1';
+      ctx.logger?.info?.(engineRuleCount
+        ? `[judge-gate] 规则引擎已接入判定：装 ${ruleList.length} 条→展开 ${engineRuleCount} 条${rs0.rejected.length ? `，拒装 ${rs0.rejected.length} 条` : ''}`
+        : '[judge-gate] 引擎已就绪，但一条判据都没装。跑 node tools/judge-packs.cjs list 看看有哪些可装');
     } catch (err) {
-      // 引擎加载失败退回 paramcheck 单轨——少一套判据，但闸还能用
-      engineJudge = null;
-      ctx.logger?.warn?.(`[judge-gate] 规则引擎未接入（退回 paramcheck 单轨）：${err.message}`);
+      shadowJudge = null;
+      ctx.logger?.warn?.(`[judge-gate] 规则引擎未接入（退回参数表单轨）：${err.message}`);
     }
   }
 
@@ -586,30 +574,6 @@ export function apply(ctx, config) {
         const r = check(exec.name, badJson ? null : args, badJson);
         status = r.status;
         notes = r.notes || '';
-        if (r.judge) judge = r.judge;
-        // 规则引擎全量判定（2026-11-24 接入）：与 paramcheck 取并集，任一 block 即拦。
-        if (engineJudge) {
-          try {
-            const s = engineJudge({
-              when: 'tool:pre', tool: exec.name, args: badJson ? null : args,
-              platform: 'windows', shell: 'powershell-5.1', host: 'dsh', cwd: process.cwd(),
-            });
-            if (s && s.action === 'block') {
-              // 名单过滤（用户自己的选择优先）：被 skip 的条不拦，只装几条时只拦那几条
-              const live = pc.judgeEnabled ? s.ids.filter((id) => pc.judgeEnabled(id)) : s.ids;
-              if (live.length) {
-                const engNote = s.fix ? `${s.message}（${s.fix}）` : (s.message || live.join(','));
-                if (status === '拦下') {
-                  notes = notes ? `${notes}；引擎另有 ${live.join(',')}` : `${live.join(',')}：${engNote}`;
-                } else {
-                  status = '拦下';
-                  judge = live.join(',') || judge;
-                  notes = engNote;
-                }
-              }
-            }
-          } catch (e) { /* 引擎抛错不影响 paramcheck 的结论 */ }
-        }
         // 文本判据（J8/J9/J10）：J3 已经拦下就不再叠；「提示」只把理由记进日志、不改判定列
         if (status !== '拦下' && checkText) {
           const r2 = checkText(exec.name, badJson ? null : args);
@@ -620,6 +584,23 @@ export function apply(ctx, config) {
               judge = r2.judge || 'J3';
             }
           }
+        }
+        // 规则引擎：装了就一起判，拦下即拒（与参数表取并集，谁拦都算拦）
+        if (shadowJudge) {
+          try {
+            const es = shadowJudge({ when: 'tool:pre', tool: exec.name, args: badJson ? null : args });
+            if (es && es.action === 'block') {
+              const ids = (es.ids || []).join(',');
+              const why = es.fix ? `${es.message}（${es.fix}）` : (es.message || ids);
+              if (status === '拦下') {
+                notes = notes ? `${notes}；引擎另有 ${ids}` : `${ids}：${why}`;
+              } else {
+                status = '拦下';
+                judge = ids || judge;
+                notes = why;
+              }
+            }
+          } catch { /* 引擎判错不牵连参数表：宁可漏一次，不可把工具卡死 */ }
         }
       }
     } catch (err) {
@@ -632,26 +613,8 @@ export function apply(ctx, config) {
     if (j14Hit) noteJ14(exec, j14Hit);
     if (j6Hit) noteJ6(exec, j6Hit);
 
-    // 旁路对照：主判定已经算完、已经记完账，这里只是并排再看一眼。
-    // 任何异常一律吞掉 —— 旁路的价值是「发现不一致」，不是「也能拦」，更不能拖累主判定。
-    if (shadowJudge && shadowArgs && !skip.has(exec.name)) {
-      const t1 = Date.now();
-      let row;
-      try {
-        const s = shadowJudge({ when: 'tool:pre', tool: exec.name, args: shadowArgs });
-        const agree = (status === '拦下') === (s.action === 'block') ? '一致' : '不一致';
-        row = [nowStamp(), exec.name || '?', status, s.action, agree,
-          oneLine(notes), oneLine(s.notes), Date.now() - t1];
-      } catch (err) {
-        row = [nowStamp(), exec.name || '?', status, '错误', '旁路失败',
-          oneLine(notes), oneLine(err && err.message ? err.message : err), 0];
-      }
-      if (shadowLog) {
-        try {
-          appendFileSync(shadowLog, row.join('\t') + '\n', 'utf8');
-        } catch { /* 对照日志写不进去，不影响任何判定 */ }
-      }
-    }
+    // 对照日志（2026-11-24 起不再需要）：引擎已经从旁路升成额定判定者，
+    // 主判定列里的结果就是引擎的结果，不再另写一份「一致性」对照。
 
     if (status === '拦下' && opts.enforce) {
       return `[弱裁判·判据${judge}] ${notes}（拦在发送前，改完再发）`;

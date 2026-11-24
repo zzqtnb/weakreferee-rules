@@ -15,7 +15,10 @@
 const fs = require('fs');
 const path = require('path');
 
-const TOOLS_DIR = process.env.JUDGE_TOOLS_DIR || path.join(__dirname, '..', 'contract');
+// index.js 设的是 DSH_JUDGE_TOOLS_DIR（带前缀），原来只认不带前缀的名字，等于永远读包内不存在的
+// contract/ 目录——契约表全是空的，引擎只剩静态规则。两个名字都认。
+const TOOLS_DIR = process.env.DSH_JUDGE_TOOLS_DIR || process.env.JUDGE_TOOLS_DIR
+  || path.join(__dirname, '..', 'contract');
 
 function readJson(fp, fallback) {
   try { return JSON.parse(fs.readFileSync(fp, 'utf8')); } catch { return fallback; }
@@ -63,6 +66,15 @@ function buildContract(dir) {
     for (const g of anyOf) cur.anyOf.push(g);
     cur.src = REQ[tool] ? 'schema+hand' : 'hand';
     REQ[tool] = cur;
+  }
+  // 二选一（anyOf）里的键不该同时算必填：schema 的 required 只写组里一个时，两者叠起来会把
+  // 「给第二个键」的正常调用判成缺第一个。web_fetch 不是这类——那是手写表凭空多写了工具不支持的
+  // urls，已改正为 req=[url] + 形近错键 urls。paramcheck.js 有同一份逻辑，改这里要一起改。
+  for (const tool of Object.keys(REQ)) {
+    const e = REQ[tool];
+    if (!e.anyOf.length || !e.req.length) continue;
+    const inAny = new Set(e.anyOf.reduce((acc, g) => acc.concat(g), []));
+    e.req = e.req.filter(k => !inAny.has(k));
   }
   return { T, GEN, TYPES, REQ, WRONGKEY: T.wrongkey || {}, FORBID: T.forbid || {} };
 }

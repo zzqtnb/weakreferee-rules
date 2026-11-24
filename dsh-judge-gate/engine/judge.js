@@ -55,7 +55,8 @@ function pick(ctx, spec) {
 let _TOOL_TYPES = null;
 function loadToolTypes() {
   if (_TOOL_TYPES) return _TOOL_TYPES;
-  const dir = process.env.JUDGE_TOOLS_DIR || path.join(__dirname, '..', 'contract');
+  const dir = process.env.DSH_JUDGE_TOOLS_DIR || process.env.JUDGE_TOOLS_DIR
+    || path.join(__dirname, '..', 'contract');
   try {
     const j = JSON.parse(fs.readFileSync(path.join(dir, 'tool-types.json'), 'utf8'));
     _TOOL_TYPES = (j && j.tools) || {};

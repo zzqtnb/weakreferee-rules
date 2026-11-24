@@ -65,6 +65,15 @@ for (const [tool, list] of Object.entries(T.req || {})) {
   cur.src = REQ[tool] ? "schema+hand" : "hand";
   REQ[tool] = cur;
 }
+// 二选一（anyOf）里的键不该同时算必填：schema 的 required 只写组里一个时，两者叠起来会把
+// 「给第二个键」的正常调用判成缺第一个。注意 web_fetch 不属于这类——那是手写表凭空多写了
+// 工具不支持的 urls，已改正为 req=[url] + 形近错键 urls（工具真实 props 只有 url）。
+for (const t of Object.keys(REQ)) {
+  const e = REQ[t];
+  if (!e.anyOf.length || !e.req.length) continue;
+  const inAny = new Set(e.anyOf.reduce((acc, g) => acc.concat(g), []));
+  e.req = e.req.filter(k => !inAny.has(k));
+}
 const WRONGKEY = T.wrongkey || {};
 const FORBID = T.forbid || {};
 
@@ -577,6 +586,17 @@ function checkTextRaw(name, args) {
 
 // 名单过滤（2026-11-23）：命中的判据不在启用名单里就当没判到
 function checkText(name, args) {
+  // 2026-11-24：引擎接管后，这里的 12 条旧判定全部退场（判定只认规则包，一条一件事）。
+  // 留下的两样都不是「判定」：备份快照（J12 的副作用）与 J14（跨调用状态，规则表达不了）。
+  if (process.env.DSH_JUDGE_ENGINE_PRIMARY === '1') {
+    if (!args || typeof args !== 'object') return null;
+    try { if (name === 'pwsh') recordCmd(String(args.command || '')); } catch { /* 备份失败不影响判定 */ }
+    try {
+      const r = j14Note(name, args);
+      if (r && r.judge && !judgeEnabled(r.judge)) return null;
+      return r;
+    } catch { return null; }
+  }
   const r = checkTextRaw(name, args);
   if (!r) return null;
   if (r.judge && !judgeEnabled(r.judge)) return null;
@@ -588,7 +608,13 @@ function checkGuarded(name, args, badJson) {
   // 2026-11-24：引擎（本体）接管后，这里只留机械能力——JSON 容错解析、备份快照、名单。
   // 判定交给规则包（插件：一条一个，装不装用户定）。引擎加载成功时 index.js 置这个变量；
   // 引擎没起来就不置，退回本文件的旧判定，闸不会变成裸奔。
-  if (process.env.DSH_JUDGE_ENGINE_PRIMARY === '1') return { status: '通过', notes: '', judge: undefined };
+  if (process.env.DSH_JUDGE_ENGINE_PRIMARY === '1') {
+    // 参数不是合法 JSON：引擎也判不了（它要对象），这条必须留在机械层
+    if (badJson) {
+      return { status: '拦下', judge: 'J3', notes: '工具参数不是合法 JSON（发出去也执行不了），先把 JSON 修好' };
+    }
+    return { status: '通过', notes: '', judge: undefined };
+  }
   if (!judgeEnabled('J3')) return { status: '通过', notes: 'J3 已按名单关闭' };
   return check(name, args, badJson);
 }

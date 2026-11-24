@@ -248,7 +248,7 @@ function maskQuoted(s) {
 // J12（2026-11-20 用户要求「把可逆的补全」）：pwsh 用命令写/删文件时 rewind 抓不到（它只挂 write/edit）。
 // 这里在发送前把命令里提到的绝对路径备份一份，出问题能从回收站捞回来。影子期：只备份+提示，不拦。
 // 数据目录（备份与标记都落这里）：默认包内 data\，可用环境变量指到别处。
-// 2026-11-23 改：原来写死 D:\deepseek\回收站 与 D:\deepseek\状态\，别人机器上没有 D 盘就静默失效。
+// 2026-11-23 改：原来写死本机绝对路径，别人机器上没有那个盘就静默失效。
 const DATA_DIR = process.env.DSH_JUDGE_DATA || path.join(__dirname, "..", "data");
 const CMD_BACKUP_ROOT = process.env.DSH_JUDGE_BACKUP || path.join(DATA_DIR, "回收站");
 // ── 启用名单（2026-11-23）：插件主判定也认「只装几条」 ──

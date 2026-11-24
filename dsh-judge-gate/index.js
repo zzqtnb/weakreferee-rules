@@ -552,25 +552,27 @@ export function apply(ctx, config) {
       try { j6Hit = j6Check(exec); } catch { j6Hit = null; }
       const badJson = typeof args === 'string';
       if (!badJson && args && typeof args === 'object') shadowArgs = args;
+      // 2026-11-24 改（用户定）：P6 不再短路判定。
+      //   原来一命中就整闸停摆、别的判据全不跑——开发期噪声把真正的判定结果全盖住了，
+      //   对用的人更是纯噪音（他们不改判据文件，正常用一辈子碰不到）。
+      //   现在：照常判，顺带在账本里留一句「该重启了」，不拦、不停摆。
+      let p6Note = '';
       const stale = probeStale(opts.paramcheckPath);
       if (stale) {
         const key = stale.map((h) => h.label + '@' + Math.round(h.mtime)).join('|');
         const detail = stale.map((h) => h.label + ' 改于 ' + stampOf(h.mtime)).join('、') +
           '，宿主启动于 ' + stampOf(BOOT_AT) + '；重启 DSH 后新判据才生效';
         if (staleBlockedKey === key) {
-          // 同一批文件已经报过：不再逐条记，也不再拦——放行且不写账，每隔 50 次留一行汇总
+          // 同一批文件已经报过：不再逐条记，每隔 50 次留一行汇总
           staleSuppressed += 1;
-          if (staleSuppressed % 50 !== 0) return undefined;
-          status = '提示';
-          notes = `P6 仍在（已静默 ${staleSuppressed} 次）：` + detail;
+          if (staleSuppressed % 50 === 0) p6Note = `[P6] 仍在（已静默 ${staleSuppressed} 次）：` + detail;
         } else {
           staleBlockedKey = key;
           staleSuppressed = 0;
-          status = '拦下';
-          notes = 'P6 改了判据没重启，闸跑的还是旧代码：' + detail;
+          p6Note = '[P6] 改了判据没重启，闸跑的还是旧代码：' + detail;
         }
-        judge = 'P6';
-      } else {
+      }
+      {
         const r = check(exec.name, badJson ? null : args, badJson);
         status = r.status;
         notes = r.notes || '';
@@ -602,6 +604,11 @@ export function apply(ctx, config) {
             }
           } catch { /* 引擎判错不牵连参数表：宁可漏一次，不可把工具卡死 */ }
         }
+      }
+      if (p6Note) {
+        // P6 只记账、不改判定：拦不拦由判据说了算，这条提醒附在理由后面
+        notes = notes ? notes + '；' + p6Note : p6Note;
+        if (status === '通过') status = '提示';
       }
     } catch (err) {
       // 判据自己出错＝放行。宁可漏一次，不可把工具全卡死。

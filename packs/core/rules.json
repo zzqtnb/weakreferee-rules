@@ -338,7 +338,7 @@
     "condition": {
       "type": "regexHit",
       "in": "args.content",
-      "pattern": "(sessions\\\\[0-9a-z-]{8,}|[0-9a-z]{8,10}-[0-9a-f]{16,}|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|D:\\\\deepseek\\\\工作区\\\\[^\\\\]+)"
+      "pattern": "(sessions\\\\[0-9a-z-]{8,}|[0-9a-z]{8,10}-[0-9a-f]{16,}|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[A-Za-z]:\\\\[^\\\\]{2,}\\\\工作区\\\\[^\\\\]+)"
     },
     "action": "steer",
     "severity": "C",
@@ -354,13 +354,13 @@
       "cases": [
         {
           "args": {
-            "content": "这条是会话 0mwujld9i-7ac0bd81c968438ca81f5e9395 里改的"
+            "content": "这条是会话 0mabcdefg-0123456789abcdef0123456789abcdef 里改的"
           },
           "expect": "block"
         },
         {
           "args": {
-            "content": "文件在 D:\\deepseek\\工作区\\弱裁判\\报告.md"
+            "content": "文件在 D:\\演示\\工作区\\交付\\报告.md"
           },
           "expect": "block"
         },
@@ -373,7 +373,7 @@
       ],
       "needFs": false
     },
-    "scene": "对外发的说明文档里留着一句「见 D:\\deepseek\\工作区\\某会话\\输出.md」，收到的人既打不开也看不懂，还顺带知道了你的目录结构。"
+    "scene": "对外发的说明文档里留着一句「见 D:\\演示\\工作区\\某会话\\输出.md」，收到的人既打不开也看不懂，还顺带知道了你的目录结构。"
   },
   {
     "id": "CORE-OVERCLAIM-01",

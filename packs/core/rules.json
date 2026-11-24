@@ -552,5 +552,116 @@
         }
       ]
     }
+  },
+  {
+    "id": "CAT-CITE-01",
+    "title": "写出 DOI 这类出处，本会话一次检索都没做过",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "write"
+    },
+    "condition": {
+      "all": [
+        {
+          "type": "regexHit",
+          "in": "args.content",
+          "pattern": "10\\.[0-9]{4,5}/[A-Za-z0-9._\\-/]+"
+        },
+        {
+          "type": "noCallSince",
+          "tools": [
+            "web_search",
+            "web_fetch",
+            "research",
+            "domain_search",
+            "platform_search"
+          ],
+          "within": 40
+        }
+      ]
+    },
+    "action": "warn",
+    "severity": "B",
+    "message": "正文里写了 DOI，这一轮却没查过任何文献——编造和卷期错位都出在这里",
+    "fix": "要么查到真出处再写，要么把出处删掉、只写「我记得有这么一个研究」",
+    "reversible": true,
+    "evidence": {
+      "hits": 0,
+      "sessions": 0,
+      "source": "2026-11-24 四模型 × 43 情景实测，qwen3.8-flash 与 deepseek-v4-pro 犯过"
+    },
+    "scene": "论文正文带三条 DOI，全程没打开过任何数据库，答辩前查证发现两条查不到。",
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "file_path": "D:\\演示\\工作区\\交付\\综述.md",
+            "content": "参见 10.1038/s41598-023-41032-5"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "file_path": "D:\\演示\\工作区\\交付\\综述.md",
+            "content": "我记得有这么一个研究，具体出处待查"
+          },
+          "expect": "pass"
+        }
+      ]
+    }
+  },
+  {
+    "id": "CAT-CITE-02",
+    "title": "引用带网址，但那个页面本会话一次都没打开",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "write"
+    },
+    "condition": {
+      "all": [
+        {
+          "type": "regexHit",
+          "in": "args.content",
+          "pattern": "https?://[^\\s)\\]\"']+"
+        },
+        {
+          "type": "noCallSince",
+          "tools": [
+            "web_fetch",
+            "research"
+          ],
+          "within": 40
+        }
+      ]
+    },
+    "action": "warn",
+    "severity": "C",
+    "message": "正文里带了网址，这一轮没打开过任何页面——只看了搜索摘要就写成结论，最容易过时",
+    "fix": "打开那一条看一眼再写，或者把出处换成真读过的来源",
+    "reversible": true,
+    "evidence": {
+      "hits": 0,
+      "sessions": 0,
+      "source": "2026-11-24 四模型 × 43 情景实测，qwen3.8-flash / qwen3.8-max / doubao-seed-2.1-turbo 三家犯过"
+    },
+    "scene": "搜到三条结果，直接拿摘要写成一段引用；被引的那页其实已经改过半年。",
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "file_path": "D:\\演示\\工作区\\交付\\调研.md",
+            "content": "据某文报道（https://example.com/post/1），该政策已废止"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "file_path": "D:\\演示\\工作区\\交付\\调研.md",
+            "content": "这段结论来自我打开的原始页面，细节已核对"
+          },
+          "expect": "pass"
+        }
+      ]
+    }
   }
 ]

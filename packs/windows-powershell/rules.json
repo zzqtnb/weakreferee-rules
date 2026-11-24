@@ -986,5 +986,72 @@
       "needFs": false
     },
     "scene": "磁盘满了，顺手把几个月的事件日志清掉，后来要查一次登录异常，什么也拿不出来。"
+  },
+  {
+    "id": "WIN-SYSDIR-01",
+    "title": "往系统盘或临时目录写东西、装东西",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "pwsh",
+      "platform": [
+        "windows"
+      ]
+    },
+    "condition": {
+      "all": [
+        {
+          "type": "regexHit",
+          "in": "args.command",
+          "maskQuoted": true,
+          "pattern": "\\b(Out-File|Set-Content|Add-Content|Copy-Item|Move-Item|Expand-Archive|New-Item|Invoke-WebRequest|Invoke-RestMethod|Start-Process|msiexec)\\b"
+        },
+        {
+          "type": "regexHit",
+          "in": "args.command",
+          "maskQuoted": false,
+          "pattern": "(%TEMP%|%TMP%|\\$env:TEMP|\\$env:TMP|AppData\\\\Local\\\\Temp|C:\\\\Windows\\\\Temp|C:\\\\Users\\\\[^\\\\]+\\\\AppData\\\\Local)"
+        }
+      ]
+    },
+    "action": "steer",
+    "severity": "B",
+    "message": "目标是系统盘或临时目录：临时目录会被清掉，系统目录改了会影响别的软件",
+    "fix": "工具和依赖装到 D 盘独立目录（D:\\<软件名>\\），纯临时文件明确放 _tmp 并在收尾清掉",
+    "reversible": true,
+    "evidence": {
+      "hits": 0,
+      "sessions": 0,
+      "source": "工程经验，作者环境未命中（新规则，未上线）"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "command": "Copy-Item .\\setup.exe $env:TEMP\\setup.exe"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "Expand-Archive a.zip -DestinationPath C:\\Users\\me\\AppData\\Local\\Temp\\x"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "Copy-Item .\\setup.exe D:\\tools\\setup.exe"
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
+            "command": "Get-ChildItem $env:TEMP"
+          },
+          "expect": "pass"
+        }
+      ],
+      "needFs": false
+    },
+    "scene": "装个命令行工具图省事丢进了临时目录，重启后目录被系统清空，昨天还能用的命令今天找不到了。"
   }
 ]

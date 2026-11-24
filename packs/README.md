@@ -14,7 +14,7 @@ packs/
     └── <作者>/<域>/           整包：pack.json + rules.json + README.md
 ```
 
-三个内置包分别管：**core** 跨环境的通用约束（2 条）、**dsh-host** DSH 桌面版自身特性（3 条）、**windows-powershell** Windows + PowerShell 的坑（9 条）。合计 14 条手写规则，带契约表展开后 464 条。
+三个内置包分别管：**core** 跨环境的通用约束（7 条）、**dsh-host** DSH 桌面版自身特性（3 条）、**windows-powershell** Windows + PowerShell 的坑（16 条）。合计 26 条手写规则，带契约表展开后 475 条。
 
 ## 一个包两个文件
 

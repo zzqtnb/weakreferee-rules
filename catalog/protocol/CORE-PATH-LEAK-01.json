@@ -1,0 +1,28 @@
+{
+  "id": "CORE-PATH-LEAK-01",
+  "title": "文件内容里带出本机会话号或内部路径",
+  "domain": "protocol",
+  "audience": [
+    "general"
+  ],
+  "evidence": {
+    "level": "推断",
+    "source": "工程经验，作者环境未命中；先只提示，攒到实测证据再升动作"
+  },
+  "falsePositiveRisk": "medium",
+  "defaultAction": "steer",
+  "appliesTo": {
+    "tool": "write"
+  },
+  "message": "正文里带着本机的会话号或内部路径，对外发出去等于把自己的目录结构交出去",
+  "fix": "把内部路径换成相对说法（「工作区里」「本地」），会话号删掉",
+  "severity": "C",
+  "reversible": true,
+  "promotedTo": "core#CORE-PATH-LEAK-01",
+  "notes": [
+    "判据：write 落盘的内容里出现会话号形态（9 位字母数字 + 32 位十六进制，如 0mwujld9i-7ac0bd81c968438ca81f5e9395）、标准 UUID、sessions\\ 路径、或 D:\\deepseek\\工作区\\ 开头的内部路径",
+    "例子｜该拦：`这条是会话 0mwujld9i-7ac0bd81 里改的`、`文件在 D:\\deepseek\\工作区\\弱裁判\\报告.md`；不该拦：纯结论性文字",
+    "边界：工作区内部文档写路径很常见，所以只提示不拦；真正对外交付前人工再看一眼",
+    "场景例：对外说明里留着一句本机路径，收到的人打不开，还顺带知道了你的目录结构"
+  ]
+}

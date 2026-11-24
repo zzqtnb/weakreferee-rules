@@ -1,0 +1,29 @@
+{
+  "id": "CORE-PLACEHOLDER-01",
+  "title": "交给别人的文件里还留着占位符",
+  "domain": "protocol",
+  "audience": [
+    "general"
+  ],
+  "evidence": {
+    "level": "推断",
+    "source": "工程经验，作者环境未命中；先只提示，攒到实测证据再升动作"
+  },
+  "falsePositiveRisk": "medium",
+  "defaultAction": "steer",
+  "appliesTo": {
+    "tool": "write",
+    "fileMatches": "\\.(md|txt)$"
+  },
+  "message": "写进去的内容里带着 [待补充] 这类占位符，交给别人就是一份没写完的东西",
+  "fix": "把占位符换成实际内容，或者明确写「此处待定：缺什么、等谁给」",
+  "severity": "B",
+  "reversible": true,
+  "promotedTo": "core#CORE-PLACEHOLDER-01",
+  "notes": [
+    "判据：write 落盘的内容里出现 [待补充] [待填] [请填写] [TODO] [TBD] [XXX] 或中文方括号版本",
+    "例子｜该拦：正文里写着 `[待补充]`；不该拦：正文在讨论「模板里的占位符长什么样」",
+    "边界：只判 .md/.txt 交付件；代码文件里的 TODO 是正常写法，不在此列",
+    "场景例：报告写完直接发出去，三个 [待补充] 原样留着，对方打开先看见空白"
+  ]
+}

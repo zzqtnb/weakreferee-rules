@@ -1,0 +1,28 @@
+{
+  "id": "CORE-GIT-FORCE-01",
+  "title": "git push 带 --force 会覆盖远端别人的提交",
+  "domain": "risky",
+  "audience": [
+    "dev"
+  ],
+  "evidence": {
+    "level": "推断",
+    "source": "工程经验，作者环境未命中；先只提示，攒到实测证据再升动作"
+  },
+  "falsePositiveRisk": "medium",
+  "defaultAction": "steer",
+  "appliesTo": {
+    "tool": "pwsh"
+  },
+  "message": "git push 带 --force 会把远端别人的提交直接顶掉，被顶的人下次拉取会丢一批记录",
+  "fix": "改用 --force-with-lease：远端要是被别人推过，它会拒绝，不会闷头覆盖",
+  "severity": "A",
+  "reversible": false,
+  "promotedTo": "core#CORE-GIT-FORCE-01",
+  "notes": [
+    "判据：pwsh 命令串里有 git push，同时带 --force 或 -f，且没有 --force-with-lease",
+    "例子｜该拦：`git push --force origin main`、`git push -f`；不该拦：`git push --force-with-lease`、`git push origin main`",
+    "边界：推的是自己独占的分支也照样提示（提示不是拦，看清楚再点）；引号里的纯文本不算命令，maskQuoted 已避开",
+    "场景例：本机历史和远端不一致，一句强推把远端顶成自己的版本，同事拉取时十几条提交消失"
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "id": "WIN-SYSDIR-01",
+  "title": "往系统盘或临时目录写东西、装东西",
+  "domain": "risky",
+  "audience": [
+    "dev",
+    "ops"
+  ],
+  "evidence": {
+    "level": "推断",
+    "source": "工程经验，作者环境未命中；先只提示，攒到实测证据再升动作"
+  },
+  "falsePositiveRisk": "medium",
+  "defaultAction": "steer",
+  "appliesTo": {
+    "tool": "pwsh",
+    "platform": [
+      "windows"
+    ]
+  },
+  "message": "目标是系统盘或临时目录：临时目录会被清掉，系统目录改了会影响别的软件",
+  "fix": "工具和依赖装到 D 盘独立目录（D:\\<软件名>\\），纯临时文件明确放 _tmp 并在收尾清掉",
+  "severity": "B",
+  "reversible": true,
+  "promotedTo": "windows-powershell#WIN-SYSDIR-01",
+  "notes": [
+    "判据：pwsh 命令有写/复制/安装类动词，同时目标路径命中 %TEMP%、$env:TEMP、AppData\\Local、C:\\Windows\\Temp",
+    "例子｜该拦：`Copy-Item .\\setup.exe $env:TEMP\\`、`Expand-Archive a.zip C:\\Users\\me\\AppData\\Local\\Temp\\x`；不该拦：`Copy-Item .\\a.exe D:\\tools\\a.exe`、只读临时目录",
+    "边界：读临时目录不提示；用户明说「就装临时目录试用」时按提示处理",
+    "场景例：命令行工具丢进临时目录，重启被系统清空，昨天能用的命令今天找不到"
+  ]
+}

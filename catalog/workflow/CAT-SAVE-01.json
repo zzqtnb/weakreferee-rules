@@ -1,0 +1,23 @@
+{
+  "id": "CAT-SAVE-01",
+  "title": "改了没保存就说做完了",
+  "domain": "workflow",
+  "audience": [
+    "office"
+  ],
+  "evidence": {
+    "level": "推断",
+    "source": "候选池 80 条清单里机器判=能／半的一条；未单独取证据链，先登记待引擎"
+  },
+  "falsePositiveRisk": "medium",
+  "defaultAction": "steer",
+  "message": "在文档里改了一通，窗口还开着没存盘，嘴上说已经改好",
+  "fix": "改完先保存，再说完成了",
+  "reversible": true,
+  "notes": [
+    "判据：office_* 改过文档，但没有一次 save 调用，回复里却说已完成",
+    "例子｜该拦：编辑完直接回「已修改」；不该拦：save 之后再回",
+    "边界：要跨调用看本轮做过什么，属于会话状态那类，引擎补上之前判不了",
+    "场景例：用户关掉窗口，一晚上的修改全没了"
+  ]
+}

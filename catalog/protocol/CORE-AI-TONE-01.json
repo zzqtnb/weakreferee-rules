@@ -1,0 +1,29 @@
+{
+  "id": "CORE-AI-TONE-01",
+  "title": "写出来的东西满篇套话",
+  "domain": "protocol",
+  "audience": [
+    "general"
+  ],
+  "evidence": {
+    "level": "推断",
+    "source": "工程经验，作者环境未命中；先只提示，攒到实测证据再升动作"
+  },
+  "falsePositiveRisk": "medium",
+  "defaultAction": "steer",
+  "appliesTo": {
+    "tool": "write",
+    "fileMatches": "\\.(md|txt)$"
+  },
+  "message": "正文里有明显的套话句式，交给别人一眼就能看出不是人写的",
+  "fix": "删掉套话，换成具体的事：谁做了什么、什么时候、结果是多少",
+  "severity": "C",
+  "reversible": true,
+  "promotedTo": "core#CORE-AI-TONE-01",
+  "notes": [
+    "判据：写入 .md/.txt 的内容里命中套话句式（综上所述、总而言之、赋能、抓手、形成闭环、深度融合、不仅…而且…更是）",
+    "例子｜该拦：`综上所述，该方案具有重要意义。`；不该拦：`这里有三处要改，第一处是第 12 行。`",
+    "边界：技术文档里正常用「首先、其次」不算违规，本条只盯最典型的那几个词；只提示不改写",
+    "场景例：交上去的材料每段都三句排比，全篇没有一个具体数字"
+  ]
+}

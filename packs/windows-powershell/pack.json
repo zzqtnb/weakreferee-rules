@@ -16,7 +16,7 @@
     ]
   },
   "loadOrder": 20,
-  "rules": 15,
+  "rules": 16,
   "ruleIds": [
     "WIN-ENC-01",
     "WIN-AUTOVAR-CMD-01",
@@ -32,7 +32,8 @@
     "WIN-PERM-OPEN-01",
     "WIN-VARPATH-RM-01",
     "WIN-SQL-DROP-01",
-    "WIN-LOG-WIPE-01"
+    "WIN-LOG-WIPE-01",
+    "WIN-SYSDIR-01"
   ],
   "testedOn": {
     "host": "DSH 桌面版（Windows）",

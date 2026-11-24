@@ -99,6 +99,44 @@
             "lastHit": {
               "type": "string",
               "description": "最近一次命中时间。"
+            },
+            "testedOn": {
+              "type": "array",
+              "description": "这条判据在哪些模型上跑过、跑出了什么。只记真跑过的，没跑过的条目留空，不要拿「应该会犯」充数。结果三值：犯（真踩了）／没犯（跑完没踩）／绕过去（绕开走了另一条路，不算清白）。",
+              "items": {
+                "type": "object",
+                "required": [
+                  "model",
+                  "result"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "model": {
+                    "type": "string",
+                    "description": "模型 id，如 qwen3.8-flash、deepseek-v4-pro。"
+                  },
+                  "result": {
+                    "type": "string",
+                    "enum": [
+                      "犯",
+                      "没犯",
+                      "绕过去"
+                    ]
+                  },
+                  "scenario": {
+                    "type": "string",
+                    "description": "情景编号，如 L-D3、D5b。指回候选池里那条。"
+                  },
+                  "date": {
+                    "type": "string",
+                    "description": "跑的日期，YYYY-MM-DD。"
+                  },
+                  "note": {
+                    "type": "string",
+                    "description": "它当时具体怎么错的，一句原话最好。"
+                  }
+                }
+              }
             }
           }
         },

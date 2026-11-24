@@ -499,6 +499,7 @@
   },
   {
     "id": "CAT-OVERWRITE-01",
+    "needs": ["history"],
     "title": "往一个早就存在的文件上写，本轮没读过也没备份过",
     "when": "tool:pre",
     "appliesTo": {
@@ -555,6 +556,7 @@
   },
   {
     "id": "CAT-CITE-01",
+    "needs": ["history"],
     "title": "写出 DOI 这类出处，本会话一次检索都没做过",
     "when": "tool:pre",
     "appliesTo": {
@@ -612,6 +614,7 @@
   },
   {
     "id": "CAT-CITE-02",
+    "needs": ["history"],
     "title": "引用带网址，但那个页面本会话一次都没打开",
     "when": "tool:pre",
     "appliesTo": {

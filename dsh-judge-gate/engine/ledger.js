@@ -166,6 +166,69 @@ function formatReport(rep) {
   return L.join('\n');
 }
 
+/* ── 三·五、按判据看：命中多少次、被标过几次误报、该留还是该降 ── */
+function fpFile(ledgerPath) {
+  return path.join(path.dirname(String(ledgerPath)), 'fp-marks.json');
+}
+
+/* 误报账：人标的，不自动推断。写坏当空，宁可丢一次标记也不让读崩。 */
+function readFp(ledgerPath) {
+  const f = fpFile(ledgerPath);
+  if (!fs.existsSync(f)) return {};
+  try {
+    const o = JSON.parse(fs.readFileSync(f, 'utf8'));
+    return o && typeof o === 'object' ? o : {};
+  } catch { return {}; }
+}
+
+function markFalsePositive(ledgerPath, ruleId, note) {
+  const f = fpFile(ledgerPath);
+  const all = readFp(ledgerPath);
+  const cur = all[ruleId] || { n: 0, firstAt: null, lastAt: null, notes: [] };
+  cur.n = (cur.n || 0) + 1;
+  cur.firstAt = cur.firstAt || nowIso();
+  cur.lastAt = nowIso();
+  if (note) {
+    cur.notes = (cur.notes || []).concat([{ at: cur.lastAt, note: scrub(String(note)).slice(0, 120) }]).slice(-10);
+  }
+  all[ruleId] = cur;
+  const tmp = f + '.tmp';
+  fs.writeFileSync(tmp, JSON.stringify(all, null, 2) + '\n', 'utf8');
+  fs.renameSync(tmp, f);
+  return { id: ruleId, n: cur.n, lastAt: cur.lastAt, file: f };
+}
+
+/* 命中从账本聚合；建议只看三件事：误报绝对数、误报占命中的比例、有没有命中过。 */
+function ruleStats(ledgerPath) {
+  const rows = readAll(ledgerPath);
+  const hits = {}, lastHit = {}, byAction = {};
+  for (const r of rows) {
+    for (const id of (r.rules || [])) {
+      hits[id] = (hits[id] || 0) + 1;
+      if (!lastHit[id] || String(r.ts) > String(lastHit[id])) lastHit[id] = r.ts;
+      byAction[id] = byAction[id] || {};
+      const a = r.action || '?';
+      byAction[id][a] = (byAction[id][a] || 0) + 1;
+    }
+  }
+  const fp = readFp(ledgerPath);
+  const ids = new Set(Object.keys(hits).concat(Object.keys(fp)));
+  const out = [];
+  for (const id of ids) {
+    const h = hits[id] || 0;
+    const n = (fp[id] && fp[id].n) || 0;
+    const ratio = h > 0 ? n / h : (n > 0 ? 1 : 0);
+    let advice = '观察';
+    if (n >= 3 && ratio >= 0.3) advice = '该降：误报多，降成只提示或删掉';
+    else if (h === 0 && n > 0) advice = '该撤：一次都没命中过，只被标了误报';
+    else if (h >= 5 && ratio < 0.1) advice = '该留：命中多、误报少';
+    else if (n > 0) advice = '再观察：误报还不够多，先记着';
+    out.push({ id, hits: h, fps: n, ratio, lastHit: lastHit[id] || null, byAction: byAction[id] || {}, advice });
+  }
+  out.sort((a, b) => b.hits - a.hits || b.fps - a.fps);
+  return out;
+}
+
 function nowIso() {
   const d = new Date();
   const pad = (n) => String(n).padStart(2, '0');
@@ -177,4 +240,4 @@ function nowIso() {
     + sign + hh + ':' + mm;
 }
 
-module.exports = { record, readAll, report, formatReport, scrub, scrubDeep, scrubLong, nowIso };
+module.exports = { record, readAll, report, formatReport, ruleStats, markFalsePositive, readFp, fpFile, scrub, scrubDeep, scrubLong, nowIso };

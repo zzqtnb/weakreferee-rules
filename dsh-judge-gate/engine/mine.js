@@ -68,7 +68,7 @@ const TEMPLATES = {
     fix: '批处理文件写成纯 ASCII；必须输出中文时，在文件开头加 chcp 65001 并把正文单独放文本文件',
     reversible: true,
     cases: [
-      { note: '该拦', tool: 'write', args: { file_path: 'D:\\tmp\\run.bat', content: 'echo 中文测试' }, expect: 'warn' },
+      { note: '该拦', tool: 'write', args: { file_path: 'D:\\tmp\\run.bat', content: 'echo 中文测试' }, expect: 'block' },
       { note: '该放', tool: 'write', args: { file_path: 'D:\\tmp\\run.bat', content: 'echo hello' }, expect: 'pass' },
     ],
   },
@@ -247,13 +247,37 @@ function mine(opts) {
       message: t.message,
       fix: t.fix,
       reversible: t.reversible,
-      cases: t.cases || null,
+      selfTest: { cases: t.cases || [] },
       evidence: {
         hits: r.hits,
         source: 'mine：使用者自己的会话记录里统计到 ' + r.hits + ' 次',
       },
       testedOn: { calls, files: read, note: '数据来自使用者本机，不上传' },
     });
+  }
+
+  // 出草案前拿现有规则实判一遍：真有判据管着就不出。MAP 是手写的，会漂
+  // （2026-11-25 实测：write-bat-cjk 标着 null，可包里早有 WIN-BAT-CJK-01）。
+  const covered = [];
+  let kept = drafts;
+  try {
+    const J = require('./judge.js');
+    const rulesRoot = opts.rulesDir || path.join(__dirname, '..', 'rules');
+    const packsNow = fs.readdirSync(rulesRoot).filter((d) => {
+      try { return fs.statSync(path.join(rulesRoot, d)).isDirectory(); } catch { return false; }
+    });
+    const rs = J.load([rulesRoot], { packs: packsNow, rules: [] });
+    kept = [];
+    for (const d of drafts) {
+      const c = (d.selfTest.cases || []).find((x) => x && x.expect === 'block') || null;
+      const ex = c ? J.judgeEx({ when: 'tool:pre', tool: c.tool, args: c.args || {} }, rs) : { hits: [] };
+      const others = (ex.hits || []).map((h) => h.ruleId).filter((id) => id !== d.id);
+      if (others.length) covered.push({ shape: d.id, by: others });
+      else kept.push(d);
+    }
+  } catch (e) {
+    kept = drafts; // 规则加载失败就照旧出草案，别把功能弄没了
+             
   }
 
   return {
@@ -264,8 +288,22 @@ function mine(opts) {
     calls,
     tools: [...byTool.entries()].sort((a, b) => b[1] - a[1]),
     rows,
-    drafts,
+    drafts: kept,
+    covered,
     min,
+    // 包元信息：装的时候直接读这个，不用再手写一遍
+    pack: {
+      id: 'mined',
+      name: '从自己会话里挖出来的规矩',
+      version: '0.1.0',
+      kind: 'scene',
+      description: '由 weakreferee mine 按本机会话记录生成：只收统计次数够的形态，全部 warn，未在别人环境验证过',
+      license: 'CC BY 4.0',
+      loadOrder: 40,
+      rules: kept.length,
+      ruleIds: kept.map((d) => d.id),
+      notes: '草稿包：action 一律 warn，要拦自己改 block 并补齐自测；数据来自本机，不外传',
+    },
   };
 }
 
@@ -305,6 +343,11 @@ function renderReport(r) {
     L.push('这次没有能出的草案：能被统计的形态都已有规矩管着，或者次数不到 ' + r.min + ' 次');
   }
   L.push('');
+  if (r.covered && r.covered.length) {
+    L.push('');
+    L.push('这几条本来会出草案，实判发现已经有人管（手写对照表会漂，实判不会）：');
+    for (const c of r.covered) L.push('  ' + c.shape + ' ← ' + c.by.join(', '));
+  }
   L.push('报告里只有次数和工具名，没有命令正文，也没有路径；数据不出本机。');
   return L.join('\n');
 }

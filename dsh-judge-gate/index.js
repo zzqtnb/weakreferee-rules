@@ -386,6 +386,21 @@ export function apply(ctx, config) {
   //    为什么用 tools/result 而不是 post-execute：result 是只观测的事件，改不了任何东西，
   //    最坏情况是这段代码抛错（已 catch），不可能把调用结果弄坏。
   //    5 MB 滚动：超了改名 .1 再重开，只留一份旧账。
+  // A3（2026-11-25）：会话小本子。跨调用判据要的「刚才调了什么」从这里来，
+  //   不再只靠 judge.js 的进程内缓存（重启即丢，命令行/回放也看不到）。
+  const HS = createRequire(import.meta.url)(join(ENGINE_DIR, 'history.js'));
+  const HIST_DIR = process.env.DSH_JUDGE_HISTORY_DIR || join(dirname(MARKS_FILE), 'history');
+  // 会话 id 从宿主对象上顺着找，找不到就退回环境变量，再找不到就共用一个文件——
+  // 退化了也还能用，只是不同会话的历史会混在一起（日志里能看见文件名，不会悄悄发生）。
+  const sessionOf = (exec) => {
+    try {
+      // 传进来的可能就是已经算好的会话名（判据调用处只带 session 字段）——原样用，
+      // 否则会退回进程级默认值，多个会话的历史糊进同一个文件。
+      if (typeof exec === 'string' && exec) return exec;
+      const a = exec && (exec.sessionId || exec.threadId || (exec.agent && (exec.agent.sessionId || exec.agent.id)));
+      return String(a || process.env.DSH_SESSION_ID || 'unknown');
+    } catch { return 'unknown'; }
+  };
   const J15_MAX = 5 * 1024 * 1024;
   let lastFail = null;   // { tool, at }
   const j15Write = (fields) => {
@@ -415,7 +430,15 @@ export function apply(ctx, config) {
   if ((process.env.DSH_JUDGE_J15 || '1') !== '0') {
     const onResult = (exec, result) => {
       try {
-        if (!resultLooksFailed(result)) return;
+        const failed = resultLooksFailed(result);
+        // 成败都要落账：跨调用判据要问的是「前几次成没成」，只记失败等于看不见「中间成功过一次」
+        try {
+          // 调用前已经由闸记了一条（ok=null），这里只回填成败——再 append 一次会让同一次调用记两遍
+          const exn = (exec && exec.name) || '?';
+          const exa = (exec && exec.arguments) || {};
+          HS.markResult(HIST_DIR, sessionOf(exec), HS.fingerprint(exn, exa), !failed);
+        } catch { /* 小本子写不进去不影响判定，也不影响调用 */ }
+        if (!failed) return;
         let brief = '';
         try {
           const a = exec && exec.arguments;
@@ -477,8 +500,16 @@ export function apply(ctx, config) {
           only = Array.isArray(j.rules) ? j.rules : [];
         } catch { /* 没有清单＝什么都没装 */ }
       }
+      // 包目录按名字现找：加一个新包不必回来登记（2026-11-25 就是因为漏登记，
+      // cross-call 装了却一条都没加载，命令行的 packs 与运行时看到的不是同一批包）。
       const dirs = [];
-      for (const p of packs) if (PACK_DIRS[p]) dirs.push(PACK_DIRS[p]);
+      for (const p of packs) {
+        if (!/^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(p)) continue;
+        const byName = join(SELF_DIR, 'rules', p);
+        if (existsSync(byName)) dirs.push(byName);
+        else if (PACK_DIRS[p]) dirs.push(PACK_DIRS[p]);
+        else ctx.logger?.warn?.("[judge-gate] 清单里的包 " + p + " 找不到目录，跳过");
+      }
       const CUSTOM_ROOT = join(DATA_DIR, 'custom');
       if (packs.includes('mine') || packs.includes('custom')) {
         try {
@@ -500,12 +531,25 @@ export function apply(ctx, config) {
       if (engineRuleCount > 0) process.env.DSH_JUDGE_ENGINE_PRIMARY = '1';
       else delete process.env.DSH_JUDGE_ENGINE_PRIMARY;
       shadowJudge = (call) => {
-        const hits = JE.judge(call, pre);
+        // 历史从磁盘来：同一个会话跨进程、跨命令行判定都能看到同一批调用。
+        // 读不到就交给引擎自己（它有空历史就一定报「跳过」，不会假装判过）。
+        let hist = null;
+        try {
+          const h = HS.recent(HIST_DIR, sessionOf(call && call.session), 20);
+          if (h && h.length) hist = h;
+        } catch { hist = null; }
+        const ex = JE.judgeEx(hist ? Object.assign({}, call, { history: hist }) : call, pre);
+        const hits = (ex && ex.hits) || [];
+        const skipped = (ex && ex.skipped) || [];
         const v = JE.adjudicate(hits);
         const ids = hits.map((h) => h.ruleId || (h.rule && h.rule.id) || '?');
         const msgs = hits.map((h) => h.message || (h.rule && h.rule.message) || '').filter(Boolean);
         const fixes = hits.map((h) => h.fix || (h.rule && h.rule.fix) || '').filter(Boolean);
-        return { action: (v && v.action) || 'pass', ids, message: msgs[0] || '', fix: fixes[0] || '' };
+        return {
+          action: (v && v.action) || 'pass', ids,
+          message: msgs[0] || '', fix: fixes[0] || '',
+          skipped: skipped.map((x) => x.ruleId + '（' + (x.reason || '没有可用的调用历史') + '）'),
+        };
       };
       ctx.logger?.info?.(engineRuleCount
         ? `[judge-gate] 规则引擎已接入判定：装 ${ruleList.length} 条→展开 ${engineRuleCount} 条${rs0.rejected.length ? `，拒装 ${rs0.rejected.length} 条` : ''}`
@@ -590,7 +634,19 @@ export function apply(ctx, config) {
         // 规则引擎：装了就一起判，拦下即拒（与参数表取并集，谁拦都算拦）
         if (shadowJudge) {
           try {
-            const es = shadowJudge({ when: 'tool:pre', tool: exec.name, args: badJson ? null : args });
+            const es = shadowJudge({ when: 'tool:pre', tool: exec.name, args: badJson ? null : args, session: sessionOf(exec) });
+            if (es && es.skipped && es.skipped.length) {
+              const note = '跳过 ' + es.skipped.length + ' 条（没有历史时不当成通过）：' + es.skipped.slice(0, 3).join('；');
+              notes = notes ? notes + '；' + note : note;
+            }
+            // 只提示不拦的判据（warn/steer）命中后也要说出来，否则「写了判据人看不见」，
+            // 和没装一样。状态记「提示」，不动拦不拦。
+            if (es && (es.action === 'warn' || es.action === 'steer') && es.ids && es.ids.length) {
+              const wids = es.ids.join(',');
+              const wwhy = es.fix ? `${wids}：${es.message || ''}（${es.fix}）` : `${wids}：${es.message || ''}`;
+              notes = notes ? notes + '；' + wwhy : wwhy;
+              if (status === '通过') status = '提示';
+            }
             if (es && es.action === 'block') {
               const ids = (es.ids || []).join(',');
               const why = es.fix ? `${es.message}（${es.fix}）` : (es.message || ids);
@@ -605,6 +661,12 @@ export function apply(ctx, config) {
           } catch { /* 引擎判错不牵连参数表：宁可漏一次，不可把工具卡死 */ }
         }
       }
+      // A3b：不管结果事件到不到，这一下一定跑得到——小本子的「事实」由闸自己记。
+      // ok 先写 null（还不知道成没成），结果事件到了由 onResult 回填；回填不到就是 null，
+      // 跨调用判据看见 null 就只好按「未知」处理，不假装成功。
+      try {
+        HS.append(HIST_DIR, sessionOf(exec), { tool: exec.name || '?', args: badJson ? {} : (args && typeof args === 'object' ? args : {}) }, null);
+      } catch { /* 记不上不影响判定 */ }
       if (p6Note) {
         // P6 只记账、不改判定：拦不拦由判据说了算，这条提醒附在理由后面
         notes = notes ? notes + '；' + p6Note : p6Note;

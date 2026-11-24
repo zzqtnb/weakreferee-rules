@@ -79,9 +79,12 @@ function typeOk(t, v) {
 /* ─────────────────────────────────────────────
  * 会话内的调用历史：跨调用判据的底座（2026-11-24）
  * 只有看得到「前面几次干了什么」，才判得了「改完没验证」「引了文献却没检索」这类事。
- * 环形缓存、进程级；history 为空时三个跨调用条件一律放行——宁可漏判，不误判。
+ * 环形缓存、进程级。两个兜底：没历史时条件函数自己放行（不做无依据的指控），
+ * 但声明了 needs 的判据会显式报「跳过」——静默放行看着像「判过且没问题」，
+ * 实际是根本没判，那是这类工具最坏的失效（装上看着好好的，什么都不拦）。
  * ───────────────────────────────────────────── */
 const HISTORY_MAX = 80;
+let FP_HELPER = null;   // 懒加载 history.js，只为算指纹
 const HISTORY = [];
 
 function pushHistory(call) {
@@ -98,8 +101,23 @@ function pushHistory(call) {
   } catch { /* 记账失败不影响判定 */ }
 }
 
-function recentHistory(n) {
-  return HISTORY.slice(Math.max(0, HISTORY.length - (n || 20)));
+function recentHistory(n, h) {
+  const src = Array.isArray(h) ? h : HISTORY;
+  return src.slice(Math.max(0, src.length - (n || 20)));
+}
+
+// 判定用的历史：调用方可从外面递（插件层读落盘小本子、回放读日志），
+// 没递就用进程内环形缓存——引擎保持「同一输入同一结论」，历史不当隐式状态。
+function histOf(ctx) {
+  const h = ctx && ctx.history;
+  return Array.isArray(h) ? h : HISTORY;
+}
+
+// 判据能声明自己依赖什么。目前只有一种：history（看得到前几次调用）。
+const KNOWN_NEEDS = ['history'];
+function missingNeeds(r, ctx) {
+  if (!Array.isArray(r.needs) || !r.needs.length) return [];
+  return r.needs.filter(n => (n === 'history' ? !ctx.hasHistory : true));
 }
 
 const CONDITION = {
@@ -303,36 +321,115 @@ const CONDITION = {
   // 最近 within 次调用里，指定工具一次都没出现过。
   // 用来判「引了带 DOI 的文献却一次没检索」「说跑过测试却没调过命令」。
   noCallSince(p, ctx) {
-    if (!HISTORY.length) return false;
+    const hist = histOf(ctx);
+    if (!hist.length) return false;
     const tools = (p.tools || [p.tool]).filter(Boolean);
     if (!tools.length) return false;
-    return !recentHistory(p.within || 20).some(h => tools.includes(h.tool));
+    return !recentHistory(p.within || 20, hist).some(h => tools.includes(h.tool));
   },
 
   // 最近 within 次调用里，指定工具出现次数少于 min 次（默认 1）。
   // 是 noCallSince 的放宽版：「至少要跑过两次」这种要求用它。
   callCountSince(p, ctx) {
-    if (!HISTORY.length) return false;
+    const hist = histOf(ctx);
+    if (!hist.length) return false;
     const tools = (p.tools || [p.tool]).filter(Boolean);
     if (!tools.length) return false;
     const min = p.min == null ? 1 : p.min;
-    const n = recentHistory(p.within || 20).filter(h => tools.includes(h.tool)).length;
+    const n = recentHistory(p.within || 20, hist).filter(h => tools.includes(h.tool)).length;
     return n < min;
   },
 
   // 同一个工具、同一个参数值，最近 within 次里已经出现 times-1 次（含本次即 times 次）。
   // 用来判「同一件事干了两三遍」。
   argRepeat(p, ctx) {
-    if (!HISTORY.length) return false;
+    const hist = histOf(ctx);
+    if (!hist.length) return false;
     const key = p.key || 'command';
     const val = pick(ctx, 'args.' + key);
     if (val === undefined || val === null) return false;
     const want = String(val);
     const times = p.times || 3;
-    const n = recentHistory(p.within || 20)
+    const n = recentHistory(p.within || 20, hist)
       .filter(h => (!p.tool || h.tool === p.tool) && String(h.args[key] == null ? '' : h.args[key]) === want)
       .length;
     return n >= times - 1;
+  },
+
+  // 小本子里没有参数正文时，用「同一次调用的指纹」当同一件事的证据。
+  // 指纹算法只有一份（history.js），这里现调，避免两处各写一套最后对不上。
+  fpOfCall(ctx) {
+    if (ctx && ctx.call && typeof ctx.call.fp === 'string') return ctx.call.fp;
+    try {
+      if (!FP_HELPER) FP_HELPER = require('./history.js');
+      return FP_HELPER.fingerprint(ctx && ctx.tool, (ctx && ctx.args) || {});
+    } catch (e) {
+      return null;
+    }
+  },
+
+  // 同一个值（默认 command）失败过，这次原样又来。判「失败了不改东西，直接重发一遍」。
+  // 只看 ok === false 的历史：没有成败记录的老条目不算数，宁可不报也不瞎报。
+  failRepeat(p, ctx) {
+    const hist = histOf(ctx);
+    if (!hist.length) return false;
+    const key = p.key || 'command';
+    const val = pick(ctx, 'args.' + key);
+    if (val === undefined || val === null) return false;
+    const want = String(val);
+    const times = p.times || 1;
+    const minutes = p.minutes || 5;
+    const now = typeof ctx.now === 'number' ? ctx.now : Date.now();
+    const wantFp = CONDITION.fpOfCall(ctx);
+    const sameValue = (h) => {
+      if (p.tool && h.tool !== p.tool) return false;
+      // 插件小本子只留 target + fp，没有 args；命令行/回放两条路有 args
+      const raw = h.args && h.args[key] != null ? h.args[key]
+        : (key === 'file_path' ? h.target : undefined);
+      if (raw !== undefined && raw !== null) return String(raw) === want;
+      // 没有参数正文（插件写的那份），比指纹：同一份参数算出来的指纹一样
+      if (h.fp && wantFp) return h.fp === wantFp;
+      return false;
+    };
+    const inWindow = (h) => {
+      const at = typeof h.at === 'number' ? h.at : 0;
+      return !at || now - at <= minutes * 60000;
+    };
+    // streak：从最近一条往前数「连着失败」，中间有一次成功就断。
+    // 不这么做的话，「失败两次 → 中间成功了五回 → 又来一次」会被当成还在磕，
+    // 那是正常工作，不是死磕——误报主要就出在这里。
+    if (p.streak) {
+      let n = 0;
+      const arr = recentHistory(p.within || 20, hist);
+      for (let i = arr.length - 1; i >= 0; i -= 1) {
+        const h = arr[i];
+        if (!sameValue(h)) continue;
+        if (!inWindow(h)) break;
+        if (h.ok === false) n += 1;
+        else if (h.ok === true) break;   // 成功过一次，连败到此为止
+        else continue;                   // 成败未知：不算连败，也不打断
+      }
+      return n >= times;
+    }
+    const n = recentHistory(p.within || 20, hist).filter(h => sameValue(h) && h.ok === false && inWindow(h)).length;
+    return n >= times;
+  },
+
+  // 同一个工具最近连着失败 times 次。判「死磕」：改没改参数由 argRepeat 另判，这里只管失败次数。
+  failCountSince(p, ctx) {
+    const hist = histOf(ctx);
+    if (!hist.length) return false;
+    const tool = p.tool || ctx.tool;
+    const times = p.times || 3;
+    const minutes = p.minutes || 10;
+    const now = typeof ctx.now === 'number' ? ctx.now : Date.now();
+    const n = recentHistory(p.within || 20, hist).filter(h => {
+      if (h.ok !== false) return false;
+      if (tool && h.tool !== tool) return false;
+      const at = typeof h.at === 'number' ? h.at : 0;
+      return !at || now - at <= minutes * 60000;
+    }).length;
+    return n >= times;
   }
 };
 
@@ -410,8 +507,11 @@ function evalCond(c, ctx) {
   return fn(c, ctx) === true;
 }
 
-function judge(call, ruleSet) {
-  const ctx = { tool: call.tool, args: call.args || {}, replyText: call.replyText, call, history: HISTORY };
+function judgeEx(call, ruleSet) {
+  const hist = Array.isArray(call && call.history) ? call.history : HISTORY;
+  const ctx = { tool: call.tool, args: call.args || {}, replyText: call.replyText, call, history: hist, hasHistory: hist.length > 0,
+    // 「几分钟内」按这次调用自己的时间算：回放历史日志时 Date.now() 是今天，会把所有旧调用都算成超窗
+    now: typeof call.at === 'number' ? call.at : Date.now() };
   // 既能收 load() 的返回，也能收裸数组——两个都用过，混用会静默判成「零命中」。
   const when = call.when || 'tool:pre';
   // 取规则三层优先：裸数组 → 按 when+tool 分桶（只过这个工具该管的几条）→ 按 when 分桶 → 全量
@@ -427,8 +527,14 @@ function judge(call, ruleSet) {
     list = (ruleSet && ruleSet.rules) || [];
   }
   const hits = [];
+  const skipped = [];
   for (const r of list) {
     if (!applies(r.appliesTo, ctx)) continue;
+    const missing = missingNeeds(r, ctx);
+    if (missing.length) {
+      skipped.push({ ruleId: r.id, action: 'skip', needs: missing, reason: '没有可用的调用历史（首条调用 / 单条命令行判定 / 未开启记录）' });
+      continue;
+    }
     let hit = false;
     try {
       hit = evalCond(r.condition, ctx);
@@ -440,7 +546,12 @@ function judge(call, ruleSet) {
     if (hit) hits.push({ ruleId: r.id, action: r.action, severity: r.severity, message: r.message, fix: r.fix, reversible: r.reversible });
   }
   pushHistory(call);   // 判完再记：跨调用条件看不到本次
-  return hits;
+  return { hits, skipped };
+}
+
+// 老接口：只要命中。跳过项由 judgeEx 给出——调用方要显示「这条没判」就必须走它。
+function judge(call, ruleSet) {
+  return judgeEx(call, ruleSet).hits;
 }
 
 function applies(a, ctx) {
@@ -529,6 +640,11 @@ function validateRule(r) {
     if (process.env[k]) continue;
     if (dflt && BUILTIN[dflt]) continue;
     errs.push(dflt ? `环境变量未设置 ${k}，默认 ${dflt} 也不认识` : `环境变量未设置 ${k}`);
+  }
+  // needs 写错一个字母，判据会永远拿不到依赖却看着正常——装机时就拦住。
+  if (r.needs !== undefined) {
+    if (!Array.isArray(r.needs)) errs.push('needs 必须是数组');
+    else for (const n of r.needs) if (!KNOWN_NEEDS.includes(n)) errs.push(`needs 不认识: ${n}（可用: ${KNOWN_NEEDS.join(',')}）`);
   }
   return errs;
 }
@@ -634,7 +750,11 @@ function appliesScope(a, ctx) {
 }
 
 function judgeRaw(call, rules) {
-  const ctx = { tool: call.tool, args: call.args || {}, replyText: call.replyText, call };
+  // 自测走这条路：用例可以把「前几次调用」递进来，跨调用条件才判得动
+  const rhist = Array.isArray(call && call.history) ? call.history : HISTORY;
+  const ctx = { tool: call.tool, args: call.args || {}, replyText: call.replyText, call,
+    history: rhist, hasHistory: rhist.length > 0,
+    now: typeof call.at === 'number' ? call.at : Date.now() };
   const hits = [];
   for (const r of rules) {
     if (!appliesScope(r.appliesTo, ctx)) continue;
@@ -648,4 +768,4 @@ function judgeRaw(call, rules) {
   return hits;
 }
 
-module.exports = { judge, judgeRaw, adjudicate, load, parseIdList, maskQuoted, evalCond, CONDITION, ENV, processStartMs, HISTORY, resetHistory: () => { HISTORY.length = 0; } };
+module.exports = { judge, judgeEx, judgeRaw, adjudicate, load, parseIdList, maskQuoted, evalCond, CONDITION, ENV, processStartMs, HISTORY, resetHistory: () => { HISTORY.length = 0; } };

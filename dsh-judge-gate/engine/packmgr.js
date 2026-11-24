@@ -23,12 +23,17 @@ function toolOf(rule) {
   return t[0];
 }
 
-function mkCall(rule, args) {
-  return {
+function mkCall(rule, args, extra) {
+  const call = {
     when: rule.when || 'tool:pre',
     tool: toolOf(rule),
     args: args || {},
   };
+  // 跨调用判据的用例要自带「前几次调用」：不给就永远判不出来，
+  // 于是这类规则在静态校验里只能写「缺该拦的用例」，等于没人测它。
+  if (extra && Array.isArray(extra.history)) call.history = extra.history;
+  if (extra && typeof extra.at === 'number') call.at = extra.at;
+  return call;
 }
 
 // ── 单条规矩自测 ──────────────────────────────
@@ -44,7 +49,7 @@ function selftestRule(rule) {
       continue;
     }
     out.ran++;
-    const hits = J.judgeRaw(mkCall(rule, c.args), [rule]);
+    const hits = J.judgeRaw(mkCall(rule, c.args, c), [rule]);
 
     const errored = hits.find(h => h.error);
     if (errored) {

@@ -151,6 +151,7 @@ packs/
   core/                   不依赖平台与宿主，换到哪都成立
   windows-powershell/     只在 Windows + PowerShell 生效，换 Linux 整包不装
   dsh-host/               依赖宿主自身状态，换宿主整包不装
+  cross-call/             看前几次调用：失败后又原样发、同一个文件连着磕。只提示不拦，可单独装
   community/              社区贡献的包（<作者>/<域>）
 weakreferee-cli.js        命令行入口：不装插件也能判
 guide.js                  向导：引导第一次运行、把结果写到桌面
@@ -212,14 +213,24 @@ docs/                     怎么写一条规矩、跟同类项目差在哪
 
 `default` 是唯一会改动调用的动作，且只在「用户没说」时生效——补的是用户习惯，不是替用户做主。
 
-## 十八种判定条件
+## 二十四种判定条件
 
-判定只认 `condition.type`，不认业务。加规矩不用改引擎，落不进这十八种才需要扩内核。
+判定只认 `condition.type`，不认业务。加规矩不用改引擎，落不进这些才需要扩内核。
+
+**看这一次调用**
 
 `missingKey` `emptyValue` `missingAnyOf` `wrongKey` `extraKey` `typeMismatch`
 `missingFlag` `regexHit` `regexMiss`
 `fileLacksBom` `fileHasBom` `fileAnchorMissing` `fileAnchorMultiple` `fileNewerThan` `fileNewerThanProcessStart`
 `unknownKey` `pathOutside` `cmdAbsPathWritten`
+
+**看前几次调用**（判据要写 `needs: ["history"]`，拿不到历史时显式标「跳过」，不算通过）
+
+`noCallSince` `callCountSince` `argRepeat`
+`failRepeat` `failCountSince`
+
+`failRepeat` 与 `failCountSince` 只看记了成败的历史：条目的 `ok` 是 `true`/`false` 才算数，`null`（不知道成没成）一律跳过——猜出来的成败会把误报说成「有依据」。
+`failRepeat` 加 `streak: true` 时从最近一条往前数，遇到同值成功就断：失败两次之后中间成功过五回，再来一次不算死磕，那是正常工作。
 
 可以嵌套组合：`all`（全真）、`any`（至少一真）、`not`（取反）。
 
@@ -320,6 +331,66 @@ node tools/mcp-descan.js --self-test      # 自检：5 坏样本该中、3 好�
 11 条规则（指令覆盖 / 隐藏动作 / 保密要求 / 偷看提示词 / 偷凭据 / 不可见字符 / HTML 注释 / base64 块），`high` 级命中退出码 1。
 
 只查描述文字，不查工具背后的代码到底做了什么——中了不代表一定坏，没中也不代表干净。
+
+## 跨调用：它是不是在原地打转
+
+前面那些判据看的是「这一次调用写得对不对」。还有一类错只在两次之间才看得出来：同一条命令刚失败过、一个字没改又发一遍；同一个文件连着没写成、还在往它身上试。这类判据放在 `cross-call` 包里，**默认不装**：
+
+```
+node dsh-judge-gate/tools/judge-packs.cjs add cross-call      # 装上（只提示，不拦）
+node dsh-judge-gate/tools/judge-packs.cjs remove cross-call    # 撤掉，行为回到没装的样子
+```
+
+装之前值得先在自己的历史上验一遍——判据吵不吵，取决于你平时怎么干活：
+
+```
+weakreferee trace --max-files 400
+```
+
+它会读 `$DSH_HOME/sessions` 下的会话日志，把每次调用的成败从 `tool/result` 帧里对出来（对不上结果的调用直接丢掉，不猜），按时间顺序喂历史，报两条判据各命中几次、头几条长什么样。仓库作者这台机器上跑出来是这样：
+
+| 判据 | 命中 | 人工核 20 条 |
+|---|---|---|
+| `CROSS-RETRY-01`（同命令失败后又原样发） | 27 次 / 28,001 次调用 | 20 条全部是「前一条同命令失败，2~9 秒后又原样发」，无一误报 |
+| `CROSS-BLIND-01`（同文件连败仍继续试） | 1 次 | 未抽样 |
+| `CROSS-GRIND-01`（同工具连败三次、参数没改） | 0 次 | 按「命中 0 次不收」暂不进包，条件留在引擎里 |
+
+那 27 次里有一条值得单说：`CROSS-BLIND-01` 一开始按「20 分钟内这个文件失败过两次」判，报 23 次，人工一看绝大多数是「失败两次 → 成功改了五回 → 又来一条」，属于正常工作。改成「连败」语义（中间成功就断）后只剩 1 次。**这类判据最贵的不是漏报，是把你正常干活报成毛病**，所以它宁可少报。
+
+## 让它自己长出规矩来
+
+判据不必全由人写。`mine` 扫自己的会话记录，把反复出现的形态统计出来，次数够了就出草案：
+
+```bash
+weakreferee mine "$DSH_HOME/sessions" --max-files 400          # 先看报告
+weakreferee mine "$DSH_HOME/sessions" --max-files 400 --pack ./mined   # 直接写成能装的包
+node tools/validate.js ./mined                                 # 自查结构
+```
+
+出草案之前会先把现有全部规则跑一遍：这件事要是已经有人管（比如 `WIN-BAT-CJK-01`），就只记一行「本来会出草案，实判发现已经有人管」，不再出一条管同一件事的重复判据。作者机上 709 次「write 往文本文件写中文」也是这么被判成「不该管」的——计数多不等于该拦。
+
+草案一律 `action: warn`。要真拦，自己改成 `block` 并补齐正反用例；别人的机器上什么情况，光看自己的记录看不出来。
+
+### 判据也要能被淘汰
+
+命中与误报都记账，一条命令看全：
+
+```bash
+weakreferee stats --ledger ./ledger.jsonl
+weakreferee fp WIN-ENC-01 --note "这次是有意不写 -Encoding" --ledger ./ledger.jsonl
+```
+
+`fp`（false positive，误报）由人判，机器不猜。建议只看三件事：误报绝对数、误报占命中的比例、这条到底命中过没有——
+
+| 情况 | 建议 |
+|---|---|
+| 误报 ≥ 3 次，且占命中 30% 以上 | 该降：降成只提示，或删掉 |
+| 一次都没命中过，只被标过误报 | 该撤 |
+| 命中 ≥ 5 次，且误报不到 10% | 该留 |
+| 其余 | 再观察 |
+
+实测一次：某条判据命中 5 次、被标 3 次误报（60%），`stats` 直接报「该降：误报多，降成只提示或删掉」，并在末尾列出「要动的：WIN-ENC-01」。
+判据库只增不减是这类工具的通病（条数好看，报出来的东西没人信），这一层就是给它装一个删除键。
 
 ## 怎么写自己的规矩
 

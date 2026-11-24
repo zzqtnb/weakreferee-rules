@@ -1,0 +1,158 @@
+[
+  {
+    "id": "CROSS-RETRY-01",
+    "needs": [
+      "history"
+    ],
+    "title": "同一条命令失败过，5 分钟内又原样发一次",
+    "when": "tool:pre",
+    "appliesTo": {},
+    "condition": {
+      "type": "failRepeat",
+      "key": "command",
+      "minutes": 5,
+      "times": 1,
+      "streak": true
+    },
+    "action": "warn",
+    "severity": "B",
+    "message": "这条命令刚刚失败过，一个字的没改就又发了一遍",
+    "fix": "先说清上次为什么失败、这次改了什么；确实没得改就说明「只是重试一次」",
+    "reversible": true,
+    "evidence": {
+      "hits": 0,
+      "sessions": 0,
+      "source": "2026-11-24 四模型实测下常见：命令报错后原样重发，两三次才换思路"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "command": "npm run build"
+          },
+          "history": [
+            {
+              "tool": "*",
+              "args": {
+                "command": "npm run build"
+              },
+              "ok": false,
+              "at": 1794999940000
+            }
+          ],
+          "at": 1795000000000,
+          "expect": "block",
+          "note": "一分钟前同一条命令失败过，这次原样又来"
+        },
+        {
+          "args": {
+            "command": "npm run build"
+          },
+          "at": 1795000000000,
+          "expect": "pass",
+          "note": "没有历史：显式跳过，不算命中"
+        },
+        {
+          "args": {
+            "command": "npm run build"
+          },
+          "history": [
+            {
+              "tool": "*",
+              "args": {
+                "command": "npm run build"
+              },
+              "ok": true,
+              "at": 1794999940000
+            }
+          ],
+          "at": 1795000000000,
+          "expect": "pass",
+          "note": "上次是成功的，重发不算事"
+        }
+      ]
+    }
+  },
+  {
+    "id": "CROSS-BLIND-01",
+    "needs": [
+      "history"
+    ],
+    "title": "同一个文件连着失败两次以上，中间没成过",
+    "when": "tool:pre",
+    "appliesTo": {},
+    "condition": {
+      "type": "failRepeat",
+      "key": "file_path",
+      "minutes": 20,
+      "times": 2,
+      "streak": true
+    },
+    "action": "warn",
+    "severity": "C",
+    "message": "这个文件连着失败两次，中间一次没成，还在往它身上试",
+    "fix": "先读一遍现状（文件在不在、路径对不对、编码是什么），别继续猜着写",
+    "reversible": true,
+    "evidence": {
+      "hits": 0,
+      "sessions": 0,
+      "source": "2026-11-25 本机记录里「同一路径反复失败」的样例（WIN-PS1-CJK-01 / WIN-ENC-01 集中命中过同一批文件）"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "file_path": "D:\\演示\\工作区\\草稿.md",
+            "content": "x"
+          },
+          "history": [
+            {
+              "tool": "*",
+              "target": "D:\\演示\\工作区\\草稿.md",
+              "ok": false,
+              "at": 1794999700000
+            },
+            {
+              "tool": "*",
+              "target": "D:\\演示\\工作区\\草稿.md",
+              "ok": false,
+              "at": 1794999940000
+            }
+          ],
+          "at": 1795000000000,
+          "expect": "block",
+          "note": "同一个文件连败两次、中间没成过"
+        },
+        {
+          "args": {
+            "file_path": "D:\\演示\\工作区\\草稿.md",
+            "content": "x"
+          },
+          "history": [
+            {
+              "tool": "*",
+              "target": "D:\\演示\\工作区\\草稿.md",
+              "ok": false,
+              "at": 1794999700000
+            },
+            {
+              "tool": "*",
+              "target": "D:\\演示\\工作区\\草稿.md",
+              "ok": true,
+              "at": 1794999880000
+            },
+            {
+              "tool": "*",
+              "target": "D:\\演示\\工作区\\草稿.md",
+              "ok": false,
+              "at": 1794999940000
+            }
+          ],
+          "at": 1795000000000,
+          "expect": "pass",
+          "note": "中间成功过一次，连败已断——这不是死磕"
+        }
+      ]
+    }
+  }
+]

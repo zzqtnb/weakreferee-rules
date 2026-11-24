@@ -25,6 +25,20 @@
  */
 const fs = require('fs');
 const path = require('path');
+
+// 同一套文件在两种布局里都出现过：仓库是 dsh-judge-gate/rules/<包>，
+// 便携包（参赛\发布 那份）是 rules/<包>。写死一种，另一种就找不到。
+function ruleFileOf(pack) {
+  const cands = [
+    path.join(__dirname, 'dsh-judge-gate', 'rules', pack, 'rules.json'),
+    path.join(__dirname, 'rules', pack, 'rules.json'),
+    path.join(__dirname, 'packs', pack, 'rules.json'),
+  ];
+  for (const c of cands) {
+    try { if (fs.existsSync(c)) return c; } catch (e) { /* 找不到就试下一个 */ }
+  }
+  return cands[0];
+}
 const crypto = require('crypto');
 
 /* 仓库布局兼容（2026-11-24）：
@@ -471,6 +485,63 @@ function cmdReplay(argv) {
   return st.rejected.length ? 2 : 0;
 }
 
+function cmdTrace(argv) {
+  const pos = splitArgs(argv.slice(1));
+  const def = process.env.DSH_HOME ? path.join(process.env.DSH_HOME, 'sessions') : '.';
+  const target = pos[0] || def;
+  const maxFiles = parseInt(flagValue('--max-files') || '0', 10) || 400;
+  const ruleArg = flagValue('--rules');
+  const ruleFile = ruleArg
+    ? path.resolve(ruleArg)
+    : ruleFileOf('cross-call');
+
+  let rules;
+  try { rules = JSON.parse(fs.readFileSync(ruleFile, 'utf8').replace(/^\uFEFF/, '')); } catch (e) {
+    console.error('失败：读不到判据 ' + ruleFile + '（' + (e && e.message ? e.message : e) + '）');
+    return 3;
+  }
+  if (!Array.isArray(rules)) rules = rules.rules || [];
+
+  const J = require(path.join(ENGINE_DIR, 'judge.js'));
+  const T = require(path.join(ENGINE_DIR, 'trace.js'));
+  let got;
+  try { got = T.readTrace(target, maxFiles); } catch (e) {
+    console.error('失败：找不到 ' + target + '（给一个目录）');
+    return 3;
+  }
+  const r = T.replayTrace(got.traces, rules, J);
+
+  if (hasFlag('--json')) {
+    console.log(JSON.stringify({
+      version: VERSION, target, rules: ruleFile,
+      files: got.files, sessions: got.sessions, calls: got.calls, orphan: got.orphan, stat: r,
+    }, null, 2));
+    return 0;
+  }
+
+  console.log('判据：' + rules.map((x) => x.id).join(', ') + '（' + ruleFile + '）');
+  console.log('看了 ' + got.sessions + ' 份会话（共 ' + got.files + ' 份），' + got.calls + ' 次调用');
+  console.log('对不上结果的调用 ' + got.orphan + ' 条，已丢掉——成败不明的不算失败也不算成功');
+  console.log('命中 ' + r.hit + ' 次' + (r.skipped ? '；显式跳过 ' + r.skipped + ' 次（没历史时不当成通过）' : ''));
+  const top = Object.entries(r.byRule).sort((a, b) => b[1] - a[1]);
+  if (top.length) {
+    console.log('');
+    console.log('按判据：');
+    for (const p of top) console.log('  ' + p[0] + '：' + p[1] + ' 次');
+  }
+  if (r.samples.length) {
+    console.log('');
+    console.log('头几条什么样子：');
+    for (const s of r.samples.slice(0, 8)) {
+      const when = new Date(s.at).toISOString().replace('T', ' ').slice(0, 19);
+      console.log('  [' + s.rule + '] ' + when + ' ' + s.tool + ' ' + s.arg);
+    }
+  }
+  console.log('');
+  console.log('这些数是这台机器过去发生的事；命中 0 次不等于判据没用，也不等于判据对。');
+  return 0;
+}
+
 function cmdPacks() {
   const st = loadAll();
   if (st.error) { console.error('失败：' + st.error); return 3; }
@@ -518,8 +589,8 @@ function cmdPacks() {
 function cmdSelftest() {
   const st = loadAll();
   if (st.error) { console.error('失败：' + st.error); return 3; }
-  let bad = 0;
-  const say = (ok, msg) => { if (!ok) bad++; console.log((ok ? '  ok   ' : '  FAIL ') + msg); };
+  let bad = 0, total = 0;
+  const say = (ok, msg) => { total++; if (!ok) bad++; console.log((ok ? '  ok   ' : '  FAIL ') + msg); };
 
   say(st.expanded > 400, '装载 ' + st.handwritten + ' → ' + st.expanded + ' 条（不足 400 说明生成器没展开）');
   say(!st.contractMissing, '契约表在场：' + (st.contractDir || '缺失'));
@@ -571,6 +642,134 @@ function cmdSelftest() {
     say(false, '忽略逻辑抛错：' + e.message);
   }
 
+  // needs：声明依赖 history 的判据，没历史必须显式「跳过」，不许算通过。
+  // 三态各验一次，外加一条「空数组 ≠ 有历史」——空数组最容易被人当成「有历史只是空的」。
+  try {
+    // 路径用本脚本自身：CAT-OVERWRITE-01 的条件里有 fileExistsBefore，
+    // 拿 'README.md' 这种相对路径会在「当前目录恰好没有那个文件」的地方判不出来
+    // （便携包里就没有 README.md，同一份代码在仓库里过、在包里红）。
+    const pre = { when: 'tool:pre', tool: 'write', args: { file_path: __filename, content: '新内容' } };
+    const RID = 'CAT-OVERWRITE-01';
+    const skippedIds = r => (r.skipped || []).map(x => x.ruleId);
+    const hitIds = r => r.hits.map(h => h.ruleId);
+
+    J.resetHistory();   // 前面几条用例已经把进程内历史填满了，不清空测不到「真没历史」这一态
+    const noHist = J.judgeEx(pre, st.rules);
+    say(!hitIds(noHist).includes(RID) && skippedIds(noHist).includes(RID),
+      'needs：没历史 → ' + RID + ' 显式跳过（跳过 ' + (skippedIds(noHist).join(',') || '-') + '）');
+
+    const emptyHist = J.judgeEx({ ...pre, history: [] }, st.rules);
+    say(skippedIds(emptyHist).includes(RID), 'needs：空历史数组 ≠ 有历史，仍然跳过');
+
+    const readHist = J.judgeEx({ ...pre, history: [{ tool: 'read', args: { file_path: 'README.md' }, at: Date.now() }] }, st.rules);
+    say(!skippedIds(readHist).includes(RID) && !hitIds(readHist).includes(RID),
+      'needs：有历史且已读过 → 真判过、没命中，也不许标跳过');
+
+    const pwshHist = J.judgeEx({ ...pre, history: [{ tool: 'pwsh', args: { command: 'Get-Date' }, at: Date.now() }] }, st.rules);
+    say(hitIds(pwshHist).includes(RID), 'needs：有历史但没读过 → 判出来');
+  } catch (e) { say(false, 'needs 三态抛错：' + e.message); }
+
+  // cross-call：跨调用包三条（看成败、看时间窗，全走外部递进来的 history）
+  try {
+    const MK = require(path.join(ENGINE_DIR, 'judge.js'));
+    const ccRules = require(ruleFileOf('cross-call'));
+    const T = 1795000000000; // 固定时间，别让「5 分钟内」随跑的时刻漂
+    const run = (args, history) => MK.judgeEx({ when: 'tool:pre', tool: 'pwsh', args, history, at: T }, ccRules);
+    const ids = (ex) => (ex.hits || []).map((h) => h.ruleId);
+
+    // ① 原样重试：5 分钟前同一条命令失败过
+    const r1 = run({ command: 'npm run build' }, [
+      { tool: 'pwsh', args: { command: 'npm run build' }, ok: false, at: T - 60 * 1000 },
+    ]);
+    say(ids(r1).includes('CROSS-RETRY-01'), 'cross-call：同一条命令失败后又原样发 → 提示');
+
+    // ② 失败在 5 分钟以外：不该报（免得把「隔了一小时重试」也算上）
+    const r2 = run({ command: 'npm run build' }, [
+      { tool: 'pwsh', args: { command: 'npm run build' }, ok: false, at: T - 30 * 60 * 1000 },
+    ]);
+    say(!ids(r2).includes('CROSS-RETRY-01'), 'cross-call：失败在半小时前 → 不提示');
+
+    // ③ 上次是成功的：重发同一条不算事
+    const r3 = run({ command: 'npm run build' }, [
+      { tool: 'pwsh', args: { command: 'npm run build' }, ok: true, at: T - 60 * 1000 },
+    ]);
+    say(!ids(r3).includes('CROSS-RETRY-01'), 'cross-call：上次成功 → 不提示');
+
+    // ④ 没有成败记录的老条目：不按「假设它失败」乱报
+    const r4 = run({ command: 'npm run build' }, [
+      { tool: 'pwsh', args: { command: 'npm run build' }, ok: null, at: T - 60 * 1000 },
+    ]);
+    say(!ids(r4).includes('CROSS-RETRY-01'), 'cross-call：成败未知（ok=null）→ 不提示');
+
+    // ⑤ 死磕的条件本身（CROSS-GRIND-01 本机 0 命中、暂不进包，但条件要有人测）
+    const H5 = [
+      { tool: 'pwsh', args: { command: 'git push' }, ok: false, at: T - 4 * 60 * 1000 },
+      { tool: 'pwsh', args: { command: 'git push' }, ok: false, at: T - 2 * 60 * 1000 },
+      { tool: 'pwsh', args: { command: 'git push' }, ok: false, at: T - 60 * 1000 },
+    ];
+    const C5 = { tool: 'pwsh', args: { command: 'git push' }, history: H5, now: T };
+    say(MK.CONDITION.failCountSince({ times: 3, minutes: 10 }, C5) === true,
+      'cross-call：同工具连失败三次 → 条件成立（这条判据本机 0 命中，暂不进包）');
+    const C5b = { tool: 'pwsh', args: {}, history: [
+      { tool: 'pwsh', args: {}, ok: true, at: T - 60 * 1000 },
+      { tool: 'pwsh', args: {}, ok: true, at: T - 30 * 1000 },
+    ], now: T };
+    say(MK.CONDITION.failCountSince({ times: 3, minutes: 10 }, C5b) === false,
+      'cross-call：最近都是成功 → 连败条件不成立');
+
+    // ⑥ 同一个文件二十分钟内失败两次（插件小本子只有 target，没有 args）
+    const r6 = run({ file_path: 'D:/演示/a.md', content: 'x' }, [
+      { tool: 'write', target: 'D:/演示/a.md', ok: false, at: T - 6 * 60 * 1000 },
+      { tool: 'write', target: 'D:/演示/a.md', ok: false, at: T - 2 * 60 * 1000 },
+    ]);
+    say(ids(r6).includes('CROSS-BLIND-01'), 'cross-call：同一文件连败 → 提示（插件小本子只有 target 也算）');
+
+    // ⑦ 插件写的小本子只有指纹、没有参数正文：这一条过去判不出来（取不到 command 就放弃）
+    const HSF = require(path.join(ENGINE_DIR, 'history.js'));
+    const fpCmd = HSF.fingerprint('pwsh', { command: 'npm run build' });
+    const r8 = run({ command: 'npm run build' }, [
+      { tool: 'pwsh', fp: fpCmd, target: '', ok: false, at: T - 30 * 1000 },
+    ]);
+    say(ids(r8).includes('CROSS-RETRY-01'), 'cross-call：小本子只有指纹没有参数正文时也能命中');
+
+    // ⑧ 指纹不同就别报（别把「另一条命令」当成同一条的重发）
+    const r9 = run({ command: 'npm run build' }, [
+      { tool: 'pwsh', fp: HSF.fingerprint('pwsh', { command: 'npm run test' }), target: '', ok: false, at: T - 30 * 1000 },
+    ]);
+    say(!ids(r9).includes('CROSS-RETRY-01'), 'cross-call：指纹不同的命令失败过 → 不提示');
+
+    // ⑨ 没历史时三条都显式跳过，不是「判过且没事」
+    const r7 = run({ command: 'npm run build' }, []);
+    say(r7.skipped.length === ccRules.length, 'cross-call：没有历史时全部显式跳过（' + r7.skipped.length + '/' + ccRules.length + '）');
+  } catch (e) { say(false, 'cross-call 用例抛错：' + e.message); }
+
+  // 按判据统计：命中从账本聚合，误报是人标的，建议按三件事给
+  try {
+    const L2 = require(path.join(ENGINE_DIR, 'ledger.js'));
+    const tmpDir = path.join(process.env.TEMP || process.env.TMP || '.', 'wr-stats-' + Date.now());
+    fs.mkdirSync(tmpDir, { recursive: true });
+    const lp2 = path.join(tmpDir, 'ledger.jsonl');
+    const line = (id, action) => JSON.stringify({ ts: L2.nowIso(), tool: 'pwsh', action, rules: [id] });
+    fs.writeFileSync(lp2, [line('T-A', 'warn'), line('T-A', 'warn'), line('T-A', 'warn'), line('T-A', 'warn'), line('T-A', 'warn'), line('T-B', 'block')].join('\n') + '\n', 'utf8');
+    let rs2 = L2.ruleStats(lp2);
+    const a2 = rs2.find((x) => x.id === 'T-A');
+    say(a2 && a2.hits === 5 && a2.fps === 0, '统计：账本里 5 行 T-A → 命中记 5、误报 0');
+    say(a2 && a2.advice.indexOf('该留') === 0, '统计：命中多、没误报 → 建议留着');
+    L2.markFalsePositive(lp2, 'T-A', '这次是有意为之');
+    L2.markFalsePositive(lp2, 'T-A', '同上');
+    L2.markFalsePositive(lp2, 'T-A', '同上');
+    rs2 = L2.ruleStats(lp2);
+    const a3 = rs2.find((x) => x.id === 'T-A');
+    say(a3 && a3.fps === 3 && a3.advice.indexOf('该降') === 0, '统计：标 3 次误报（占 100%）→ 建议降级');
+    say(fs.existsSync(L2.fpFile(lp2)), '误报账落在账本同目录（fp-marks.json）');
+    L2.markFalsePositive(lp2, 'T-C', '一次都没命中就被标误报');
+    const c3 = L2.ruleStats(lp2).find((x) => x.id === 'T-C');
+    say(c3 && c3.hits === 0 && c3.advice.indexOf('该撤') === 0, '统计：只被标误报、从没命中过 → 建议撤');
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  } catch (e) {
+    say(false, '统计：按判据出建议这一组跑不起来（' + e.message + '）');
+  }
+
   // mine：引擎在、能出草案（不碰使用者的真实数据，临时造三条）
   try {
     const M = require(path.join(ENGINE_DIR, 'mine.js'));
@@ -587,8 +786,27 @@ function cmdSelftest() {
       try { fs.unlinkSync(tmpM); } catch { /* 忽略 */ }
     }
     const d = (mr.drafts || []).find((x) => x.id === 'MINE-BAT-CJK-01');
-    say(mr.calls === 3 && !!d && d.action === 'warn',
-      'mine：3 条 bat 写中文 → 出草案 ' + (d ? d.id + '（' + d.action + '）' : '（没出来）'));
+    const cov = (mr.covered || []).find((x) => x.shape === 'MINE-BAT-CJK-01');
+    say(mr.calls === 3 && !d && !!cov && (cov.by || []).indexOf('WIN-BAT-CJK-01') >= 0,
+      'mine：3 条 bat 写中文 → 实判发现已有 WIN-BAT-CJK-01，不出重复草案 ' + (cov ? '（covered by ' + cov.by.join(',') + '）' : ''));
+    // 规则目录里没有管这件事的判据时，草案要照样出
+    const emptyDir = path.join(__dirname, '_selftest-rules-empty');
+    fs.mkdirSync(emptyDir, { recursive: true });
+    fs.writeFileSync(tmpM, JSON.stringify([
+      { tool: 'write', args: { file_path: 'a.bat', content: 'echo 中文一' } },
+      { tool: 'write', args: { file_path: 'b.bat', content: 'echo 中文二' } },
+      { tool: 'write', args: { file_path: 'c.bat', content: 'echo 中文三' } },
+    ]), 'utf8');
+    let mr2;
+    try {
+      mr2 = M.mine({ dir: tmpM, min: 3, maxFiles: 0, rulesDir: emptyDir });
+    } finally {
+      try { fs.unlinkSync(tmpM); } catch { /* 忽略 */ }
+      try { fs.rmSync(emptyDir, { recursive: true, force: true }); } catch { /* 忽略 */ }
+    }
+    const d2 = (mr2.drafts || []).find((x) => x.id === 'MINE-BAT-CJK-01');
+    say(!!d2 && d2.action === 'warn' && !!d2.selfTest && !!d2.selfTest.cases,
+      'mine：规则目录里没人管这件事 → 起草案 ' + (d2 ? d2.id + '（' + d2.action + '）' : '（没出来）'));
   } catch (e) {
     say(false, 'mine 抛错：' + e.message);
   }
@@ -618,7 +836,7 @@ function cmdSelftest() {
   say(!/sk-abcdefghijklmnopqrstuvwxyz0123456789|token=abc123/.test(raw), '记账脱敏（密钥不原样落盘）');
   try { fs.existsSync(tmp) && fs.unlinkSync(tmp); } catch { /* 忽略 */ }
 
-  console.log(bad === 0 ? '\n自检：全部通过（' + (cases.length + 8) + ' 项）' : '\n自检：失败 ' + bad + ' 项');
+  console.log(bad === 0 ? '\n自检：全部通过（' + total + ' 项）' : '\n自检：失败 ' + bad + ' / ' + total + ' 项');
   return bad === 0 ? 0 : 3;
 }
 
@@ -668,6 +886,55 @@ function cmdConfig() {
   return 0;
 }
 
+/* fp：人判一条误报。标够 3 次、占比够高，stats 会建议把它降成只提示 */
+function cmdFp(args) {
+  const positional = splitArgs(args);
+  const id = positional[1];
+  if (!id) {
+    console.error('用法：weakreferee fp <判据号> [--note "为什么是误报"] [--ledger <账本>]');
+    return 3;
+  }
+  const lp = flagValue('--ledger') || cfgPath('ledger') || path.join(process.cwd(), 'judge-ledger.jsonl');
+  const r = LED.markFalsePositive(path.resolve(lp), id, flagValue('--note') || '');
+  console.log('记下误报：' + r.id + '，这条判据累计 ' + r.n + ' 次');
+  console.log('  误报账：' + r.file);
+  const me = LED.ruleStats(path.resolve(lp)).find((x) => x.id === r.id);
+  if (me) {
+    console.log('  目前：命中 ' + me.hits + ' 次、误报 ' + me.fps + ' 次（占 ' + Math.round(me.ratio * 100) + '%）');
+    console.log('  建议：' + me.advice);
+  }
+  return 0;
+}
+
+/* stats：一条命令看每条判据的命中与误报，以及该加还是该降 */
+function cmdStats(args) {
+  const lp = flagValue('--ledger') || cfgPath('ledger') || path.join(process.cwd(), 'judge-ledger.jsonl');
+  const file = path.resolve(lp);
+  if (!fs.existsSync(file)) {
+    console.log('没有账本：' + file);
+    console.log('账本要自己开：weakreferee check <工具> key=value --ledger <文件>；插件侧记在拦截.tsv 旁边。');
+    return 0;
+  }
+  const rows = LED.ruleStats(file);
+  if (!rows.length) {
+    console.log('账本里还没有任何判据命中记录。');
+    return 0;
+  }
+  console.log('账本：' + file);
+  console.log('');
+  console.log('  命中  误报  占比   判据                      建议');
+  for (const x of rows) {
+    const pct = (Math.round(x.ratio * 100) + '%').padStart(4);
+    console.log('  ' + String(x.hits).padStart(4) + '  ' + String(x.fps).padStart(4) + '  ' + pct + '  ' + x.id.padEnd(24) + '  ' + x.advice);
+  }
+  const up = rows.filter((x) => x.advice.indexOf('该降') === 0 || x.advice.indexOf('该撤') === 0);
+  if (up.length) {
+    console.log('');
+    console.log('要动的：' + up.map((x) => x.id).join(', ') + '（改动前先跑 selftest）');
+  }
+  return 0;
+}
+
 function cmdMine(args) {
   let eng;
   try {
@@ -707,6 +974,24 @@ function cmdMine(args) {
   }
 
   console.log(eng.renderReport(r));
+
+  const packDir = flagValue('--pack');
+  if (packDir) {
+    if (!r.drafts.length) {
+      console.log('');
+      console.log('没有能出的草案，不写包（次数不到 ' + r.min + ' 次，或这些形态已经有人管）');
+    } else {
+      const out = path.resolve(packDir);
+      fs.mkdirSync(out, { recursive: true });
+      fs.writeFileSync(path.join(out, 'pack.json'), JSON.stringify(r.pack, null, 2) + '\n', 'utf8');
+      fs.writeFileSync(path.join(out, 'rules.json'), JSON.stringify(r.drafts, null, 2) + '\n', 'utf8');
+      console.log('');
+      console.log('已写出包目录：' + out);
+      console.log('  里面是 pack.json 与 rules.json，草案 ' + r.drafts.length + ' 条，全部 warn。');
+      console.log('  自查：node tools/validate.js ' + out);
+      console.log('  装进本机：node dsh-judge-gate/tools/judge-packs.cjs add mined（先把目录放进 dsh-judge-gate/rules/）');
+    }
+  }
 
   if (hasFlag('--write')) {
     const outDir = process.cwd();
@@ -970,6 +1255,7 @@ function cmdHelp() {
     '  weakreferee suggest <规则文件>                           别人给的判据，先在你自己的记录上回放一遍',
     '  weakreferee schema <工具定义.json>                       别的模型的工具定义，转成契约表三件套',
     '  weakreferee replay [目录|文件]                           把历史调用按现有判据重判，看这套规矩能拦多少',
+    '  weakreferee trace [目录] [--max-files N] [--rules 文件]    带成败重放：跨调用判据会不会乱报（--rules 默认 cross-call）',
     '  weakreferee packs                                        看装了哪些包、多少条',
     '  weakreferee config                                       看这次实际用的配置（含忽略清单）',
     '  weakreferee selftest                                     自检（装载/冒烟/记账）',
@@ -985,6 +1271,9 @@ function cmdHelp() {
     '  --min <次数>        mine：形态命中达到几次才提（默认 3）',
     '  --max-files <个数>  mine：只读最大的前 N 个文件（默认全读）',
     '  --write             mine：把报告与草案写到当前目录；scan：把体检报告存成 txt',
+    '  --pack <目录>       mine：把草案直接写成一个可装的包（pack.json + rules.json）',
+    '  fp <判据号>         记一次误报（--note 写原因；连 3 次占比够高，stats 会建议降级）',
+    '  stats               每条判据的命中与误报，给出该加该降',
     '  --from <目录|文件>  suggest：拿哪份记录回放（默认 %DSH_HOME%\\sessions）',
     '  --min-hits <次数>   suggest：命中少于几次就建议别收（默认 1）',
     '  --apply <包目录>    suggest：把判断过、命中过的规则写进那个包的 rules.json',
@@ -1028,10 +1317,13 @@ function main() {
   if (cmd === 'init') return cmdInit();
   if (cmd === 'config') return cmdConfig();
   if (cmd === 'mine') return cmdMine(argv);
+if (cmd === 'fp') return cmdFp(argv);
+if (cmd === 'stats') return cmdStats(argv);
   if (cmd === 'scan') return cmdScan(argv);
   if (cmd === 'suggest') return cmdSuggest(argv);
   if (cmd === 'schema') return cmdSchema(argv);
   if (cmd === 'replay') return cmdReplay(argv);
+  if (cmd === 'trace') return cmdTrace(argv);
   if (cmd === 'check') return cmdCheck(splitArgs(argv.slice(1)));
   if (cmd === 'packs') return cmdPacks();
   if (cmd === 'selftest') return cmdSelftest();

@@ -19,7 +19,7 @@ const ROOT = path.resolve(__dirname, '..');
 
 const WHEN = ['session:start', 'turn:start', 'completion:pre', 'tool:pre', 'tool:post', 'file:post', 'turn:end', 'session:end'];
 const ACTION = ['block', 'warn', 'steer', 'default'];
-const KIND = ['core', 'platform', 'model', 'host', 'scene'];
+const KIND = ['core', 'platform', 'model', 'host', 'scene', 'cross-call'];
 const SEVERITY = ['S', 'A', 'B', 'C'];
 const CONDITION = [
   'missingKey', 'emptyValue', 'missingAnyOf', 'wrongKey', 'extraKey', 'typeMismatch',
@@ -28,6 +28,7 @@ const CONDITION = [
   'fileAnchorMissing', 'fileAnchorMultiple', 'fileNewerThan', 'fileNewerThanProcessStart', 'fileExistsBefore',
   'unknownKey', 'pathOutside', 'cmdAbsPathWritten',
   'noCallSince', 'callCountSince', 'argRepeat',
+  'failRepeat', 'failCountSince',
 ];
 
 const problems = [];

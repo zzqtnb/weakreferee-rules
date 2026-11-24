@@ -477,6 +477,29 @@ export function apply(ctx, config) {
   //    本体空转（这是有意的：什么该拦应该是使用者的决定）。
   //    变量名沿用 shadowJudge：2026-11-24 改名 engineJudge 时漏改后面一处引用，
   //    守卫每次抛 ReferenceError，所有工具调用全失败——名字不重要，改全才重要。
+  // 它说的话存在内存里：只留最近 3 条、15 分钟内有效。
+  // 不落盘——这是「刚才那句话」的临时证据，账本记的是判定结果，两者别混。
+  const claims = new Map();
+  const sidOf = (s) => {
+    if (typeof s === 'string') return s;
+    if (!s || typeof s !== 'object') return 'unknown';
+    return s.id || s.sessionId || 'unknown';
+  };
+  const onSessionEvent = (session, event) => {
+    try {
+      if (!event || event.type !== 'assistant/message') return;
+      const msg = event.data && event.data.message;
+      const blocks = (msg && msg.content) || [];
+      let text = '';
+      for (const b of blocks) if (b && b.type === 'text' && typeof b.text === 'string') text += b.text;
+      if (!text) return;
+      const sid = sidOf(session);
+      const list = claims.get(sid) || [];
+      list.push({ text: text.length > 4000 ? text.slice(-4000) : text, at: Date.now() });
+      claims.set(sid, list.slice(-3));
+    } catch { /* 订阅不能拖垮宿主 */ }
+  };
+  try { ctx.on('session/event', onSessionEvent); } catch { }
   let shadowJudge = null;
   let engineRuleCount = 0;
   const DATA_DIR = process.env.DSH_JUDGE_DATA || join(SELF_DIR, 'data');
@@ -538,7 +561,18 @@ export function apply(ctx, config) {
           const h = HS.recent(HIST_DIR, sessionOf(call && call.session), 20);
           if (h && h.length) hist = h;
         } catch { hist = null; }
-        const ex = JE.judgeEx(hist ? Object.assign({}, call, { history: hist }) : call, pre);
+        let replyText;
+        try {
+          const sid2 = sessionOf(call && call.session);
+          const list2 = claims.get(sid2) || claims.get(sidOf(call && call.session)) || [];
+          for (let i = list2.length - 1; i >= 0; i -= 1) {
+            if (Date.now() - list2[i].at <= 15 * 60 * 1000) { replyText = list2[i].text; break; }
+          }
+        } catch { replyText = undefined; }
+        const call2 = Object.assign({}, call);
+        if (hist) call2.history = hist;
+        if (replyText) call2.replyText = replyText;
+        const ex = JE.judgeEx(call2, pre);
         const hits = (ex && ex.hits) || [];
         const skipped = (ex && ex.skipped) || [];
         const v = JE.adjudicate(hits);

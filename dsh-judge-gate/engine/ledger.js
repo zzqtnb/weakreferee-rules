@@ -198,9 +198,39 @@ function markFalsePositive(ledgerPath, ruleId, note) {
   return { id: ruleId, n: cur.n, lastAt: cur.lastAt, file: f };
 }
 
+/* 插件的拦截账是 tab 分隔（时间 来源 工具 状态 备注 耗时），不是 jsonl。
+ * 这里两种都认：第一行以 { 开头当 jsonl，否则当插件的账。
+ * 判据号从备注里捞：形如 CROSS-RETRY-01、WIN-ENC-01，或者 [弱裁判·判据J3]。 */
+const RULE_ID_RE = /\b([A-Z][A-Z0-9]*(?:-[A-Z0-9]+)*-\d{2})\b/g;
+function idsFromNote(note) {
+  const out = [];
+  const s = String(note || '');
+  let m;
+  RULE_ID_RE.lastIndex = 0;
+  while ((m = RULE_ID_RE.exec(s))) out.push(m[1]);
+  const legacy = s.match(/判据\s*(J\d+)/);
+  if (legacy) out.push(legacy[1]);
+  return out;
+}
+function readIntercept(file) {
+  let txt = '';
+  try { txt = fs.readFileSync(file, 'utf8'); } catch (e) { return null; }
+  const lines = txt.split(/\r?\n/).filter(Boolean);
+  if (!lines.length) return null;
+  if (lines[0].trim().charAt(0) === '{') return null;
+  const rows = [];
+  for (const ln of lines) {
+    const c = ln.split('\t');
+    if (c.length < 4) continue;
+    if (c[3] !== '提示' && c[3] !== '拦下') continue;
+    rows.push({ ts: c[0], action: c[3], rules: idsFromNote(c[4]) });
+  }
+  return rows;
+}
+
 /* 命中从账本聚合；建议只看三件事：误报绝对数、误报占命中的比例、有没有命中过。 */
 function ruleStats(ledgerPath) {
-  const rows = readAll(ledgerPath);
+  const rows = readIntercept(ledgerPath) || readAll(ledgerPath);
   const hits = {}, lastHit = {}, byAction = {};
   for (const r of rows) {
     for (const id of (r.rules || [])) {
@@ -240,4 +270,4 @@ function nowIso() {
     + sign + hh + ':' + mm;
 }
 
-module.exports = { record, readAll, report, formatReport, ruleStats, markFalsePositive, readFp, fpFile, scrub, scrubDeep, scrubLong, nowIso };
+module.exports = { record, readAll, report, readIntercept, idsFromNote, formatReport, ruleStats, markFalsePositive, readFp, fpFile, scrub, scrubDeep, scrubLong, nowIso };

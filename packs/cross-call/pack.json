@@ -8,10 +8,11 @@
   "license": "AGPL-3.0-only",
   "appliesTo": {},
   "loadOrder": 30,
-  "rules": 2,
+  "rules": 3,
   "ruleIds": [
     "CROSS-RETRY-01",
-    "CROSS-BLIND-01"
+    "CROSS-BLIND-01",
+    "CROSS-CLAIM-01"
   ],
   "requires": {
     "history": true

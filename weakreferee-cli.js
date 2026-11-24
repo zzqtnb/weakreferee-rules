@@ -741,6 +741,29 @@ function cmdSelftest() {
     // ⑨ 没历史时三条都显式跳过，不是「判过且没事」
     const r7 = run({ command: 'npm run build' }, []);
     say(r7.skipped.length === ccRules.length, 'cross-call：没有历史时全部显式跳过（' + r7.skipped.length + '/' + ccRules.length + '）');
+
+    // ⑩ 它说「改好了」并点了文件名，但记录里没有那次写（B3b）
+    const tmpf = 'D:\\演示\\工作区\\草稿.md';
+    const claim = (replyText, history) => MK.judgeEx({
+      when: 'tool:pre', tool: 'write', args: { file_path: tmpf, content: 'x' }, replyText, history, at: T,
+    }, ccRules);
+    const c1 = claim('已经把 README.md 里的条数改成动态查询了', [
+      { tool: 'grep', target: '', args: {}, ok: true, at: T - 60 * 1000 },
+    ]);
+    say(ids(c1).includes('CROSS-CLAIM-01'), 'cross-call：说改了 README.md 却没写过 → 提示 CROSS-CLAIM-01');
+    const c2 = claim('已经把 README.md 里的条数改成动态查询了', [
+      { tool: 'write', target: 'D:\\演示\\工作区\\README.md', args: {}, ok: true, at: T - 60 * 1000 },
+    ]);
+    say(!ids(c2).includes('CROSS-CLAIM-01'), 'cross-call：确实写过那个文件 → 不提示');
+    const c3 = claim('都处理完了，没问题', [
+      { tool: 'read', target: '', args: {}, ok: true, at: T - 60 * 1000 },
+    ]);
+    say(!ids(c3).includes('CROSS-CLAIM-01'), 'cross-call：没点具体文件名 → 不提示');
+
+    const c4 = claim('下一条我会说「已经把 README.md 改好了」，实际不写入，用来验通道', [
+      { tool: 'read', target: '', args: {}, ok: true, at: T - 60 * 1000 },
+    ]);
+    say(!ids(c4).includes('CROSS-CLAIM-01'), 'cross-call：解释句里引用的「改好了」不算它自己的声称');
   } catch (e) { say(false, 'cross-call 用例抛错：' + e.message); }
 
   // 按判据统计：命中从账本聚合，误报是人标的，建议按三件事给
@@ -887,6 +910,26 @@ function cmdConfig() {
 }
 
 /* fp：人判一条误报。标够 3 次、占比够高，stats 会建议把它降成只提示 */
+/* fp 与 stats 要用「插件真正在写的那个账本」：
+ * 命令行自己的账本是 jsonl（弱裁判的 check --ledger 用），
+ * 而装进 DSH 之后，闸把每次判定写进 profile 里 logPath 配的文件（tab 分隔）。
+ * 两本账分开记，就会出「明明刚命中过，统计说命中 0」这种假话。
+ * 顺序：--ledger > 配置里的 ledger > profile 的 logPath > 当前目录的 judge-ledger.jsonl。 */
+function defaultLedger() {
+  const given = flagValue('--ledger');
+  if (given) return path.resolve(given);
+  const cfg = cfgPath('ledger');
+  if (cfg) return path.resolve(cfg);
+  const home = process.env.DSH_HOME || '';
+  const patch = path.join(home, 'profiles', 'desktop', 'cordis.patch.yml');
+  try {
+    const txt = fs.readFileSync(patch, 'utf8');
+    const m = txt.match(/logPath:\s*['"]?([^'"\r\n]+)['"]?/);
+    if (m && m[1]) return path.resolve(m[1]);
+  } catch (e) { /* 没有 profile 就用下一个兜底 */ }
+  return path.join(process.cwd(), 'judge-ledger.jsonl');
+}
+
 function cmdFp(args) {
   const positional = splitArgs(args);
   const id = positional[1];
@@ -894,7 +937,7 @@ function cmdFp(args) {
     console.error('用法：weakreferee fp <判据号> [--note "为什么是误报"] [--ledger <账本>]');
     return 3;
   }
-  const lp = flagValue('--ledger') || cfgPath('ledger') || path.join(process.cwd(), 'judge-ledger.jsonl');
+  const lp = defaultLedger();
   const r = LED.markFalsePositive(path.resolve(lp), id, flagValue('--note') || '');
   console.log('记下误报：' + r.id + '，这条判据累计 ' + r.n + ' 次');
   console.log('  误报账：' + r.file);
@@ -908,7 +951,7 @@ function cmdFp(args) {
 
 /* stats：一条命令看每条判据的命中与误报，以及该加还是该降 */
 function cmdStats(args) {
-  const lp = flagValue('--ledger') || cfgPath('ledger') || path.join(process.cwd(), 'judge-ledger.jsonl');
+  const lp = defaultLedger();
   const file = path.resolve(lp);
   if (!fs.existsSync(file)) {
     console.log('没有账本：' + file);

@@ -120,6 +120,35 @@ function missingNeeds(r, ctx) {
   return r.needs.filter(n => (n === 'history' ? !ctx.hasHistory : true));
 }
 
+
+/* 「它说改好了」这类话里的文件名。
+ * 只认带扩展名的：没点具体文件的声称（「都处理完了」「已修复」）不判——
+ * 那可能是上一轮的活，机器分不出来，硬判就是误报。 */
+const CLAIM_FILE_RE = /[A-Za-z0-9_\-.\u4e00-\u9fa5]+\.(?:m?js|cjs|ts|tsx|json|md|ps1|psm1|py|html|css|ya?ml|txt|csv|tsv|docx|xlsx|pptx|svg|toml|ini|sh|bat|cmd)/g;
+function claimFiles(text) {
+  const out = [];
+  const seen = {};
+  let m;
+  CLAIM_FILE_RE.lastIndex = 0;
+  while ((m = CLAIM_FILE_RE.exec(text))) {
+    const base = String(m[0]).split(/[\\/]/).pop();
+    if (!base || base.length < 4) continue;
+    if (seen[base]) continue;
+    seen[base] = 1;
+    out.push(base);
+    if (out.length >= 5) break;
+  }
+  return out;
+}
+
+/* 声称「做完了」的动词句式。
+ * 只认「动词 + 完成后缀」，不认光秃秃的动词（「我要把 X 改成」是计划，不是声称）。 */
+const CLAIM_RE = /(改|修|删|换|加|写|清)(好了|好|完了|完|掉了|掉|成了|成)|已完成|已修复|已解决|搞定了/;
+
+/* 带这些词的句子不算「声称做完了」：假设、将来、演示、解释。
+ * 宁可漏一句真谎，也不要把「我会说『改好了』」当成它真的这么说了。 */
+const HEDGE_RE = /(我会|将会|就会|会说|会去|如果|假如|假设|打算|将要|准备|测试|验证|演示|举例|比如|说明|不算)/;
+
 const CONDITION = {
   /* ── 参数形态（core） ── */
   missingKey(p, ctx) {
@@ -430,6 +459,40 @@ const CONDITION = {
       return !at || now - at <= minutes * 60000;
     }).length;
     return n >= times;
+  },
+  // 它说「改好了 / 修好了 / 搞定了」，并且点了具体文件名，
+  // 但小本子里那段时间没有对这个文件的成功写——说的和做的对不上。
+  claimUnbacked(p, ctx) {
+    const hist = histOf(ctx);
+    if (!hist.length) return false;
+    const text = typeof ctx.replyText === 'string' ? ctx.replyText : '';
+    if (!text) return false;
+    // 逐句看：只在「真的在声称」的那一句里找文件名。
+    // 「我会说『已经改好了』」「如果要测试就改成…」这类带假设/将来/演示标记的句子不算声称——
+    // 一句解释背后跟着一句引言，机器分不出来就会把说明当成谎报。
+    const saidSentences = [];
+    for (const sent of text.split(/[。！？!?\n]+/)) {
+      if (!sent || HEDGE_RE.test(sent)) continue;
+      const said = Array.isArray(p.claim) && p.claim.length
+        ? p.claim.some((w) => sent.indexOf(w) >= 0)
+        : CLAIM_RE.test(sent);
+      if (said) saidSentences.push(sent);
+    }
+    if (!saidSentences.length) return false;
+    const files = claimFiles(saidSentences.join('\n'));
+    if (!files.length) return false;
+    const minutes = p.minutes || 15;
+    const now = typeof ctx.now === 'number' ? ctx.now : Date.now();
+    const wrote = (name) => hist.some((h) => {
+      if (h.ok !== true) return false;
+      const at = typeof h.at === 'number' ? h.at : 0;
+      if (at && now - at > minutes * 60000) return false;
+      const t = String(h.target || '');
+      if (t && t.indexOf(name) >= 0) return true;
+      return false;
+    });
+    // 点到的文件名里，只要有一个没有成功写记录，就算没兑现
+    return files.some((f) => !wrote(f));
   }
 };
 

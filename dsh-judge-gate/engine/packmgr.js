@@ -33,6 +33,7 @@ function mkCall(rule, args, extra) {
   // 于是这类规则在静态校验里只能写「缺该拦的用例」，等于没人测它。
   if (extra && Array.isArray(extra.history)) call.history = extra.history;
   if (extra && typeof extra.at === 'number') call.at = extra.at;
+  if (extra && typeof extra.replyText === 'string') call.replyText = extra.replyText;
   return call;
 }
 

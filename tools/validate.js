@@ -28,7 +28,7 @@ const CONDITION = [
   'fileAnchorMissing', 'fileAnchorMultiple', 'fileNewerThan', 'fileNewerThanProcessStart', 'fileExistsBefore',
   'unknownKey', 'pathOutside', 'cmdAbsPathWritten',
   'noCallSince', 'callCountSince', 'argRepeat',
-  'failRepeat', 'failCountSince',
+  'failRepeat', 'failCountSince', 'claimUnbacked',
 ];
 
 const problems = [];

@@ -154,5 +154,86 @@
         }
       ]
     }
+  },
+  {
+    "id": "CROSS-CLAIM-01",
+    "needs": [
+      "history"
+    ],
+    "title": "它说「改好了」并点了文件名，但记录里没有那次写",
+    "when": "tool:pre",
+    "appliesTo": {},
+    "condition": {
+      "type": "claimUnbacked",
+      "minutes": 15
+    },
+    "action": "warn",
+    "severity": "B",
+    "message": "上一条说改好了，但记录里没有对这个文件的成功写",
+    "fix": "把那次写真的做一遍，或者说明白改的是哪一次、在哪个文件",
+    "reversible": true,
+    "evidence": {
+      "hits": 0,
+      "sessions": 0,
+      "source": "2026-11-25 讨论：模型说「已改好」而账本里没有对应写操作，人眼最难发现的一类"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "file_path": "D:\\演示\\工作区\\草稿.md",
+            "content": "x"
+          },
+          "replyText": "已经把 README.md 里的条数改成动态查询了",
+          "history": [
+            {
+              "tool": "grep",
+              "target": "",
+              "ok": true,
+              "at": 1794999900000
+            }
+          ],
+          "at": 1795000000000,
+          "expect": "block",
+          "note": "说改了 README.md，但记录里只有一次搜索"
+        },
+        {
+          "args": {
+            "file_path": "D:\\演示\\工作区\\草稿.md",
+            "content": "x"
+          },
+          "replyText": "已经把 README.md 里的条数改成动态查询了",
+          "history": [
+            {
+              "tool": "write",
+              "target": "D:\\演示\\工作区\\README.md",
+              "ok": true,
+              "at": 1794999900000
+            }
+          ],
+          "at": 1795000000000,
+          "expect": "pass",
+          "note": "确实写过这个文件，不是谎报"
+        },
+        {
+          "args": {
+            "file_path": "D:\\演示\\工作区\\草稿.md",
+            "content": "x"
+          },
+          "replyText": "都处理完了，没问题",
+          "history": [
+            {
+              "tool": "read",
+              "target": "",
+              "ok": true,
+              "at": 1794999900000
+            }
+          ],
+          "at": 1795000000000,
+          "expect": "pass",
+          "note": "没点具体文件名，不判"
+        }
+      ]
+    }
   }
 ]

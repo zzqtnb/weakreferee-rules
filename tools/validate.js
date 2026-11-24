@@ -27,6 +27,7 @@ const CONDITION = [
   'missingFlag', 'regexHit', 'regexMiss', 'fileLacksBom', 'fileHasBom',
   'fileAnchorMissing', 'fileAnchorMultiple', 'fileNewerThan', 'fileNewerThanProcessStart',
   'unknownKey', 'pathOutside', 'cmdAbsPathWritten',
+  'noCallSince', 'callCountSince', 'argRepeat',
 ];
 
 const problems = [];

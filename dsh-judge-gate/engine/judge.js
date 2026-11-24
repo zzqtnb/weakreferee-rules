@@ -76,6 +76,32 @@ function typeOk(t, v) {
  * 三、条件类型表 * 每个返回 true = 命中（这一步该报警）
  * needsIO 的会读文件系统；其余纯内存
  * ───────────────────────────────────────────── */
+/* ─────────────────────────────────────────────
+ * 会话内的调用历史：跨调用判据的底座（2026-11-24）
+ * 只有看得到「前面几次干了什么」，才判得了「改完没验证」「引了文献却没检索」这类事。
+ * 环形缓存、进程级；history 为空时三个跨调用条件一律放行——宁可漏判，不误判。
+ * ───────────────────────────────────────────── */
+const HISTORY_MAX = 80;
+const HISTORY = [];
+
+function pushHistory(call) {
+  try {
+    const a = (call && call.args) || {};
+    const slim = {};
+    for (const k of Object.keys(a)) {
+      const v = a[k];
+      if (typeof v === 'string') slim[k] = v.length > 400 ? v.slice(0, 400) : v;
+      else if (typeof v === 'number' || typeof v === 'boolean') slim[k] = v;
+    }
+    HISTORY.push({ tool: (call && call.tool) || '?', args: slim, at: Date.now() });
+    while (HISTORY.length > HISTORY_MAX) HISTORY.shift();
+  } catch { /* 记账失败不影响判定 */ }
+}
+
+function recentHistory(n) {
+  return HISTORY.slice(Math.max(0, HISTORY.length - (n || 20)));
+}
+
 const CONDITION = {
   /* ── 参数形态（core） ── */
   missingKey(p, ctx) {
@@ -260,6 +286,42 @@ const CONDITION = {
     if (p.anyPath === true) return true;
     const roots = (p.roots || []).map(r => path.resolve(r));
     return roots.length > 0 && !roots.some(r => target === r || target.startsWith(r + path.sep));
+  },
+
+  /* ── 跨调用：看前几次干了什么 ── */
+  // 最近 within 次调用里，指定工具一次都没出现过。
+  // 用来判「引了带 DOI 的文献却一次没检索」「说跑过测试却没调过命令」。
+  noCallSince(p, ctx) {
+    if (!HISTORY.length) return false;
+    const tools = (p.tools || [p.tool]).filter(Boolean);
+    if (!tools.length) return false;
+    return !recentHistory(p.within || 20).some(h => tools.includes(h.tool));
+  },
+
+  // 最近 within 次调用里，指定工具出现次数少于 min 次（默认 1）。
+  // 是 noCallSince 的放宽版：「至少要跑过两次」这种要求用它。
+  callCountSince(p, ctx) {
+    if (!HISTORY.length) return false;
+    const tools = (p.tools || [p.tool]).filter(Boolean);
+    if (!tools.length) return false;
+    const min = p.min == null ? 1 : p.min;
+    const n = recentHistory(p.within || 20).filter(h => tools.includes(h.tool)).length;
+    return n < min;
+  },
+
+  // 同一个工具、同一个参数值，最近 within 次里已经出现 times-1 次（含本次即 times 次）。
+  // 用来判「同一件事干了两三遍」。
+  argRepeat(p, ctx) {
+    if (!HISTORY.length) return false;
+    const key = p.key || 'command';
+    const val = pick(ctx, 'args.' + key);
+    if (val === undefined || val === null) return false;
+    const want = String(val);
+    const times = p.times || 3;
+    const n = recentHistory(p.within || 20)
+      .filter(h => (!p.tool || h.tool === p.tool) && String(h.args[key] == null ? '' : h.args[key]) === want)
+      .length;
+    return n >= times - 1;
   }
 };
 
@@ -338,7 +400,7 @@ function evalCond(c, ctx) {
 }
 
 function judge(call, ruleSet) {
-  const ctx = { tool: call.tool, args: call.args || {}, replyText: call.replyText, call };
+  const ctx = { tool: call.tool, args: call.args || {}, replyText: call.replyText, call, history: HISTORY };
   // 既能收 load() 的返回，也能收裸数组——两个都用过，混用会静默判成「零命中」。
   const when = call.when || 'tool:pre';
   // 取规则三层优先：裸数组 → 按 when+tool 分桶（只过这个工具该管的几条）→ 按 when 分桶 → 全量
@@ -366,6 +428,7 @@ function judge(call, ruleSet) {
     }
     if (hit) hits.push({ ruleId: r.id, action: r.action, severity: r.severity, message: r.message, fix: r.fix, reversible: r.reversible });
   }
+  pushHistory(call);   // 判完再记：跨调用条件看不到本次
   return hits;
 }
 
@@ -574,4 +637,4 @@ function judgeRaw(call, rules) {
   return hits;
 }
 
-module.exports = { judge, judgeRaw, adjudicate, load, parseIdList, maskQuoted, evalCond, CONDITION, ENV, processStartMs };
+module.exports = { judge, judgeRaw, adjudicate, load, parseIdList, maskQuoted, evalCond, CONDITION, ENV, processStartMs, HISTORY, resetHistory: () => { HISTORY.length = 0; } };

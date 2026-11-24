@@ -2,6 +2,11 @@
   "id": "J3",
   "title": "J3 调工具前先读参数约束",
   "domain": "params",
+  "audience": [
+    "dev",
+    "general",
+    "research"
+  ],
   "evidence": {
     "level": "实测",
     "source": "作者环境真实命中过（次数、时间、会话号不公开）"

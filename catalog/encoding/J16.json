@@ -2,6 +2,10 @@
   "id": "J16",
   "title": "J16 edit 落盘会抹掉 .ps1 的 BOM",
   "domain": "encoding",
+  "audience": [
+    "dev",
+    "ops"
+  ],
   "evidence": {
     "level": "实测",
     "source": "作者环境真实命中过（次数、时间、会话号不公开）"

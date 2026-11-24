@@ -2,6 +2,11 @@
   "id": "J9",
   "title": "J9 递归删除先落清单或加 -WhatIf",
   "domain": "risky",
+  "audience": [
+    "dev",
+    "ops",
+    "general"
+  ],
   "evidence": {
     "level": "实测",
     "source": "作者环境真实命中过（次数、时间、会话号不公开）"

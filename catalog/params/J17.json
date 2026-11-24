@@ -2,6 +2,10 @@
   "id": "J17",
   "title": "J17 命令行里给 PowerShell 自动变量赋值",
   "domain": "params",
+  "audience": [
+    "dev",
+    "ops"
+  ],
   "evidence": {
     "level": "实测",
     "source": "作者环境真实命中过（次数、时间、会话号不公开）"

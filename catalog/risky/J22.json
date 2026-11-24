@@ -2,6 +2,10 @@
   "id": "J22",
   "title": "J22 别删表删库（DROP / TRUNCATE）",
   "domain": "risky",
+  "audience": [
+    "dev",
+    "ops"
+  ],
   "evidence": {
     "level": "实测",
     "source": "2026-11-23 从库候选 CAT-RISKY-03 验过入包，4 个自测用例通过；尚未在真实会话命中"

@@ -2,6 +2,9 @@
   "id": "J19",
   "title": "J19 丢弃未提交改动前先确认",
   "domain": "risky",
+  "audience": [
+    "dev"
+  ],
   "evidence": {
     "level": "实测",
     "source": "2026-11-23 从库候选 CAT-RISKY-05 验过入包，4 个自测用例通过；尚未在真实会话命中"

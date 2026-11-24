@@ -2,6 +2,10 @@
   "id": "J21",
   "title": "J21 变量拼出来的路径别直接递归删",
   "domain": "risky",
+  "audience": [
+    "dev",
+    "ops"
+  ],
   "evidence": {
     "level": "实测",
     "source": "2026-11-23 从库候选 CAT-RISKY-02 验过入包，4 个自测用例通过；尚未在真实会话命中"

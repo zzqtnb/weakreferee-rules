@@ -2,6 +2,9 @@
   "id": "P6",
   "title": "P6 判据代码比宿主新——闸跑的还是旧逻辑",
   "domain": "workflow",
+  "audience": [
+    "dev"
+  ],
   "evidence": {
     "level": "实测",
     "source": "作者环境真实命中过（次数、时间、会话号不公开）"

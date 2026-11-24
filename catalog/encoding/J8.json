@@ -2,6 +2,10 @@
   "id": "J8",
   "title": "J8 写文本文件必须带 -Encoding",
   "domain": "encoding",
+  "audience": [
+    "dev",
+    "ops"
+  ],
   "evidence": {
     "level": "实测",
     "source": "作者环境真实命中过（次数、时间、会话号不公开）"

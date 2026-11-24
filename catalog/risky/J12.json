@@ -2,6 +2,11 @@
   "id": "J12",
   "title": "J12 命令改文件前先落一份可回滚备份",
   "domain": "risky",
+  "audience": [
+    "dev",
+    "ops",
+    "office"
+  ],
   "evidence": {
     "level": "实测",
     "source": "作者环境真实命中过（次数、时间、会话号不公开）"

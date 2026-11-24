@@ -48,6 +48,23 @@
           ],
           "description": "七个域：params 参数形态／encoding 文本与编码／path 路径与文件／risky 危险操作／workflow 工具选用与顺序／protocol 协议与外发／resource 资源与额度。"
         },
+        "audience": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "enum": [
+              "dev",
+              "student",
+              "writer",
+              "research",
+              "office",
+              "ops",
+              "chat",
+              "general"
+            ]
+          },
+          "description": "人群标签：这条规矩主要服务谁。dev 写代码／student 写作业论文／writer 写小说／research 查资料调研／office 办公文档表格／ops 装环境运维／chat 只聊天问答／general 谁都可能踩。一条可挂多个；人群只用于挑包，不影响判定。"
+        },
         "evidence": {
           "type": "object",
           "required": [

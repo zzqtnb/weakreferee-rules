@@ -2,6 +2,10 @@
   "id": "J15",
   "title": "J15 write 往 .ps1 写中文会丢 BOM",
   "domain": "encoding",
+  "audience": [
+    "dev",
+    "ops"
+  ],
   "evidence": {
     "level": "实测",
     "source": "作者环境真实命中过（次数、时间、会话号不公开）"

@@ -2,6 +2,10 @@
   "id": "J24",
   "title": "J24 参数类型与工具契约表不符",
   "domain": "params",
+  "audience": [
+    "dev",
+    "general"
+  ],
   "evidence": {
     "level": "实测",
     "source": "作者环境回扫 226 个会话、23,523 次调用命中 6 次调用 / 7 个键，逐条确认全是真错（会话号不公开）"

@@ -2,6 +2,11 @@
   "id": "J6",
   "title": "J6 拿现成文件往下做前先确认它是这一回的",
   "domain": "workflow",
+  "audience": [
+    "dev",
+    "office",
+    "research"
+  ],
   "evidence": {
     "level": "实测",
     "source": "作者环境真实命中过（次数、时间、会话号不公开）"

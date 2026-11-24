@@ -2,6 +2,10 @@
   "id": "J20",
   "title": "J20 别把权限一次开到所有人",
   "domain": "risky",
+  "audience": [
+    "dev",
+    "ops"
+  ],
   "evidence": {
     "level": "实测",
     "source": "2026-11-23 从库候选 CAT-RISKY-07 验过入包，4 个自测用例通过；尚未在真实会话命中"

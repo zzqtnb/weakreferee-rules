@@ -2,6 +2,10 @@
   "id": "J11",
   "title": "J11 整目录镜像前先查目录联接",
   "domain": "risky",
+  "audience": [
+    "ops",
+    "dev"
+  ],
   "evidence": {
     "level": "实测",
     "source": "作者环境真实命中过（次数、时间、会话号不公开）"

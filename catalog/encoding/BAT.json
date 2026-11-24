@@ -2,6 +2,10 @@
   "id": "BAT",
   "title": "BAT 写 .bat/.cmd 带中文会乱码",
   "domain": "encoding",
+  "audience": [
+    "dev",
+    "ops"
+  ],
   "evidence": {
     "level": "实测",
     "source": "作者环境真实命中过（次数、时间、会话号不公开）"

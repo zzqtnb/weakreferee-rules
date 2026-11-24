@@ -2,6 +2,9 @@
   "id": "J5",
   "title": "J5 改文件前先确认锚点还在",
   "domain": "workflow",
+  "audience": [
+    "dev"
+  ],
   "evidence": {
     "level": "实测",
     "source": "作者环境真实命中过（次数、时间、会话号不公开）"

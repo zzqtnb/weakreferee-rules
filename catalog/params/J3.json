@@ -23,9 +23,9 @@
   "promotedTo": "core#CORE-HTTPS-01",
   "notes": [
     "判据：web_fetch 只收 https，http:// 会被工具直接拒绝",
-    "例子｜该拦：`{\"url\":\"http://example.com\"}`；不该拦：`{\"url\":\"https://example.com\"}`",
+    "例子｜该拦：`{\"url\":\"http://example.com\"}`；不该拦：`{\"url\":\"https://example.com\"}`；有人让 AI 去抓一个网页，地址写成明文 http，工具连请求都没发出去就回了失败；来回试了几次，才看出是协议写错。",
     "边界：地址本来就是 https；非 web_fetch 的工具不归它管",
-    "场景例：有人让 AI 去抓一个网页，地址写成明文 http，工具连请求都没发出去就回了失败；来回试了几次，才看出是协议写错。",
+    "已测｜Seed-OSS-36B 犯过 3 次（同上）",
     "本条以 rules.json 为准；本文件只说明「检查什么、为什么、怎么救」，正则与自测在包里。"
   ]
 }

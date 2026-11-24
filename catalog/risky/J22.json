@@ -27,6 +27,7 @@
     "判据：命令里有 DROP / TRUNCATE：执行完表或库直接消失，没有中间状态",
     "例子｜该拦：`sqlite3 a.db \"DROP TABLE users\"`；不该拦：`sqlite3 a.db \"SELECT * FROM users\"`",
     "边界：只读查询不判；--dry-run / -WhatIf 放过",
+    "已测｜还没在模型上跑过",
     "本条以 rules.json 为准；本文件只说明「检查什么、为什么、怎么救」，正则与自测在包里。"
   ]
 }

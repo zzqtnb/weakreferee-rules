@@ -24,9 +24,9 @@
   "promotedTo": "windows-powershell#WIN-GIT-DISCARD-01",
   "notes": [
     "判据：git 这条命令会丢掉未提交的改动（reset --hard / checkout -- . / restore . / clean -f）",
-    "例子｜该拦：`git reset --hard HEAD~1`；不该拦：`git status --short`",
+    "例子｜该拦：`git reset --hard HEAD~1`；不该拦：`git status --short`；想回到干净状态，一条 reset --hard 下去，半天没提交的改动全没了。",
     "边界：只读的 git 命令（status / diff / log / stash list）不判；git reset --hard 后面跟了 --dry-run 也放过（虽然 git 本身不支持，写错就报错，不冤）",
-    "场景例：想回到干净状态，一条 reset --hard 下去，半天没提交的改动全没了。",
+    "已测｜还没在模型上跑过",
     "本条以 rules.json 为准；本文件只说明「检查什么、为什么、怎么救」，正则与自测在包里。"
   ]
 }

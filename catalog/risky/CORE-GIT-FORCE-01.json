@@ -21,8 +21,8 @@
   "promotedTo": "core#CORE-GIT-FORCE-01",
   "notes": [
     "判据：pwsh 命令串里有 git push，同时带 --force 或 -f，且没有 --force-with-lease",
-    "例子｜该拦：`git push --force origin main`、`git push -f`；不该拦：`git push --force-with-lease`、`git push origin main`",
+    "例子｜该拦：`git push --force origin main`、`git push -f`；不该拦：`git push --force-with-lease`、`git push origin main`；本机历史和远端不一致，一句强推把远端顶成自己的版本，同事拉取时十几条提交消失",
     "边界：推的是自己独占的分支也照样提示（提示不是拦，看清楚再点）；引号里的纯文本不算命令，maskQuoted 已避开",
-    "场景例：本机历史和远端不一致，一句强推把远端顶成自己的版本，同事拉取时十几条提交消失"
+    "已测｜还没在模型上跑过"
   ]
 }

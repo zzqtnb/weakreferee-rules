@@ -26,9 +26,9 @@
   "promotedTo": "windows-powershell#WIN-RMDIR-01",
   "notes": [
     "判据：递归删除未带 -WhatIf（影子期只记不拦）",
-    "例子｜该拦：`Remove-Item D:\\x -Recurse`；不该拦：`Remove-Item D:\\x -Recurse -WhatIf`",
+    "例子｜该拦：`Remove-Item D:\\x -Recurse`；不该拦：`Remove-Item D:\\x -Recurse -WhatIf`；一条递归删除直接跑下去，删完才发现目录里还混着不该删的东西，回收站里也未必找得回来。",
     "边界：`Remove-Item D:\\x -Recurse -WhatIf` 这类不判",
-    "场景例：一条递归删除直接跑下去，删完才发现目录里还混着不该删的东西，回收站里也未必找得回来。",
+    "已测｜Seed-OSS-36B 犯过 3 次（同上）",
     "本条以 rules.json 为准；本文件只说明「检查什么、为什么、怎么救」，正则与自测在包里。"
   ]
 }

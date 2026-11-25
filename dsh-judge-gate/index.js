@@ -33,6 +33,7 @@
  */
 
 import { createRequire } from 'node:module';
+import { spawn } from 'node:child_process';
 import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, renameSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -389,6 +390,10 @@ export function apply(ctx, config) {
   // A3（2026-11-25）：会话小本子。跨调用判据要的「刚才调了什么」从这里来，
   //   不再只靠 judge.js 的进程内缓存（重启即丢，命令行/回放也看不到）。
   const HS = createRequire(import.meta.url)(join(ENGINE_DIR, 'history.js'));
+  // 2026-11-25：形态累计（engine/live.js）。闸每天在跑，顺手记一笔「这次属于哪种毛病」，
+  //   供人回头看有没有反复出现而没人管的形态。它不判、不拦、不改任何判定结果；
+  //   调用处整段包 try，它自己抛错也不牵连下面那 33 条。
+  const LIVEMINE = createRequire(import.meta.url)(join(ENGINE_DIR, 'live.js'));
   const HIST_DIR = process.env.DSH_JUDGE_HISTORY_DIR || join(dirname(MARKS_FILE), 'history');
   // 会话 id 从宿主对象上顺着找，找不到就退回环境变量，再找不到就共用一个文件——
   // 退化了也还能用，只是不同会话的历史会混在一起（日志里能看见文件名，不会悄悄发生）。
@@ -630,6 +635,10 @@ export function apply(ctx, config) {
       try { j6Hit = j6Check(exec); } catch { j6Hit = null; }
       const badJson = typeof args === 'string';
       if (!badJson && args && typeof args === 'object') shadowArgs = args;
+      // 形态累计：只记次数与形态名，不改判定。整段吞异常——它坏一次，不许连带 33 条一起跳过。
+      try {
+        if (!badJson && args && typeof args === 'object') LIVEMINE.record(exec.name, args, { dataDir: DATA_DIR });
+      } catch { /* 记不上不影响判定 */ }
       // 2026-11-24 改（用户定）：P6 不再短路判定。
       //   原来一命中就整闸停摆、别的判据全不跑——开发期噪声把真正的判定结果全盖住了，
       //   对用的人更是纯噪音（他们不改判据文件，正常用一辈子碰不到）。
@@ -735,6 +744,49 @@ export function apply(ctx, config) {
     }
     return undefined;
   });
+
+  // ── 侧栏那个入口点开要有东西（2026-11-25）：保证本地面板在 127.0.0.1:<panelPort> 上有响应。
+  //    已有面板就复用（多半是使用者自己起的），只关自己起的那个——别人的进程不碰。
+  //    失败只记一行日志：入口点开看不见东西是可接受的降级，闸本身不能因此受影响。
+  try {
+    const panelPort = Number(opts.panelPort || process.env.WR_PANEL_PORT || 7788);
+    const panelData = opts.dataDir || process.env.DSH_JUDGE_DATA || join(SELF_DIR, 'data');
+    let panelChild = null;
+    let panelStopped = false;
+    const panelProbe = async () => {
+      try {
+        const r = await fetch(`http://127.0.0.1:${panelPort}/api/state`, { signal: AbortSignal.timeout(900) });
+        return !!r.ok;
+      } catch { return false; }
+    };
+    ctx.effect(() => {
+      (async () => {
+        if (await panelProbe()) {
+          ctx.logger?.info?.(`[judge-gate] 面板复用已在跑的 127.0.0.1:${panelPort}`);
+          return;
+        }
+        if (panelStopped) return;
+        try {
+          panelChild = spawn(
+            process.execPath,
+            [join(SELF_DIR, 'tools', 'panel.cjs'), '--port', String(panelPort), '--data', panelData],
+            { stdio: 'ignore', windowsHide: true }
+          );
+          panelChild.on('error', () => { panelChild = null; });
+          ctx.logger?.info?.(`[judge-gate] 面板已起：127.0.0.1:${panelPort}`);
+        } catch (err) {
+          ctx.logger?.warn?.(`[judge-gate] 面板没起来：${oneLine(err && err.message ? err.message : err)}`);
+        }
+      })();
+      return () => {
+        panelStopped = true;
+        try { if (panelChild) panelChild.kill(); } catch { /* 已经不是我们的进程了 */ }
+        panelChild = null;
+      };
+    }, 'judge-gate: panel');
+  } catch (err) {
+    ctx.logger?.warn?.(`[judge-gate] 面板托管跳过：${oneLine(err && err.message ? err.message : err)}`);
+  }
 
   ctx.logger?.info?.(
     `[judge-gate] 已挂上：${opts.enforce ? '拦下即拒' : '影子模式（只记不拦）'}，判据 ${opts.paramcheckPath}，日志 ${logPath || '（无可用落点）'}`);

@@ -1,9 +1,14 @@
 {
   "name": "dsh-judge-gate",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "type": "module",
   "main": "./index.js",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./package.json": "./package.json"
+  },
   "description": "弱裁判事前闸：每次工具调用 dispatch 前同步核一遍参数形态（缺必填键/形近错键/多余键/写文本文件漏 -Encoding 等），拦下即拒，判定与日志全部随包自带，不依赖任何本机绝对路径。",
   "keywords": [
     "dsh-plugin",
@@ -11,14 +16,19 @@
     "judge",
     "powershell"
   ],
-  "license": "GPL-3.0-only",
+  "license": "AGPL-3.0-only",
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": []
     }
   },
   "files": [
     "index.js",
+    "client.js",
     "check.cjs",
     "mcp-server.cjs",
     "cordis.patch.yml",
@@ -30,16 +40,22 @@
     "lib/tool-schema.json",
     "lib/tool-types.json",
     "engine/package.json",
+    "engine/action-override.js",
     "engine/expand.js",
+    "engine/history.js",
     "engine/judge.js",
+    "engine/live.js",
     "engine/ledger.js",
     "engine/mine.js",
     "engine/packmgr.js",
     "engine/replay.js",
+    "engine/scan.js",
     "engine/schema.js",
+    "engine/trace.js",
     "rules/manifest.json",
     "rules/core/rules.json",
     "rules/dsh-host/rules.json",
+    "rules/cross-call/rules.json",
     "rules/windows-powershell/rules.json",
     "LICENSE",
     "CHANGELOG.md"

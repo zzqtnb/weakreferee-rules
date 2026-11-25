@@ -2,7 +2,7 @@
 
 > 管 AI 的「手」：在它调用工具之前，检查这次调用的参数写对没有。
 
-判据清单在线版（4 个包 34 条，每条写明它看什么、命中时说什么、怎么改）：<https://zzqtnb.github.io/weakreferee-rules/>
+判据清单在线版（4 个包 36 条，每条写明它看什么、命中时说什么、怎么改）：<https://zzqtnb.github.io/weakreferee-rules/>
 
 ## What this is (English)
 
@@ -137,11 +137,19 @@ node dsh-judge-gate/tools/judge-packs.cjs status                   # 现在实�
 
 清单写在 `data/judges-installed.json`，改完重启 DSH 生效。插件包里没有 `judges/` 源文件时，`list` 直接从 `rules/*/rules.json` 读——你看到的就是能装的。
 
+装上了以后多严，也归你定。包里写的 `action` 是作者给的默认值，你可以不改文件就覆盖它：面板每条右边三档「拦 / 提示 / 默认」，或者命令行 `node dsh-judge-gate/tools/judge-packs.cjs action WIN-BAT-CJK-01 block`（写 `warn` 只提示，写 `default` 退回作者的值）。改动只记进上面那份清单，`rules.json` 一个字不动，包升级冲不掉；`action CORE-PARAMS-GEN warn` 会连带它展开出来的那批条目一起变松。
+
+发布自己改过的包给别用：`node dsh-judge-gate/tools/judge-packs.cjs export` 把 `rules/` 下这几个包连同 `catalog/` 说明按 `package.json` 的版本号导到仓库根的 `release/v<版本>/`，附一份 `packs.json`（每包的条数、字节、sha256）。它只读源文件——你本机 `data/` 里的东西（装了哪些包、调过的三档、删掉的条目）一条都不进发布版。
+
+不喜欢某一条，不用卸整包：面板卡片右下「删掉」，或者 `node dsh-judge-gate/tools/judge-packs.cjs delete WIN-BAT-CJK-01`。删掉的那条不再判、从列表里消失，记录写进清单的 `removed`；`restore` 放回来，整包升级也不会把它带回来。手工删的、误删的都在这儿：`judge-packs.cjs list` 里已删的标 `-`。
+
+面板还有一栏「库里」：整份判据库 39 条都在这里，装进闸的可以直接调三档，还没写成机器判据的显示成灰卡（右上标「还没写成规则」）。每条带「判据 / 例子 / 边界 / 已测」四段——它为什么存在、该拦什么、什么情况放过。说明来自仓库根的 `catalog/`，装成插件后跟包一起走。
+
 ### 判据从哪来：两条路
 
 **一条人挑**：上面那些命令，`list` 看市场、`add` 装包或单条。适合「我知道我要防什么」。
 
-**一条机器挑**：`node weakreferee-cli.js mine` 扫自己的会话历史，把反复出现、现在没人管的写法列成草案；确认后 `judge-packs.cjs add --draft mine-rules.json` 把它装成一个自建包（落在 `data/custom/mine/`）。适合「我不知道自己会被什么坑，让记录说话」。草案的 `action` 一律是 `warn`（只提示不拦），看过没问题自己改成 `block`。
+**一条机器挑**：`node weakreferee-cli.js mine` 扫自己的会话历史，把反复出现、现在没人管的写法列成草案；确认后 `judge-packs.cjs add --draft mine-rules.json` 把它装成一个自建包（落在 `data/custom/mine/`）。适合「我不知道自己会被什么坑，让记录说话」。草案的 `action` 一律是 `warn`（只提示不拦）。跑一段时间看它误拦多少，再决定要不要变严：面板点「拦」，或 `judge-packs.cjs action MINE-BAT-CJK-01 block`。
 
 两条路的落点都是同一份清单，装载时不区分来源。哪条路进来都一样：装几条、拦几条、误拦归谁，账上都记着。
 

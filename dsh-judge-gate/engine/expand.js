@@ -95,7 +95,10 @@ function expandContractTable(gen, opts) {
 
   const mk = (id, cond, extra) => Object.assign({
     id, legacyJudge: legacy, when: 'tool:pre',
-    condition: cond, action: 'block', severity: 'B',
+    // 展开出来的条目跟着生成器那条的动作走：用户把 CORE-PARAMS-GEN 改成「只提示」，
+    // 它产出的 450 条也得只提示，否则改了个看不见的东西。
+    // 动作在父规则 r 上（r.generator 只是生成器声明，本身没有 action），由 expandAll 传进来。
+    condition: cond, action: (opts && opts.action) || (gen && gen.action) || 'block', severity: 'B',
     reversible: false
   }, extra || {});
 
@@ -204,7 +207,7 @@ function expandAll(rules, opts) {
     if (r.generator) {
       report.generators++;
       if (r.generator.kind === 'contractTable') {
-        const sub = expandContractTable(r.generator, opts);
+        const sub = expandContractTable(r.generator, Object.assign({}, opts, { action: r.action || 'block' }));
         out.push(...sub.rules);
         report.emitted += sub.rules.length;
         report.stats = sub.stats;

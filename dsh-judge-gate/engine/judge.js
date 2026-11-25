@@ -164,6 +164,15 @@ const CONDITION = {
     });
   },
 
+  // 这些键都给了值（不是 undefined / null / 空串）。用来做「这次是按坐标点的」这类前置判断。
+  argSet(p, ctx) {
+    const keys = p.keys || [p.key];
+    return keys.every(k => {
+      const v = pick(ctx, 'args.' + k);
+      return v !== undefined && v !== null && v !== '' ;
+    });
+  },
+
   missingAnyOf(p, ctx) {
     // p.keys = ["a|b", "c"] 每一组至少中一个
     return (p.keys || []).some(group =>
@@ -774,6 +783,16 @@ function load(packDirs, env, opts) {
   }
   const missing = only.filter(k => !known.has(k));
   rules = rules.filter(r => applies(r.appliesTo, { tool: '*', args: {} }) || true);
+  // 「用多严」是使用者的选择：judges-installed.json 的 actions 覆盖包里的默认值。
+  // 放在这里而不是各调用方，是为了闸、命令行、面板只看一份真相（包文件一个字不动）。
+  // 用户删掉的条目（judges-installed.json 的 removed）在装载时就剔掉：包文件不动，
+  // 升级冲不掉，想恢复也是删一行的事。
+  try {
+    const AO = require('./action-override');
+    const dataDir = AO.dataDirOf(opts && opts.dataDir);
+    AO.apply(rules, dataDir);
+    rules = AO.filterRemoved(rules, dataDir);
+  } catch { /* 没有清单就按包里写的来 */ }
   const byWhen = new Map();
   const byTool = new Map();   // when → tool → rules；调某工具时只取它那桶 + '*' 桶
   for (const r of rules) {

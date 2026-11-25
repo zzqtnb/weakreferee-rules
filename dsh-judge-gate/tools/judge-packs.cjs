@@ -7,7 +7,9 @@
 //   node judge-packs.js add core          装一个包
 //   node judge-packs.js add J8 J16        只装两条
 //   node judge-packs.js remove J9         卸一条 / 卸一个包
+//   node judge-packs.js action WIN-BAT-CJK-01 block   装上以后让它真拦（block|warn|default）
 //   node judge-packs.js --json            机器读
+//   node judge-packs.js export            把包和说明按版本号导成发布目录（不动 data/）
 const fs = require('fs');
 const path = require('path');
 
@@ -22,12 +24,32 @@ function readJson(p, dflt) {
 }
 function readStore() {
   const s = readJson(STORE, { packs: [], rules: [] });
-  return { packs: Array.isArray(s.packs) ? s.packs : [], rules: Array.isArray(s.rules) ? s.rules : [] };
+  // actions：装上了以后用多严（{规则号: 'block'|'warn'}）。与 packs/rules 同一份文件，
+  // 但只覆盖、不改包里的 rules.json —— 包升级不会把用户的选择冲掉。
+  const actions = {};
+  const a = (s && s.actions) || {};
+  for (const k of Object.keys(a)) {
+    const v = String(a[k] || '').toLowerCase();
+    if (v === 'block' || v === 'warn') actions[String(k).toUpperCase()] = v;
+  }
+  return {
+    packs: Array.isArray(s.packs) ? s.packs : [],
+    rules: Array.isArray(s.rules) ? s.rules : [],
+    actions,
+    // removed：用户明确不要的条目。与 rules 里「没装」不同——那是没挑，这是挑过又扔了。
+    removed: Array.isArray(s.removed) ? s.removed.map((x) => String(x).toUpperCase()) : [],
+  };
 }
 function writeStore(s) {
   fs.mkdirSync(DATA, { recursive: true });
   const uniq = (a) => [...new Set(a.map((x) => String(x).trim()).filter(Boolean))];
-  fs.writeFileSync(STORE, JSON.stringify({ packs: uniq(s.packs), rules: uniq(s.rules) }, null, 2), 'utf8');
+  const actions = {};
+  for (const k of Object.keys((s && s.actions) || {})) {
+    const v = String(s.actions[k] || '').toLowerCase();
+    if (v === 'block' || v === 'warn') actions[String(k).toUpperCase()] = v;
+  }
+  const removed = uniq(((s && s.removed) || []).map((x) => String(x).toUpperCase()));
+  fs.writeFileSync(STORE, JSON.stringify({ packs: uniq(s.packs), rules: uniq(s.rules), actions, removed }, null, 2), 'utf8');
 }
 
 function judges() {
@@ -43,6 +65,10 @@ function judges() {
       action: j.defaultAction || r.action || 'block',
       text: r.title || j.title || '',
       appliesTo: r.appliesTo || {},
+      message: r.message || j.message || '',
+      fix: r.fix || j.fix || '',
+      severity: r.severity || j.severity || '',
+      legacyJudge: r.legacyJudge || '',
     }));
     out.push({ id: j.id, title: j.title || '', order: j.order || 0, rules });
   }
@@ -56,7 +82,10 @@ function judges() {
     for (const r of arr) {
       out.push({
         id: r.id, title: r.title || r.id, order: 1000, pack: d.name,
-        rules: [{ id: r.id, action: r.action || 'block', text: r.title || '', appliesTo: r.appliesTo || {} }],
+        rules: [{
+          id: r.id, action: r.action || 'block', text: r.title || '', appliesTo: r.appliesTo || {},
+          message: r.message || '', fix: r.fix || '', severity: r.severity || '', legacyJudge: r.legacyJudge || '',
+        }],
       });
     }
   }
@@ -69,7 +98,10 @@ function judges() {
       for (const r of arr) {
         out.push({
           id: r.id, title: r.title || r.id, order: 2000, pack: d.name, custom: true,
-          rules: [{ id: r.id, action: r.action || 'warn', text: r.title || '', appliesTo: r.appliesTo || {} }],
+          rules: [{
+            id: r.id, action: r.action || 'warn', text: r.title || '', appliesTo: r.appliesTo || {},
+            message: r.message || '', fix: r.fix || '', severity: r.severity || '', legacyJudge: r.legacyJudge || '',
+          }],
         });
       }
     }
@@ -94,6 +126,17 @@ const STORE_NOW = readStore();
 const ALL = judges();
 const PACKS_NOW = packs();
 
+// 动作覆盖：把用户改过的「严不严」盖到市场清单上，list/status/面板看到的都是生效值；
+// 同时留一份包里写的原值（actionDefault），面板才分得清「作者说拦」和「我让它拦」。
+for (const j of ALL) {
+  for (const r of j.rules) {
+    r.actionDefault = r.action;
+    const ov = STORE_NOW.actions[String(r.id).toUpperCase()];
+    if (ov) r.action = ov;
+    r.removed = STORE_NOW.removed.includes(String(r.id).toUpperCase());
+  }
+}
+
 // 规则 → 它属于哪个 rules 包目录（插件包里没有 packs/ 定义时靠它判断在不在装）
 const RULE_PACK = {};
 try {
@@ -111,6 +154,7 @@ try {
 } catch { /* 没有自建包 */ }
 
 const isRuleOn = (id) => {
+  if (STORE_NOW.removed.includes(String(id).toUpperCase())) return false; // 删掉的不算在位，哪怕包还装着
   if (STORE_NOW.rules.includes(id)) return true;
   for (const p of PACKS_NOW) {
     if (!STORE_NOW.packs.includes(p.id)) continue;
@@ -126,6 +170,80 @@ const cmd = args[0] || 'status';
 const json = args.includes('--json');
 const names = args.slice(1).filter((a) => !a.startsWith('--'));
 
+// 导出发布版：把 rules/ 里的包连同判据库说明，按 package.json 的版本号导成发布目录。
+// 只读源文件；data/ 里的自用清单（你装的包、调过的三档、删掉的条目）一律不进发布版。
+if (cmd === 'export') {
+  const iOut = args.indexOf('--out');
+  const outArg = iOut > 0 ? args[iOut + 1] : path.join(ROOT, '..', 'release');
+  const pkg = readJson(path.join(ROOT, 'package.json'), {});
+  const ver = String(pkg.version || '0.0.0');
+  const srcRules = path.join(ROOT, 'rules');
+  const srcCatalog = path.join(ROOT, '..', 'catalog');
+  const man = readJson(path.join(srcRules, 'manifest.json'), { packs: {} });
+  const names = Object.keys(man.packs || {});
+  if (!names.length) { console.error('rules/manifest.json 里没有包，先跑 node tools/gen-manifest.js rules'); process.exit(2); }
+  const crypto = require('crypto');
+  const sha = (buf) => crypto.createHash('sha256').update(buf).digest('hex');
+  // 返回 { files: 复制了几个文件, entries: 其中几条说明（*.json，不含 schema 与目录页） }
+  const copyTree = (from, to) => {
+    const acc = { files: 0, entries: 0 };
+    fs.mkdirSync(to, { recursive: true });
+    for (const e of fs.readdirSync(from, { withFileTypes: true })) {
+      const a = path.join(from, e.name), b = path.join(to, e.name);
+      if (e.isDirectory()) {
+        const sub = copyTree(a, b);
+        acc.files += sub.files; acc.entries += sub.entries;
+      } else if (!/schema/i.test(e.name)) {
+        fs.copyFileSync(a, b); acc.files += 1;
+        if (/\.json$/i.test(e.name)) acc.entries += 1;
+      }
+    }
+    return acc;
+  };
+  const dest = path.join(path.resolve(outArg), 'v' + ver);
+  const tmp = dest + '.tmp';
+  fs.rmSync(tmp, { recursive: true, force: true });
+  fs.mkdirSync(tmp, { recursive: true });
+  const entries = [];
+  for (const name of names) {
+    const from = path.join(srcRules, name, 'rules.json');
+    if (!fs.existsSync(from)) { console.error('包里缺 rules.json：' + from); process.exit(1); }
+    const buf = fs.readFileSync(from);
+    let arr = [];
+    try { arr = JSON.parse(buf.toString('utf8').replace(/^\uFEFF/, '')); } catch { console.error('rules.json 不是合法 JSON：' + from); process.exit(1); }
+    fs.mkdirSync(path.join(tmp, name), { recursive: true });
+    fs.writeFileSync(path.join(tmp, name, 'rules.json'), buf);
+    entries.push({ id: name, file: name + '/rules.json', rules: Array.isArray(arr) ? arr.length : 0, bytes: buf.length, sha256: sha(buf) });
+  }
+  const catalogFiles = fs.existsSync(srcCatalog) ? copyTree(srcCatalog, path.join(tmp, 'catalog')) : { files: 0, entries: 0 };
+  const total = entries.reduce((n, e) => n + e.rules, 0);
+  const index = { name: pkg.name || 'dsh-judge-gate', version: ver, generatedAt: new Date().toISOString(), totalRules: total, catalogEntries: catalogFiles.entries, catalogFiles: catalogFiles.files, packs: entries };
+  fs.writeFileSync(path.join(tmp, 'packs.json'), JSON.stringify(index, null, 2) + '\n', 'utf8');
+  fs.rmSync(dest, { recursive: true, force: true });
+  fs.renameSync(tmp, dest);
+  // 回读：清单能解析、条数与源一致、每包哈希对得上，才算导出成功
+  const back = readJson(path.join(dest, 'packs.json'), null);
+  const bad = [];
+  if (!back) bad.push('packs.json 回读失败');
+  else {
+    if (back.totalRules !== total) bad.push('总条数对不上');
+    for (const e of back.packs || []) {
+      const f = path.join(dest, e.file);
+      if (!fs.existsSync(f)) { bad.push('缺文件 ' + e.file); continue; }
+      const buf = fs.readFileSync(f);
+      if (buf.length !== e.bytes || sha(buf) !== e.sha256) bad.push(e.id + ' 哈希对不上');
+    }
+  }
+  if (json) { console.log(JSON.stringify({ dest, index: back, problems: bad }, null, 2)); process.exit(bad.length ? 1 : 0); }
+  console.log('导出到 ' + dest);
+  for (const e of entries) console.log('  ' + e.id.padEnd(20) + e.rules + ' 条  ' + e.bytes + ' 字节  sha ' + e.sha256.slice(0, 12));
+  console.log('合计 ' + total + ' 条判据，判据库说明 ' + catalogFiles.entries + ' 条（' + catalogFiles.files + ' 个文件）');
+  console.log('发布清单：' + path.join(dest, 'packs.json'));
+  console.log('（data/ 里的自用清单没进这个目录：你装的包、调过的三档、删掉的条目都不在发布版里）');
+  if (bad.length) { console.error('\n校验没过：\n  ' + bad.join('\n  ')); process.exit(1); }
+  console.log('\n校验：清单可解析、条数与源一致、每包哈希对得上');
+  process.exit(0);
+}
 if (cmd === 'list') {
   if (json) { console.log(JSON.stringify({ packs: PACKS_NOW, judges: ALL, installed: STORE_NOW }, null, 2)); process.exit(0); }
   console.log('判据市场（* = 已装）\n');
@@ -136,12 +254,13 @@ if (cmd === 'list') {
   console.log('');
   for (const j of ALL) {
     const list = j.rules.length
-      ? j.rules.map((r) => (isRuleOn(r.id) ? '*' : ' ') + r.id + '(' + r.action + ')')
+      ? j.rules.map((r) => (r.removed ? '-' : isRuleOn(r.id) ? '*' : ' ') + r.id + '(' + r.action + (r.action !== r.actionDefault ? '!' : '') + ')')
       : ['（无规则：实现在插件里，只能整体开/关）'];
     console.log(`  ${j.id}  ${j.title}`);
     console.log(`      ${list.join('  ')}`);
   }
   console.log("\n装整包：add <包名>    只装几条：add <判据号 J8>    卸：remove <名字>");
+  console.log("不要了：delete <判据号>    恢复：restore <判据号>（* 在位 / - 已删 / 空格 未装）");
   process.exit(0);
 }
 
@@ -151,6 +270,7 @@ if (cmd === 'status') {
   console.log(`来源：${fs.existsSync(STORE) ? STORE : '（未安装任何判据）'}`);
   console.log(`包：${STORE_NOW.packs.join(', ') || '无'}`);
   console.log(`单独装的条：${STORE_NOW.rules.join(', ') || '无'}`);
+  console.log(`删掉的：${STORE_NOW.removed.join(', ') || '无'}`);
   console.log(`实际生效 ${onRules.length} 条${onRules.length ? '：' + onRules.map((r) => r.id).join(' ') : ''}`);
   if (!onRules.length) console.log('提示：现在一条都没装，闸不会拦任何东西。先跑 list 看看。');
   process.exit(0);
@@ -188,7 +308,12 @@ if (cmd === 'add') {
   const added = [], bad = [];
   for (const n of names) {
     if (packIds.has(n)) { if (!STORE_NOW.packs.includes(n)) STORE_NOW.packs.push(n); added.push('包 ' + n); }
-    else if (ruleIds.has(n)) { if (!STORE_NOW.rules.includes(n)) STORE_NOW.rules.push(n); added.push('条 ' + n); }
+    else if (ruleIds.has(n)) {
+      // 删过又装回来：先把删除记录撤掉，不然装了还是不在位
+      STORE_NOW.removed = STORE_NOW.removed.filter((x) => x !== String(n).toUpperCase());
+      if (!STORE_NOW.rules.includes(n)) STORE_NOW.rules.push(n);
+      added.push('条 ' + n);
+    }
     else bad.push(n);
   }
   writeStore(STORE_NOW);
@@ -204,6 +329,7 @@ if (cmd === 'remove' || cmd === 'rm') {
   for (const n of names) {
     STORE_NOW.packs = STORE_NOW.packs.filter((x) => x !== n);
     STORE_NOW.rules = STORE_NOW.rules.filter((x) => x !== n);
+    delete STORE_NOW.actions[String(n).toUpperCase()]; // 卸下了就不留「多严」的旧选择
   }
   writeStore(STORE_NOW);
   console.log(before === JSON.stringify(STORE_NOW) ? '没有变化' : '已卸：' + names.join('、'));
@@ -211,5 +337,102 @@ if (cmd === 'remove' || cmd === 'rm') {
   process.exit(0);
 }
 
-console.error('用法：list | status | add <名字...> | remove <名字...> [--json]');
+// 删掉一条：不再出现在列表里，也不再参与判断。包文件一个字不动（升级冲不掉），restore 就回来。
+// 与 remove 不是一回事——remove 是「这次不装」，delete 是「这条我不要了」。
+if (cmd === 'delete' || cmd === 'del') {
+  if (!names.length) { console.error('要给判据号：delete <判据号>'); process.exit(2); }
+  const allRuleIds = new Set(ALL.flatMap((j) => j.rules.map((r) => String(r.id).toUpperCase())));
+  const ok = [], bad = [];
+  for (const n of names) {
+    const k = String(n).toUpperCase();
+    if (!allRuleIds.has(k)) { bad.push(n); continue; }
+    if (!STORE_NOW.removed.includes(k)) STORE_NOW.removed.push(k);
+    STORE_NOW.rules = STORE_NOW.rules.filter((x) => String(x).toUpperCase() !== k);
+    delete STORE_NOW.actions[k];
+    ok.push(k);
+  }
+  writeStore(STORE_NOW);
+  console.log(ok.length ? '已删：' + ok.join('、') + '（不再拦、也从列表消失；restore 可恢复）' : '没有新增删除');
+  if (bad.length) console.log('不认识的：' + bad.join('、') + '（跑 list 看有哪些）');
+  console.log('重启 DSH 后生效。');
+  process.exit(bad.length ? 1 : 0);
+}
+
+if (cmd === 'restore' || cmd === 'undel') {
+  if (!names.length) { console.error('要给判据号：restore <判据号>'); process.exit(2); }
+  const up = names.map((n) => String(n).toUpperCase());
+  const before = STORE_NOW.removed.length;
+  STORE_NOW.removed = STORE_NOW.removed.filter((x) => !up.includes(String(x).toUpperCase()));
+  writeStore(STORE_NOW);
+  console.log(before === STORE_NOW.removed.length
+    ? '没有变化（这些本来就没删）'
+    : '已恢复：' + up.join('、') + '（回到库里，按原来的装/卸状态）');
+  console.log('重启 DSH 后生效。');
+  process.exit(0);
+}
+
+// 装上了用多严：action <规则号> block|warn|default，default = 退回包里写的原值。
+// 只写进清单的 actions，不动包里的 rules.json —— 包升级不会冲掉。
+if (cmd === 'action') {
+  const rest = args.slice(1);
+  const want = rest.filter((a) => !a.startsWith('--'));
+  if (json) {
+    const rows = [];
+    for (const j of ALL) for (const r of j.rules) {
+      if (!r.actionDefault && !STORE_NOW.actions[String(r.id).toUpperCase()]) continue;
+      rows.push({ id: r.id, on: isRuleOn(r.id), action: r.action, actionDefault: r.actionDefault || r.action });
+    }
+    console.log(JSON.stringify({ actions: STORE_NOW.actions, rules: rows }, null, 2));
+    process.exit(0);
+  }
+  if (args.includes('--list')) {
+    const changed = Object.keys(STORE_NOW.actions);
+    console.log('改过动作的 ' + changed.length + ' 条：');
+    if (!changed.length) console.log('  （没有，全部按包里写的来）');
+    for (const k of changed) {
+      const r = ALL.flatMap((j) => j.rules).find((x) => String(x.id).toUpperCase() === k);
+      console.log('  ' + k + '  ' + (r ? r.actionDefault : '?') + ' → ' + STORE_NOW.actions[k] + (r && isRuleOn(r.id) ? '' : '（这条现在没装上）'));
+    }
+    console.log('\n改法：action <规则号> block|warn|default');
+    process.exit(0);
+  }
+  const allRuleIds = new Set(ALL.flatMap((j) => j.rules.map((r) => String(r.id).toUpperCase())));
+  const reset = args.includes('--reset');
+  if (!want.length && !reset) {
+    const keys = Object.keys(STORE_NOW.actions);
+    if (!keys.length) console.log('没改过任何一条的动作：全部按包里写的来。');
+    else {
+      console.log('改过的：');
+      for (const k of keys) console.log('  ' + k + '  → ' + STORE_NOW.actions[k]);
+    }
+    console.log('改用法：action <规则号> block|warn|default（default 退回包里的原值）');
+    process.exit(0);
+  }
+  const id = String(want[0] || '').toUpperCase();
+  if (!id) { console.error('要给规则号，例如 action WIN-BAT-CJK-01 block'); process.exit(2); }
+  if (!allRuleIds.has(id)) { console.error('不认识这条：' + id + '（跑 list 看有哪些）'); process.exit(2); }
+  const v = String(want[1] || (reset ? 'default' : '')).toLowerCase();
+  if (v === 'default' || reset) {
+    if (!STORE_NOW.actions[id]) { console.log(id + ' 本来就是包里的默认值，没有变化'); process.exit(0); }
+    delete STORE_NOW.actions[id];
+    writeStore(STORE_NOW);
+    console.log(id + ' 已退回包里的默认动作。重启 DSH 后生效。');
+    process.exit(0);
+  }
+  if (v !== 'block' && v !== 'warn') { console.error('动作只能写 block（拦）或 warn（只提示），收到：' + (v || '空')); process.exit(2); }
+  const cur = ALL.flatMap((j) => j.rules).find((x) => String(x.id).toUpperCase() === id);
+  if (cur && cur.actionDefault === v) {
+    // 写的跟包里一样就别留一条多余的记录：清单里只放真改过的
+    delete STORE_NOW.actions[id];
+    writeStore(STORE_NOW);
+    console.log(id + ' 包里本来就是 ' + v + '，已清掉改动（等于没改）');
+    process.exit(0);
+  }
+  STORE_NOW.actions[id] = v;
+  writeStore(STORE_NOW);
+  console.log(id + ' → ' + (v === 'block' ? '拦下' : '只提示') + '（已记进清单）；重启 DSH 后生效。');
+  process.exit(0);
+}
+
+console.error('用法：list | status | add <名字...> | remove <名字...> | delete <规则号> | restore <规则号> | action <规则号> block|warn|default [--list] | export [--out <目录>] [--json]');
 process.exit(2);

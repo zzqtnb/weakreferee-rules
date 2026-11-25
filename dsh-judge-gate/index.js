@@ -712,7 +712,18 @@ export function apply(ctx, config) {
       notes = oneLine(err && err.message ? err.message : err);
     }
     const ms = Date.now() - t0;
-    log([nowStamp(), 'plugin', exec.name || '?', status, oneLine(notes), ms]);
+    // 判据号进账本：面板和 later 的统计都要靠它把「拦过几次」落到具体哪一条上。
+    // 原来只把 judge 用在拒绝文案里，账本那列只有理由，于是所有命中都成了无主计数。
+    // 老行没有这个前缀，读的时候按「只算总数、不归到某条」处理，不追溯改写。
+    let tag = '';
+    if (status === '拦下' || status === '提示') {
+      if (judge && /^[A-Za-z]/.test(String(judge))) tag = String(judge);
+      else {
+        const m = String(notes || '').match(/^([A-Z][A-Z0-9]*(?:-[A-Z0-9]+)*(?:,[A-Z][A-Z0-9-]*)*)：/);
+        if (m) tag = m[1];
+      }
+    }
+    log([nowStamp(), 'plugin', exec.name || '?', status, oneLine(tag ? `[${tag}] ${notes}` : notes), ms]);
     if (j14Hit) noteJ14(exec, j14Hit);
     if (j6Hit) noteJ6(exec, j6Hit);
 

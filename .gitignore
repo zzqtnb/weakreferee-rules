@@ -20,3 +20,5 @@ _tmp/
 
 # 导出产物（judge-packs.cjs export 生成，按版本号重建，不入库）
 release/
+# 考察期用不上的判据说明（2026-11-25 移出仓库，本地留在 _备份\2026-11-25\_unused-catalog）
+_unused-catalog/

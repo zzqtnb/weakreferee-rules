@@ -185,6 +185,7 @@ if (cmd === 'export') {
   const crypto = require('crypto');
   const sha = (buf) => crypto.createHash('sha256').update(buf).digest('hex');
   // 返回 { files: 复制了几个文件, entries: 其中几条说明（*.json，不含 schema 与目录页） }
+  // skipSchema 顺带跳过 *.bak-* 之类的备份文件，免得安装包里带上一堆改动前的旧文件
   const copyTree = (from, to, skipSchema = true) => {
     const acc = { files: 0, entries: 0 };
     fs.mkdirSync(to, { recursive: true });
@@ -193,7 +194,7 @@ if (cmd === 'export') {
       if (e.isDirectory()) {
         const sub = copyTree(a, b, skipSchema);
         acc.files += sub.files; acc.entries += sub.entries;
-      } else if (!(skipSchema && /schema/i.test(e.name))) {
+      } else if (!(skipSchema && /(schema|\.bak)/i.test(e.name))) {
         fs.copyFileSync(a, b); acc.files += 1;
         if (/\.json$/i.test(e.name)) acc.entries += 1;
       }

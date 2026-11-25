@@ -24,6 +24,9 @@ const RM_REC = /\bRemove-Item\b[^\n]*\b-Re(c|cu|cur|rec|recu)\w*/i;
 const WHATIF = /-WhatIf\b/i;
 const AUTOVAR = /\$(home|pid|host|error|input|args|psitem)\s*=/i;
 const DANGER = /(\bFormat-Volume\b|\bFormat-Disk\b|\brm\s+-rf\s+\/)/i;
+const GIT_DESTRUCTIVE = /\bgit\s+(reset\s+--hard|checkout\s+--\s+\.|restore\s+\.|clean\s+-[a-z]*f)/i;
+const GIT_STASH = /\bgit\s+stash\b/i;
+const WRITE_VERB_ONE = /\b(Out-File|Set-Content|Add-Content|Export-Csv|Export-Clixml|Tee-Object)\b/gi;
 
 /* 形态 → 现有规矩。值写规则 id；null 表示现在没人管。 */
 const MAP = {
@@ -48,6 +51,12 @@ const TITLE = {
   'edit-ps1': '改 .ps1（可能丢 BOM）',
   'rm-recursive': '递归删除没干跑',
   'danger-verb': '格式化 / 删根这类不可逆动词',
+  'edit-long-anchor': 'edit 的锚点超过 2000 字',
+  'multi-write-one-cmd': '一条命令里塞三个以上写文件动作',
+  'git-destructive': '破坏性 git 动作没先 stash',
+  'relative-path': '用相对路径定位文件',
+  'repeat-write-same-path': '同一个文件反复改（≥5 次）',
+  'no-readback-after-write': '写完三回合内没回读',
 };
 
 /* 出草案用的条件模板：只给「有明确危害且现在没人管」的形态 */
@@ -72,11 +81,38 @@ const TEMPLATES = {
       { note: '该放', tool: 'write', args: { file_path: 'D:\\tmp\\run.bat', content: 'echo hello' }, expect: 'pass' },
     ],
   },
+  'multi-write-one-cmd': {
+    id: 'MINE-MULTIWRITE-01',
+    title: '一条命令里同时改三个以上文件',
+    appliesTo: { tool: 'pwsh' },
+    condition: {
+      all: [
+        {
+          type: 'regexHit',
+          in: 'args.command',
+          pattern: '(?:Out-File|Set-Content|Add-Content|Export-Csv|Tee-Object)[\\s\\S]*?;[\\s\\S]*?(?:Out-File|Set-Content|Add-Content|Export-Csv|Tee-Object)[\\s\\S]*?;[\\s\\S]*?(?:Out-File|Set-Content|Add-Content|Export-Csv|Tee-Object)',
+        },
+      ],
+    },
+    action: 'warn',
+    severity: 'S',
+    message: '一条命令里做了三处以上写文件动作，坏了定位不到是哪一处，也不方便只回滚其中一个',
+    fix: '拆成多条命令，一条只改一个文件；批量替换先落清单，再逐条执行',
+    reversible: true,
+    cases: [
+      { note: '该提示', tool: 'pwsh', args: { command: "Set-Content -Path a.txt -Value 'x' -Encoding UTF8; Set-Content -Path b.txt -Value 'y' -Encoding UTF8; Set-Content -Path c.txt -Value 'z' -Encoding UTF8" }, expect: 'block' },
+      { note: '该放', tool: 'pwsh', args: { command: "Set-Content -Path a.txt -Value 'x' -Encoding UTF8" }, expect: 'pass' },
+      { note: '该放：两条', tool: 'pwsh', args: { command: "Set-Content -Path a.txt -Value 'x' -Encoding UTF8; Set-Content -Path b.txt -Value 'y' -Encoding UTF8" }, expect: 'pass' },
+    ],
+  },
 };
 
 /* 没人管但不该出判据的形态，说清为什么不提，别让它看起来像漏了 */
 const WHY_NO_RULE = {
   'write-text-cjk': 'write 工具自己按 UTF-8 落盘，中文不会乱码，写多少条都不该拦',
+  'no-readback-after-write': '写完三回合不回读在真实记录里绝大多数是正常流程（写完就交付、或改用别的方式验证），当判据会大面积误拦；只作观察指标',
+  'repeat-write-same-path': '同一个文件改五次以上在长文档反复打磨里是常态，硬拦会挡住正常迭代；只作观察指标',
+  'relative-path': 'DSH 里相对路径按工作目录解析，属正常用法，不构成过错',
 };
 
 function frames(buf) {
@@ -176,6 +212,9 @@ function featuresOf(call) {  const out = [];
     if (RM_REC.test(cmd) && !WHATIF.test(cmd)) out.push('rm-recursive');
     if (AUTOVAR.test(cmd)) out.push('autovar-assign');
     if (DANGER.test(cmd)) out.push('danger-verb');
+    const wv = (cmd.match(WRITE_VERB_ONE) || []).length;
+    if (wv >= 3) out.push('multi-write-one-cmd');
+    if (GIT_DESTRUCTIVE.test(cmd) && !GIT_STASH.test(cmd)) out.push('git-destructive');
   }
   const fp = String(args.file_path || '');
   if (tool === 'write' && CJK.test(String(args.content || ''))) {
@@ -184,6 +223,8 @@ function featuresOf(call) {  const out = [];
     else if (/\.(md|txt|json|csv|log|yml|yaml|ini|xml)$/i.test(fp)) out.push('write-text-cjk');
   }
   if (tool === 'edit' && /\.ps1$/i.test(fp)) out.push('edit-ps1');
+  if ((tool === 'edit' || tool === 'write') && args.old_string && String(args.old_string).length > 2000) out.push('edit-long-anchor');
+  if (fp && !/^([A-Za-z]:[\\/]|\\\\|\/|~)/.test(fp)) out.push('relative-path');
   return out;
 }
 
@@ -201,18 +242,31 @@ function mine(opts) {
   const feat = new Map();
   const byTool = new Map();
   let calls = 0, read = 0, unreadable = 0;
+  const bump = (key, tool) => {
+    const o = feat.get(key) || { n: 0, tools: new Map() };
+    o.n++;
+    o.tools.set(tool, (o.tools.get(tool) || 0) + 1);
+    feat.set(key, o);
+  };
+  const pathOf = (c) => String((c.args && (c.args.file_path || c.args.path || c.args.notebook_path)) || '');
   for (const f of limited) {
     let list;
     try { list = callsFromFile(f); } catch { unreadable++; continue; }
     read++;
-    for (const c of list) {
+    const pathWrites = new Map();
+    for (let i = 0; i < list.length; i++) {
+      const c = list[i];
       calls++;
       byTool.set(c.tool, (byTool.get(c.tool) || 0) + 1);
-      for (const k of featuresOf(c)) {
-        const o = feat.get(k) || { n: 0, tools: new Map() };
-        o.n++;
-        o.tools.set(c.tool, (o.tools.get(c.tool) || 0) + 1);
-        feat.set(k, o);
+      for (const k of featuresOf(c)) bump(k, c.tool);
+      const p = pathOf(c);
+      if (p && (c.tool === 'write' || c.tool === 'edit')) {
+        const n = (pathWrites.get(p) || 0) + 1;
+        pathWrites.set(p, n);
+        if (n >= 5) bump('repeat-write-same-path', c.tool);
+        const win = list.slice(i + 1, i + 4);
+        const rb = win.some((x) => pathOf(x) === p && (x.tool === 'read' || x.tool === 'grep' || x.tool === 'pwsh'));
+        if (!rb && win.length > 0) bump('no-readback-after-write', c.tool);
       }
     }
   }
@@ -227,7 +281,8 @@ function mine(opts) {
       tools: [...o.tools.keys()],
       coveredBy: MAP[k] || null,
       why: MAP[k] ? null : (WHY_NO_RULE[k] || null),
-      suggest: o.n >= min && !MAP[k] ? (TEMPLATES[k] ? TEMPLATES[k].id : null) : null,
+      hasTemplate: !!TEMPLATES[k],
+      suggest: o.n >= min && !MAP[k] && TEMPLATES[k] ? TEMPLATES[k].id : null,
     });
   }
   rows.sort((a, b) => b.hits - a.hits);
@@ -324,8 +379,9 @@ function renderReport(r) {
     if (x.hits === 0) continue;
     let who;
     if (x.coveredBy) who = x.coveredBy;
-    else if (x.suggest) who = '没人管 → 出草案 ' + x.suggest;
     else if (x.why) who = '没人管，也不该管';
+    else if (x.suggest) who = '没人管 → 出草案 ' + x.suggest;
+    else if (x.hits >= r.min) who = '没人管，次数够但没有可写的条件模板';
     else who = '没人管，次数不到 ' + r.min + ' 次先不提';
     L.push('  ' + String(x.hits).padStart(5) + '  ' + (x.tools.join('/') || '-').padEnd(14) + '  ' + x.title.padEnd(28) + '  ' + who);
   }

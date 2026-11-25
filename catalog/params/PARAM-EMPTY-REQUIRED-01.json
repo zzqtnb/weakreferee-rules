@@ -1,0 +1,31 @@
+{
+  "id": "PARAM-EMPTY-REQUIRED-01",
+  "title": "PARAM-EMPTY-REQUIRED-01 必填参数给了空字符串",
+  "domain": "params",
+  "audience": [
+    "dev"
+  ],
+  "evidence": {
+    "level": "实测",
+    "hits": 1,
+    "sessions": 1,
+    "source": "mine：一次 compress 传了空 content，当场报错；同类空值调用在契约表层面由生成器统一判"
+  },
+  "falsePositiveRisk": "low",
+  "defaultAction": "block",
+  "appliesTo": {
+    "tool": "*"
+  },
+  "message": "必填参数传了空字符串或者空数组，工具要么报错要么按空处理，等于白跑一次",
+  "fix": "要么给真值，要么把这一项删掉——空字符串和「没给」在多数工具里是两种不同的错，混着来最难查",
+  "severity": "B",
+  "reversible": true,
+  "promotedTo": "core#CORE-PARAMS-GEN",
+  "notes": [
+    "判据：本次调用里，契约表声明为必填的键，值是空字符串、null 或者空数组",
+    "例子｜该拦：compress 传 content: \"\"；不该拦：content 正常给了内容，或者这个键本来就不是必填",
+    "边界：非必填键给空值不管；契约表里没声明必填的工具，参数形态整条不验（会单独报「未验」，不算通过）",
+    "已测｜DSH 模型犯过 1 次（一次 compress 传空 content 当场报错）",
+    "这条不单独占一条规则：由 CORE-PARAMS-GEN 按契约表展开成 PARAM-EMPTY:<工具名>，动作跟随生成器那条（现在是拦下）。库里写出来是为了让「空值也算错」这件事查得到"
+  ]
+}

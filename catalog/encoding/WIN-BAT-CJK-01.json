@@ -1,0 +1,36 @@
+{
+  "id": "WIN-BAT-CJK-01",
+  "title": "WIN-BAT-CJK-01 write 往 .bat/.cmd 写中文正文",
+  "domain": "encoding",
+  "audience": [
+    "dev",
+    "ops"
+  ],
+  "evidence": {
+    "level": "实测",
+    "hits": 9,
+    "sessions": 4,
+    "source": "mine：作者环境 195 个会话、20,107 次调用里统计到 9 次（write 共 1,107 次）"
+  },
+  "falsePositiveRisk": "medium",
+  "defaultAction": "warn",
+  "appliesTo": {
+    "tool": "write",
+    "fileMatches": "\\.(bat|cmd)$",
+    "platform": [
+      "win32"
+    ]
+  },
+  "message": "批处理文件按本地代码页解析（中文系统是 GBK），写进去的中文会变乱码，或者让 cmd 读到一半报错",
+  "fix": "批处理里只写 ASCII；必须输出中文时，在文件开头加 chcp 65001，并让 bat 用 type 输出一个外部 UTF-8 文本文件",
+  "severity": "S",
+  "reversible": true,
+  "promotedTo": "windows-powershell#WIN-BAT-CJK-01",
+  "notes": [
+    "判据：往 .bat/.cmd 写非 ASCII 正文——批处理按本地代码页解析（中文系统是 GBK），写进去的中文要么乱码，要么让 cmd 读到一半报错",
+    "例子｜该拦：批处理里直接写中文 echo；不该拦：只写 ASCII，或开头 chcp 65001 再从外部 UTF-8 文本文件 type 输出",
+    "边界：中文只出现在不会被执行的注释里；改的是 .ps1 而不是 bat",
+    "已测｜DSH 模型犯过 9 次（作者环境 195 个会话、20,107 次调用，分布在 4 个会话）",
+    "本条以 rules.json 为准；本文件只说明「检查什么、为什么、怎么救」，判定逻辑在包里"
+  ]
+}

@@ -60,9 +60,9 @@ function checkOne(fp, dirName) {
   // 5 已测段必须点到模型名，且至少一个「犯过」
   const tested = notes.find((n) => typeof n === 'string' && n.indexOf('已测') === 0);
   if (tested) {
-    const hasModel = /(qwen|deepseek|glm|kimi|doubao|gpt|claude|gemini|seed|llama|mistral|yi-|ernie|hunyuan)/i.test(tested);
+    const hasModel = /(qwen|deepseek|glm|kimi|doubao|gpt|claude|gemini|seed|llama|mistral|yi-|ernie|hunyuan|dsh)/i.test(tested);
     const hasHit = /犯过|犯：|会犯/.test(tested);
-    if (!hasModel) errs.push('已测段没写具体模型名（要写哪家、哪个型号）');
+    if (!hasModel) errs.push('已测段没写是哪个模型犯的（写模型名；本机拦下的写「DSH 模型」）');
     if (!hasHit) errs.push('已测段没有「犯过」的记录——一个模型都没犯过的判据不收（这是准入线）');
   }
 

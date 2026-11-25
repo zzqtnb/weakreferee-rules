@@ -1,0 +1,36 @@
+{
+  "id": "WIN-SYSDIR-01",
+  "title": "WIN-SYSDIR-01 往系统盘或临时目录写东西、装东西",
+  "domain": "risky",
+  "audience": [
+    "dev",
+    "ops",
+    "general"
+  ],
+  "evidence": {
+    "level": "推断",
+    "hits": 0,
+    "sessions": 0,
+    "source": "工程经验；规则新写，本机未命中"
+  },
+  "falsePositiveRisk": "medium",
+  "defaultAction": "steer",
+  "appliesTo": {
+    "tool": "pwsh",
+    "platform": [
+      "win32"
+    ]
+  },
+  "message": "目标是系统盘或临时目录：临时目录会被清掉，系统目录改了会影响别的软件",
+  "fix": "工具和依赖装到 D 盘独立目录（D:\\<软件名>\\），纯临时文件明确放 _tmp 并在收尾清掉",
+  "severity": "B",
+  "reversible": true,
+  "promotedTo": "windows-powershell#WIN-SYSDIR-01",
+  "notes": [
+    "判据：往系统盘或临时目录写东西、装东西——%TEMP%、AppData\\Local\\Temp、C:\\Windows\\Temp 这类位置",
+    "例子｜该拦：把工具装进临时目录，重启就没了；不该拦：装到 D 盘独立目录，临时文件放项目自己的 _tmp 并在收尾清掉",
+    "边界：真正的一次性临时文件且当场删除；系统组件本身要求的固定位置",
+    "库里建议：steer。包里现在按 warn 生效",
+    "本条以 rules.json 为准；本文件只说明「检查什么、为什么、怎么救」，判定逻辑在包里"
+  ]
+}

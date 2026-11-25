@@ -1,0 +1,39 @@
+{
+  "id": "WIN-PS1-AUTOVAR-01",
+  "title": "WIN-PS1-AUTOVAR-01 往 .ps1 里写自动变量赋值",
+  "domain": "params",
+  "audience": [
+    "dev",
+    "ops"
+  ],
+  "evidence": {
+    "level": "实测",
+    "hits": 1,
+    "sessions": 1,
+    "source": "作者环境拦记账本"
+  },
+  "falsePositiveRisk": "low",
+  "defaultAction": "block",
+  "appliesTo": {
+    "tools": [
+      "write",
+      "edit"
+    ],
+    "fileMatches": "\\.ps1$",
+    "platform": [
+      "win32"
+    ]
+  },
+  "message": "往 .ps1 里写了 PowerShell 自动变量赋值（只读或影响解析）",
+  "fix": "换个带前缀的多字名，如 $envPath",
+  "severity": "S",
+  "reversible": false,
+  "promotedTo": "windows-powershell#WIN-PS1-AUTOVAR-01",
+  "notes": [
+    "判据：往 .ps1 里写自动变量赋值——$input、$args、$error、$host、$home、$pid、$matches 这类只读或影响解析的名字",
+    "例子｜该拦：脚本开头写 $input = 读取的文本；不该拦：$envInput、$scriptArgs 这种带前缀的多字名",
+    "边界：名字只出现在字符串或注释里；名字只是前缀相同（$homeDir、$argsList）",
+    "已测｜DSH 模型犯过 1 次",
+    "本条以 rules.json 为准；本文件只说明「检查什么、为什么、怎么救」，判定逻辑在包里"
+  ]
+}

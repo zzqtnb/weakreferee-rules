@@ -1,0 +1,35 @@
+{
+  "id": "WIN-MIRROR-01",
+  "title": "WIN-MIRROR-01 整目录镜像前先查目录联接",
+  "domain": "risky",
+  "audience": [
+    "dev",
+    "ops"
+  ],
+  "evidence": {
+    "level": "实测",
+    "hits": 0,
+    "sessions": 0,
+    "source": "作者环境一次真事故：整目录镜像时跟随了目录联接，把链接指向的真实目录一并清空"
+  },
+  "falsePositiveRisk": "low",
+  "defaultAction": "warn",
+  "appliesTo": {
+    "tool": "pwsh",
+    "platform": [
+      "win32"
+    ]
+  },
+  "message": "整目录镜像/清理未先查目录联接：robocopy 跟随 junction，镜像一个含联接的目录等于清空链接目标",
+  "fix": "先 Get-ChildItem -Force 看目标里有没有 ReparsePoint，有就只删链接不动内容",
+  "severity": "A",
+  "reversible": false,
+  "promotedTo": "windows-powershell#WIN-MIRROR-01",
+  "notes": [
+    "判据：robocopy 带 /MIR 或 /PURGE 整目录镜像前，没先查目标里有没有目录联接（junction）",
+    "例子｜该拦：robocopy 源 目标 /MIR，而源里有指向别处的 junction；不该拦：先 Get-ChildItem -Force 看过 ReparsePoint 再镜像",
+    "边界：只复制不删除（不带 /MIR、/PURGE）；目标是这一轮新建的空目录",
+    "已测｜DSH 模型犯过 1 次：跟随式复制把链接指向的真实目录一并清空",
+    "本条以 rules.json 为准；本文件只说明「检查什么、为什么、怎么救」，判定逻辑在包里"
+  ]
+}

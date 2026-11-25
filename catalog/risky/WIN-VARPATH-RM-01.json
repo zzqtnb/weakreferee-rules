@@ -1,0 +1,35 @@
+{
+  "id": "WIN-VARPATH-RM-01",
+  "title": "WIN-VARPATH-RM-01 变量路径递归删除",
+  "domain": "risky",
+  "audience": [
+    "dev",
+    "ops"
+  ],
+  "evidence": {
+    "level": "推断",
+    "hits": 0,
+    "sessions": 0,
+    "source": "2026-11-23 从库候选验过入包，4 个自测用例通过；本机尚未命中"
+  },
+  "falsePositiveRisk": "low",
+  "defaultAction": "steer",
+  "appliesTo": {
+    "tool": "pwsh",
+    "platform": [
+      "win32"
+    ]
+  },
+  "message": "递归删除的路径是变量拼出来的（变量为空或带尾分隔符会删过头）",
+  "fix": "先把变量打印出来看一眼，或写成字面量；至少加 -WhatIf 干跑一遍",
+  "severity": "A",
+  "reversible": false,
+  "promotedTo": "windows-powershell#WIN-VARPATH-RM-01",
+  "notes": [
+    "判据：递归删除的路径是用变量拼出来的，而且没带 -WhatIf（变量为空或带尾分隔符就会删过头）",
+    "例子｜该拦：Remove-Item -Recurse 后面跟一个环境变量拼出来的目录；不该拦：先把变量打印出来看一眼，或直接写字面量路径",
+    "边界：路径是字面量；只删单个文件不递归；带了 -WhatIf 干跑",
+    "库里建议：steer。包里现在按 block 生效",
+    "本条以 rules.json 为准；本文件只说明「检查什么、为什么、怎么救」，判定逻辑在包里"
+  ]
+}

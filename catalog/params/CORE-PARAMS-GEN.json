@@ -1,0 +1,26 @@
+{
+  "id": "CORE-PARAMS-GEN",
+  "title": "CORE-PARAMS-GEN 参数形态（由工具契约表编译，不手写）",
+  "domain": "params",
+  "audience": [
+    "dev",
+    "ops"
+  ],
+  "evidence": {
+    "level": "实测",
+    "hits": 165,
+    "sessions": 45,
+    "source": "作者环境拦记账本与回放记录（无规则编号的 165 次）"
+  },
+  "falsePositiveRisk": "low",
+  "defaultAction": "block",
+  "severity": "B",
+  "promotedTo": "core#CORE-PARAMS-GEN",
+  "notes": [
+    "判据：工具参数形态——缺必填键、键名写错、多给了键、类型不符——由工具契约表编译成一批具体检查，装载时展开，不在规则包里手写正则",
+    "例子｜该拦：调用一个要求 file_path 的工具，却只给了 path；不该拦：参数齐全、类型对得上",
+    "边界：工具没有契约表；某个键本来就允许自由形态；生成器只覆盖契约表里声明过必填的键",
+    "已测｜DSH 模型犯过 165 次（45 个会话）；这批是最常撞上的一类",
+    "本条以 rules.json 为准；本文件只说明「检查什么、为什么、怎么救」，判定逻辑在包里"
+  ]
+}

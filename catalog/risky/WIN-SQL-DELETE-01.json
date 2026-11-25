@@ -1,0 +1,35 @@
+{
+  "id": "WIN-SQL-DELETE-01",
+  "title": "WIN-SQL-DELETE-01 DELETE / UPDATE 没有 WHERE",
+  "domain": "risky",
+  "audience": [
+    "dev",
+    "ops"
+  ],
+  "evidence": {
+    "level": "推断",
+    "hits": 0,
+    "sessions": 0,
+    "source": "2026-11-23 从库候选验过入包，4 个自测用例通过；本机尚未命中"
+  },
+  "falsePositiveRisk": "low",
+  "defaultAction": "steer",
+  "appliesTo": {
+    "tool": "pwsh",
+    "platform": [
+      "win32"
+    ]
+  },
+  "message": "DELETE / UPDATE 里没有 WHERE（会动整张表）",
+  "fix": "补上 WHERE；真要清空整表就写 TRUNCATE 并说明理由，别让一条语句看不出意图",
+  "severity": "A",
+  "reversible": false,
+  "promotedTo": "windows-powershell#WIN-SQL-DELETE-01",
+  "notes": [
+    "判据：DELETE FROM 或 UPDATE … SET 里没有 WHERE（会动整张表）",
+    "例子｜该拦：DELETE FROM orders；不该拦：DELETE FROM orders WHERE id = 1",
+    "边界：语句只是写在字符串或注释里；确实要清空整表，并且写的是 TRUNCATE 加一句理由",
+    "库里建议：steer。包里现在按 block 生效——依据是工程经验，本机还没命中过",
+    "本条以 rules.json 为准；本文件只说明「检查什么、为什么、怎么救」，判定逻辑在包里"
+  ]
+}

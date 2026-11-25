@@ -1,0 +1,35 @@
+{
+  "id": "WIN-GIT-DISCARD-01",
+  "title": "WIN-GIT-DISCARD-01 git 丢弃未提交改动",
+  "domain": "risky",
+  "audience": [
+    "dev",
+    "ops"
+  ],
+  "evidence": {
+    "level": "推断",
+    "hits": 0,
+    "sessions": 0,
+    "source": "2026-11-23 从库候选验过入包，4 个自测用例通过；本机尚未命中"
+  },
+  "falsePositiveRisk": "low",
+  "defaultAction": "steer",
+  "appliesTo": {
+    "tool": "pwsh",
+    "platform": [
+      "win32"
+    ]
+  },
+  "message": "git 这条命令会丢掉未提交的改动",
+  "fix": "先 git status 看清楚，需要留就 git stash 或先提交；确实要丢，加一句说明再执行",
+  "severity": "A",
+  "reversible": false,
+  "promotedTo": "windows-powershell#WIN-GIT-DISCARD-01",
+  "notes": [
+    "判据：git reset --hard、git checkout -- .、git restore .、git clean -f 这类会丢掉未提交改动的命令，且没带 --dry-run",
+    "例子｜该拦：git checkout -- . 一把清掉所有改动；不该拦：先 git status 看清，需要留就 git stash 或先提交",
+    "边界：命令只是被引用或写在说明里；仓库是这一轮刚 clone 的干净副本",
+    "库里建议：steer。包里现在按 block 生效",
+    "本条以 rules.json 为准；本文件只说明「检查什么、为什么、怎么救」，判定逻辑在包里"
+  ]
+}

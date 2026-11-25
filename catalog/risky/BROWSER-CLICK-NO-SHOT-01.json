@@ -1,0 +1,31 @@
+{
+  "id": "BROWSER-CLICK-NO-SHOT-01",
+  "title": "BROWSER-CLICK-NO-SHOT-01 按坐标点页面前没截过图",
+  "domain": "risky",
+  "audience": [
+    "dev"
+  ],
+  "evidence": {
+    "level": "实测",
+    "hits": 1,
+    "sessions": 1,
+    "source": "mine：本机一次按坐标盲点（没有截图依据，点完也看不出点到哪）"
+  },
+  "falsePositiveRisk": "medium",
+  "defaultAction": "warn",
+  "appliesTo": {
+    "tool": "dsh_browser_click"
+  },
+  "message": "按坐标点页面，但最近没截过图，点偏了也不知道点到哪",
+  "fix": "先截图看这一屏再点坐标；或者改用元素定位（css / 文字）代替坐标",
+  "severity": "B",
+  "reversible": true,
+  "promotedTo": "dsh-host#BROWSER-CLICK-NO-SHOT-01",
+  "notes": [
+    "判据：点浏览器的调用同时给了 x 和 y（按坐标点），而最近 30 次调用里一次截图都没有——判断依据是空的",
+    "例子｜该拦：x=120 y=340 且前面没截过图；不该拦：刚截过图再点，或者用 target 按元素点",
+    "边界：没有历史时判不了，放行；按元素定位（css / 文字）点击不受这条管",
+    "已测｜DSH 模型犯过 1 次（本机一次按坐标盲点，没有截图依据）",
+    "本条以 rules.json 为准；本文件只说明「检查什么、为什么、怎么救」，判定逻辑在包里"
+  ]
+}

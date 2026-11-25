@@ -1,0 +1,32 @@
+{
+  "id": "DSH-ANCHOR-01",
+  "title": "DSH-ANCHOR-01 改文件之前先确认要替换的原文还在",
+  "domain": "path",
+  "audience": [
+    "dev",
+    "ops"
+  ],
+  "evidence": {
+    "level": "实测",
+    "hits": 1,
+    "sessions": 1,
+    "source": "作者环境拦记账本：要替换的原文在文件里已经找不到"
+  },
+  "falsePositiveRisk": "low",
+  "defaultAction": "warn",
+  "appliesTo": {
+    "tool": "edit"
+  },
+  "message": "要替换的原文在这个文件里已经找不到（文件被改过，或你要改的是另一个版本）",
+  "fix": "先用 read 看一眼当前内容，再照实际内容改；如果确认内容没变还报，点「这条不对」",
+  "severity": "B",
+  "reversible": false,
+  "promotedTo": "dsh-host#DSH-ANCHOR-01",
+  "notes": [
+    "判据：edit 要替换的那段原文，在文件里已经找不到——文件被别人改过，或者改的是另一个版本",
+    "例子｜该拦：照昨天的内容去替换，今天那段已经被改掉；不该拦：先用 read 看一眼当前内容，再照实际的改",
+    "边界：文件是这一轮新建或刚重写过的；改的是整个文件（走 write 而不是 edit）",
+    "已测｜DSH 模型犯过 1 次（命中的正是「要替换的原文找不到」）",
+    "本条以 rules.json 为准；本文件只说明「检查什么、为什么、怎么救」，判定逻辑在包里"
+  ]
+}

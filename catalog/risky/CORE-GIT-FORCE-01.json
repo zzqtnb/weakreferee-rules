@@ -1,0 +1,32 @@
+{
+  "id": "CORE-GIT-FORCE-01",
+  "title": "CORE-GIT-FORCE-01 git push 带 --force 会覆盖远端别人的提交",
+  "domain": "risky",
+  "audience": [
+    "dev",
+    "ops"
+  ],
+  "evidence": {
+    "level": "推断",
+    "hits": 0,
+    "sessions": 0,
+    "source": "工程经验；规则新写，本机未命中"
+  },
+  "falsePositiveRisk": "low",
+  "defaultAction": "steer",
+  "appliesTo": {
+    "tool": "pwsh"
+  },
+  "message": "git push 带 --force 会把远端别人的提交直接顶掉，被顶的人下次拉取会丢一批记录",
+  "fix": "改用 --force-with-lease：远端要是被别人推过，它会拒绝，不会闷头覆盖",
+  "severity": "A",
+  "reversible": false,
+  "promotedTo": "core#CORE-GIT-FORCE-01",
+  "notes": [
+    "判据：git push 带 --force（或 -f），且没有带 --force-with-lease",
+    "例子｜该拦：git push --force origin main；不该拦：git push --force-with-lease（远端被别人推过会拒绝）",
+    "边界：推的是远端还没有的新分支；仓库是自己独有的试验副本并在说明里写了",
+    "库里建议：steer。包里现在按 warn 生效——规则本身还没在本机命中过，依据是工程经验",
+    "本条以 rules.json 为准；本文件只说明「检查什么、为什么、怎么救」，判定逻辑在包里"
+  ]
+}

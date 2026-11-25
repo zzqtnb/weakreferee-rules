@@ -1,0 +1,34 @@
+{
+  "id": "CORE-PLACEHOLDER-01",
+  "title": "CORE-PLACEHOLDER-01 交给别人的文件里还留着占位符",
+  "domain": "protocol",
+  "audience": [
+    "dev",
+    "office",
+    "general"
+  ],
+  "evidence": {
+    "level": "推断",
+    "hits": 0,
+    "sessions": 0,
+    "source": "工程经验；规则新写，本机未命中"
+  },
+  "falsePositiveRisk": "medium",
+  "defaultAction": "steer",
+  "appliesTo": {
+    "tool": "write",
+    "fileMatches": "\\.(md|txt)$"
+  },
+  "message": "写进去的内容里带着 [待补充] 这类占位符，交给别人就是一份没写完的东西",
+  "fix": "把占位符换成实际内容，或者明确写「此处待定：缺什么、等谁给」",
+  "severity": "B",
+  "reversible": true,
+  "promotedTo": "core#CORE-PLACEHOLDER-01",
+  "notes": [
+    "判据：往 .md/.txt 写内容时，正文里还留着 [待补充]、[TODO]、[TBD]、[请填写] 这类占位符",
+    "例子｜该拦：交给别人的说明里留着「（此处补充项目名称）」；不该拦：明确写「此处待定：缺谁的联系方式」",
+    "边界：写的是 _tmp 下的中间稿；占位符是给别人抄的模板本身，写明「模板，替换后再用」",
+    "库里建议：steer。包里现在按 warn 生效",
+    "本条以 rules.json 为准；本文件只说明「检查什么、为什么、怎么救」，判定逻辑在包里"
+  ]
+}

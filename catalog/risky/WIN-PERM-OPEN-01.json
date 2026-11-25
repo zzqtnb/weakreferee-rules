@@ -1,0 +1,35 @@
+{
+  "id": "WIN-PERM-OPEN-01",
+  "title": "WIN-PERM-OPEN-01 权限开给所有人",
+  "domain": "risky",
+  "audience": [
+    "dev",
+    "ops"
+  ],
+  "evidence": {
+    "level": "推断",
+    "hits": 0,
+    "sessions": 0,
+    "source": "2026-11-23 从库候选验过入包，4 个自测用例通过；本机尚未命中"
+  },
+  "falsePositiveRisk": "low",
+  "defaultAction": "steer",
+  "appliesTo": {
+    "tool": "pwsh",
+    "platform": [
+      "win32"
+    ]
+  },
+  "message": "把权限开给了所有人（777 或 Everyone:F）",
+  "fix": "授权到具体账号或用户组；实在要放开，先写清给谁、多久收回",
+  "severity": "B",
+  "reversible": true,
+  "promotedTo": "windows-powershell#WIN-PERM-OPEN-01",
+  "notes": [
+    "判据：chmod 777，或 icacls … /grant Everyone:F ——把权限开给所有人",
+    "例子｜该拦：icacls 某个目录 /grant Everyone:F；不该拦：授权到具体账号或用户组",
+    "边界：命令写在说明文字里；目标本来就是公共共享目录，并且在回复里写明了给谁、多久收回",
+    "库里建议：steer。包里现在按 block 生效",
+    "本条以 rules.json 为准；本文件只说明「检查什么、为什么、怎么救」，判定逻辑在包里"
+  ]
+}

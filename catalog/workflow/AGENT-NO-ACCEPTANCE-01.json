@@ -1,0 +1,31 @@
+{
+  "id": "AGENT-NO-ACCEPTANCE-01",
+  "title": "AGENT-NO-ACCEPTANCE-01 派给子代理的任务没写怎么算做完",
+  "domain": "workflow",
+  "audience": [
+    "dev"
+  ],
+  "evidence": {
+    "level": "实测",
+    "hits": 3,
+    "sessions": 1,
+    "source": "mine：本机三次派活返工（派了没说验收标准，交回来的东西对不上要求）"
+  },
+  "falsePositiveRisk": "medium",
+  "defaultAction": "warn",
+  "appliesTo": {
+    "tool": "subagent"
+  },
+  "message": "这个子代理任务没写怎么算做完，交回来的东西对不对只能靠猜",
+  "fix": "补一句验收：交什么文件、跑什么命令、看到什么输出算通过；写不出验收条件，说明这活还没想清楚",
+  "severity": "B",
+  "reversible": true,
+  "promotedTo": "core#AGENT-NO-ACCEPTANCE-01",
+  "notes": [
+    "判据：派给子代理的 prompt 里一个验收词都没有（验收、标准、才算完、全部通过、判据这些一个不出现）——只说做什么，不说做到什么样算完",
+    "例子｜该拦：把登录页的按钮改成蓝色；不该拦：跑 npm test，全部通过才算完，失败用例贴出来",
+    "边界：prompt 字段不存在时不判（缺字段是没给，不是给了但没说验收）；任务本身就是纯收集信息的，可以只在描述里写清楚要什么格式",
+    "已测｜DSH 模型犯过 3 次（本机三次派活返工，交回来的东西对不上要求）",
+    "本条以 rules.json 为准；本文件只说明「检查什么、为什么、怎么救」，判定逻辑在包里"
+  ]
+}

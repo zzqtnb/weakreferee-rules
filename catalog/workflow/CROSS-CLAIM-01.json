@@ -1,0 +1,30 @@
+{
+  "id": "CROSS-CLAIM-01",
+  "title": "CROSS-CLAIM-01 它说「改好了」并点了文件名，但记录里没有那次写",
+  "domain": "workflow",
+  "audience": [
+    "dev",
+    "ops",
+    "general"
+  ],
+  "evidence": {
+    "level": "推断",
+    "hits": 0,
+    "sessions": 0,
+    "source": "2026-11-25 讨论：模型说「已改好」而记录里没有对应写操作，人眼最难发现的一类"
+  },
+  "falsePositiveRisk": "low",
+  "defaultAction": "steer",
+  "message": "上一条说改好了，但记录里没有对这个文件的成功写",
+  "fix": "把那次写真的做一遍，或者说明白改的是哪一次、在哪个文件",
+  "severity": "B",
+  "reversible": true,
+  "promotedTo": "cross-call#CROSS-CLAIM-01",
+  "notes": [
+    "判据：上一条回复说「改好了／修好了」并点了具体文件名，但最近的调用记录里没有对这个文件的成功写",
+    "例子｜该拦：说「已改好」某个文件，记录里却只有一次搜索；不该拦：确实写过那个文件，或压根没点文件名",
+    "边界：只是讨论、举例、说「我会改」；点名的文件是这一轮新建的",
+    "库里建议：steer。包里现在按 warn 生效",
+    "本条以 rules.json 为准；本文件只说明「检查什么、为什么、怎么救」，判定逻辑在包里"
+  ]
+}

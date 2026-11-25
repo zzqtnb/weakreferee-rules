@@ -22,7 +22,7 @@ const ACTION = ['block', 'warn', 'steer', 'default'];
 const KIND = ['core', 'platform', 'model', 'host', 'scene', 'cross-call'];
 const SEVERITY = ['S', 'A', 'B', 'C'];
 const CONDITION = [
-  'missingKey', 'emptyValue', 'missingAnyOf', 'wrongKey', 'extraKey', 'typeMismatch',
+  'missingKey', 'emptyValue', 'missingAnyOf', 'wrongKey', 'extraKey', 'typeMismatch', 'argSet',
   'argTypeMismatch',
   'missingFlag', 'regexHit', 'regexMiss', 'fileLacksBom', 'fileHasBom',
   'fileAnchorMissing', 'fileAnchorMultiple', 'fileNewerThan', 'fileNewerThanProcessStart', 'fileExistsBefore',
@@ -164,6 +164,8 @@ function capOf(e) {
   return cap;
 }
 
+function hasCondRule(e) { return !!(e && (e.condition || e.generator)); }
+
 function checkCatalogEntry(dirName, e, seen) {
   const where = `catalog/${dirName}/${e.id || '(无 id)'}`;
   if (!e.id) { err(where, '缺 id'); return; }
@@ -184,6 +186,26 @@ function checkCatalogEntry(dirName, e, seen) {
   else if (!/例子/.test(noteText)) err(where, 'notes 缺「例子｜」一行——写一个该拦的、一个不该拦的');
   else if (noteText.includes('该拦') && !noteText.includes('不该拦')) err(where, '例子只有「该拦」，补一条「不该拦」——只测该拦的规则，宽到什么都拦也能全过');
   else if (!/边界[:：]/.test(noteText)) err(where, 'notes 缺「边界：」一行——哪些情况放过');
+  // 证据准入线（2026-11-25 用户定，与 pack-intake.js 同一口径）：
+  // 至少一个模型真犯过。写得出模型名，本机拦下的写「DSH 模型犯过 N 次」。
+  // 纯说明条目（没 condition / generator）只是候选，不卡这条，标 notice。
+  {
+    // 推断档只当候选，缺模型证据给 notice；实测/文献档或有判定逻辑的必须写出来源。
+    const strict = hasCondRule(e) || e.evidence.level !== '推断';
+    const testedLine = (Array.isArray(e.notes) ? e.notes : []).find((n) => typeof n === 'string' && n.indexOf('已测') === 0) || '';
+    const hasModel = /(qwen|deepseek|glm|kimi|doubao|gpt|claude|gemini|seed|llama|mistral|yi-|ernie|hunyuan|dsh)/i.test(testedLine);
+    const hasHit = /犯过|犯：|会犯/.test(testedLine);
+    const need = [];
+    if (!testedLine) need.push('缺「已测」段（写「已测｜…模型犯过 N 次」）');
+    else {
+      if (!hasModel) need.push('没写是哪个模型犯的（本机拦下的写「DSH 模型」）');
+      if (!hasHit) need.push('没写「犯过」');
+    }
+    if (need.length) {
+      if (strict) err(where, '证据准入线：' + need.join('；') + '——一个模型都没犯过的判据不收');
+      else notices.push(where + ': 推断档未实测（' + need.join('；') + '），只当候选');
+    }
+  }
 
   if (!e.evidence || !e.evidence.level) { err(where, '缺 evidence.level'); return; }
   if (!['实测', '文献', '推断'].includes(e.evidence.level)) err(where, `evidence.level 不合法：${e.evidence.level}`);

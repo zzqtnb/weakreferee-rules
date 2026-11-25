@@ -185,15 +185,15 @@ if (cmd === 'export') {
   const crypto = require('crypto');
   const sha = (buf) => crypto.createHash('sha256').update(buf).digest('hex');
   // 返回 { files: 复制了几个文件, entries: 其中几条说明（*.json，不含 schema 与目录页） }
-  const copyTree = (from, to) => {
+  const copyTree = (from, to, skipSchema = true) => {
     const acc = { files: 0, entries: 0 };
     fs.mkdirSync(to, { recursive: true });
     for (const e of fs.readdirSync(from, { withFileTypes: true })) {
       const a = path.join(from, e.name), b = path.join(to, e.name);
       if (e.isDirectory()) {
-        const sub = copyTree(a, b);
+        const sub = copyTree(a, b, skipSchema);
         acc.files += sub.files; acc.entries += sub.entries;
-      } else if (!/schema/i.test(e.name)) {
+      } else if (!(skipSchema && /schema/i.test(e.name))) {
         fs.copyFileSync(a, b); acc.files += 1;
         if (/\.json$/i.test(e.name)) acc.entries += 1;
       }
@@ -216,8 +216,86 @@ if (cmd === 'export') {
     entries.push({ id: name, file: name + '/rules.json', rules: Array.isArray(arr) ? arr.length : 0, bytes: buf.length, sha256: sha(buf) });
   }
   const catalogFiles = fs.existsSync(srcCatalog) ? copyTree(srcCatalog, path.join(tmp, 'catalog')) : { files: 0, entries: 0 };
+  // 安装包：让不装 DSH 的人解压就能跑命令行与 MCP。放引擎、契约表、规则、说明与 skill，
+  // 不放 node 运行时（那样要九十多兆），所以要求对方自己有 node 22+。
+  const packDir = path.join(tmp, 'dsh-judge-gate');
+  const packParts = [];
+  for (const d of ['engine', 'lib', 'rules', 'tools']) {
+    const from = path.join(ROOT, d);
+    if (fs.existsSync(from)) {
+      const r = copyTree(from, path.join(packDir, d), false);
+      packParts.push(d + '/ ' + r.files);
+    }
+  }
+  for (const f of ['check.cjs', 'mcp-server.cjs', 'package.json', 'LICENSE', 'CHANGELOG.md', 'cordis.patch.yml', 'install.ps1']) {
+    const from = path.join(ROOT, f);
+    if (fs.existsSync(from)) { fs.copyFileSync(from, path.join(packDir, f)); packParts.push(f); }
+  }
+  let cliOk = false;
+  const cliFrom = path.join(ROOT, '..', 'weakreferee-cli.js');
+  if (fs.existsSync(cliFrom)) { fs.copyFileSync(cliFrom, path.join(tmp, 'weakreferee-cli.js')); cliOk = true; packParts.push('weakreferee-cli.js'); }
+  const skillFrom = path.join(ROOT, '..', 'skills');
+  if (fs.existsSync(skillFrom)) {
+    const r = copyTree(skillFrom, path.join(tmp, 'skills'), false);
+    packParts.push('skills/ ' + r.files);
+  }
+  const usage = [
+    '# 弱裁判 ' + ver + '（不装 DSH 也能用）',
+    '',
+    '要求：Node.js 22 以上。包里不带 node 运行时，自己装一个就行（`node --version` 看一眼）。',
+    '',
+    '## 试一条判定',
+    '',
+    '```',
+    'node weakreferee-cli.js check pwsh "command=Out-File a.ps1 -InputObject 中文"',
+    '```',
+    '',
+    '预期最后两行是「判定：拦下」和「[WIN-ENC-01] 写文本文件没带 -Encoding」，退出码 1。',
+    '',
+    '## 看有哪些判据',
+    '',
+    '```',
+    'node weakreferee-cli.js packs',
+    '```',
+    '',
+    '最后一行应当是「完整性：4 个包与清单一致」，前面是手写条数与展开条数。',
+    '',
+    '## 接到任意支持 MCP 的客户端',
+    '',
+    '在客户端的 MCP 配置里加一段（路径换成你解压的位置）：',
+    '',
+    '```json',
+    '{',
+    '  "mcpServers": {',
+    '    "weakreferee": {',
+    '      "command": "node",',
+    '      "args": ["<解压目录>/dsh-judge-gate/mcp-server.cjs"]',
+    '    }',
+    '  }',
+    '}',
+    '```',
+    '',
+    '## 包里有什么',
+    '',
+    '- `weakreferee-cli.js` 命令行入口：check / packs / list / selftest',
+    '- `dsh-judge-gate/` 引擎、规则、契约表、MCP 服务、面板（tools/panel.cjs）',
+    '- `catalog/` 判据库说明：每条为什么存在、该拦与不该拦的例子、边界',
+    '- `skills/` 给支持 skill 的客户端读的自查说明',
+    '- `packs.json` 版本、条数、每个包的哈希，自己核用',
+    '',
+    '## 想改成自己那套',
+    '',
+    '规则是纯 JSON，在 `dsh-judge-gate/rules/` 下面。改完跑 `node weakreferee-cli.js packs` 看完整性有没有报错；',
+    '嫌某条太严，装到 DSH 里之后在面板上点三档（拦 / 提示 / 默认），或者用 `node dsh-judge-gate/tools/judge-packs.cjs action <编号> warn`。',
+    '',
+    '## 许可',
+    '',
+    '程序与规则 AGPL-3.0，文档 CC BY 4.0。',
+    '',
+  ].join('\n');
+  fs.writeFileSync(path.join(tmp, 'README.md'), usage, 'utf8');
   const total = entries.reduce((n, e) => n + e.rules, 0);
-  const index = { name: pkg.name || 'dsh-judge-gate', version: ver, generatedAt: new Date().toISOString(), totalRules: total, catalogEntries: catalogFiles.entries, catalogFiles: catalogFiles.files, packs: entries };
+  const index = { name: pkg.name || 'dsh-judge-gate', version: ver, generatedAt: new Date().toISOString(), kind: 'portable', requires: 'node>=22', cli: cliOk, totalRules: total, catalogEntries: catalogFiles.entries, catalogFiles: catalogFiles.files, packs: entries, payload: packParts };
   fs.writeFileSync(path.join(tmp, 'packs.json'), JSON.stringify(index, null, 2) + '\n', 'utf8');
   fs.rmSync(dest, { recursive: true, force: true });
   fs.renameSync(tmp, dest);
@@ -239,6 +317,7 @@ if (cmd === 'export') {
   for (const e of entries) console.log('  ' + e.id.padEnd(20) + e.rules + ' 条  ' + e.bytes + ' 字节  sha ' + e.sha256.slice(0, 12));
   console.log('合计 ' + total + ' 条判据，判据库说明 ' + catalogFiles.entries + ' 条（' + catalogFiles.files + ' 个文件）');
   console.log('发布清单：' + path.join(dest, 'packs.json'));
+  console.log('安装包内容：' + packParts.join(' / '));
   console.log('（data/ 里的自用清单没进这个目录：你装的包、调过的三档、删掉的条目都不在发布版里）');
   if (bad.length) { console.error('\n校验没过：\n  ' + bad.join('\n  ')); process.exit(1); }
   console.log('\n校验：清单可解析、条数与源一致、每包哈希对得上');

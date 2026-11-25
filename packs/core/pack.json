@@ -8,7 +8,7 @@
   "license": "AGPL-3.0-only",
   "appliesTo": {},
   "loadOrder": 10,
-  "rules": 12,
+  "rules": 13,
   "ruleIds": [
     "CORE-HTTPS-01",
     "CORE-PARAMS-GEN",
@@ -17,7 +17,8 @@
     "CORE-PLACEHOLDER-01",
     "CORE-AI-TONE-01",
     "CORE-PATH-LEAK-01",
-    "CORE-OVERCLAIM-01"
+    "CORE-OVERCLAIM-01",
+    "AGENT-NO-ACCEPTANCE-01"
   ],
   "testedOn": {
     "host": "DSH 桌面版（Windows）",

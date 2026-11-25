@@ -111,7 +111,7 @@
         }
       ]
     },
-    "action": "steer",
+    "action": "warn",
     "severity": "C",
     "message": "这条命令会覆盖或删掉一个绝对路径下的文件",
     "fix": "先把它挪进回收站再动手：recycle.ps1 -Put <路径>",
@@ -163,5 +163,112 @@
       "needFs": false
     },
     "scene": "一条命令直接覆盖了绝对路径下的配置文件，改错之后没有旧版本可以退回，只能凭记忆重写。"
+  },
+  {
+    "id": "BROWSER-CLICK-NO-SHOT-01",
+    "needs": [
+      "history"
+    ],
+    "title": "按坐标点页面前没截过图",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "dsh_browser_click"
+    },
+    "condition": {
+      "all": [
+        {
+          "type": "argSet",
+          "keys": [
+            "x",
+            "y"
+          ]
+        },
+        {
+          "type": "noCallSince",
+          "tools": [
+            "dsh_browser_screenshot"
+          ],
+          "within": 30
+        }
+      ]
+    },
+    "action": "warn",
+    "severity": "B",
+    "message": "按坐标点页面，但最近没截过图，点偏了也不知道点到哪",
+    "fix": "先截图看这一屏再点坐标；或者改用元素定位（css / 文字）代替坐标",
+    "reversible": true,
+    "evidence": {
+      "hits": 1,
+      "sessions": 1,
+      "source": "本机一次按坐标盲点（没有截图依据）"
+    },
+    "scene": "页面元素位置不确定时直接报坐标去点，点完了看不出点到了哪儿，判断依据是空的。",
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "x": 120,
+            "y": 340
+          },
+          "history": [],
+          "expect": "pass",
+          "note": "没有历史：判不了，放行"
+        },
+        {
+          "args": {
+            "x": 120,
+            "y": 340
+          },
+          "history": [
+            {
+              "tool": "dsh_browser_click",
+              "args": {
+                "target": "#ok"
+              },
+              "ok": true,
+              "at": 1794999000000
+            }
+          ],
+          "expect": "block",
+          "note": "最近 30 次里一次截图都没有，这次报坐标"
+        },
+        {
+          "args": {
+            "x": 120,
+            "y": 340
+          },
+          "history": [
+            {
+              "tool": "dsh_browser_screenshot",
+              "args": {},
+              "ok": true,
+              "at": 1794999000000
+            }
+          ],
+          "expect": "pass",
+          "note": "刚截过图，有依据"
+        },
+        {
+          "args": {
+            "target": {
+              "by": "css",
+              "value": "#ok"
+            }
+          },
+          "history": [
+            {
+              "tool": "dsh_browser_click",
+              "args": {
+                "target": "#ok"
+              },
+              "ok": true,
+              "at": 1794999000000
+            }
+          ],
+          "expect": "pass",
+          "note": "按元素点的，不是坐标"
+        }
+      ]
+    }
   }
 ]

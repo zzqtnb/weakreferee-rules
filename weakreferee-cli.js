@@ -738,9 +738,16 @@ function cmdSelftest() {
     ]);
     say(!ids(r9).includes('CROSS-RETRY-01'), 'cross-call：指纹不同的命令失败过 → 不提示');
 
-    // ⑨ 没历史时三条都显式跳过，不是「判过且没事」
-    const r7 = run({ command: 'npm run build' }, []);
-    say(r7.skipped.length === ccRules.length, 'cross-call：没有历史时全部显式跳过（' + r7.skipped.length + '/' + ccRules.length + '）');
+    // ⑨ 没历史时全部显式跳过，不是「判过且没事」
+    //    用 write 写 .md 让四条都落在适用范围内（CROSS-ASSERT-PATH-01 只看 .md/.txt），否则它不参与计数
+    const r7 = MK.judgeEx({
+      when: 'tool:pre',
+      tool: 'write',
+      args: { file_path: 'D:\\演示\\工作区\\交付\\说明.md', content: '配置在 D:\\演示\\工作区\\conf\\app.json 里' },
+      history: [],
+      at: T,
+    }, ccRules);
+    say(r7.skipped.length === ccRules.length && r7.hits.length === 0, 'cross-call：没有历史时全部显式跳过（' + r7.skipped.length + '/' + ccRules.length + '）');
 
     // ⑩ 它说「改好了」并点了文件名，但记录里没有那次写（B3b）
     const tmpf = 'D:\\演示\\工作区\\草稿.md';

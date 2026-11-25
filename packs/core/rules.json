@@ -191,7 +191,7 @@
         }
       ]
     },
-    "action": "steer",
+    "action": "warn",
     "severity": "A",
     "message": "git push 带 --force 会把远端别人的提交直接顶掉，被顶的人下次拉取会丢一批记录",
     "fix": "改用 --force-with-lease：远端要是被别人推过，它会拒绝，不会闷头覆盖",
@@ -245,7 +245,7 @@
       "in": "args.content",
       "pattern": "\\[(待补充|待填|请填写|TODO|TBD|XXX)\\]|【(待补充|待填|请填写)】"
     },
-    "action": "steer",
+    "action": "warn",
     "severity": "B",
     "message": "写进去的内容里带着 [待补充] 这类占位符，交给别人就是一份没写完的东西",
     "fix": "把占位符换成实际内容，或者明确写「此处待定：缺什么、等谁给」",
@@ -293,7 +293,7 @@
       "in": "args.content",
       "pattern": "(综上所述|总而言之|显而易见地|毋庸置疑|赋能|抓手|形成闭环|深度融合|不仅.{0,24}而且.{0,24}更是)"
     },
-    "action": "steer",
+    "action": "warn",
     "severity": "C",
     "message": "正文里有明显的套话句式，交给别人一眼就能看出不是人写的",
     "fix": "删掉套话，换成具体的事：谁做了什么、什么时候、结果是多少",
@@ -340,7 +340,7 @@
       "in": "args.content",
       "pattern": "(sessions\\\\[0-9a-z-]{8,}|[0-9a-z]{8,10}-[0-9a-f]{16,}|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[A-Za-z]:\\\\[^\\\\]{2,}\\\\工作区\\\\[^\\\\]+)"
     },
-    "action": "steer",
+    "action": "warn",
     "severity": "C",
     "message": "正文里带着本机的会话号或内部路径，对外发出去等于把自己的目录结构交出去",
     "fix": "把内部路径换成相对说法（「工作区里」「本地」），会话号删掉",
@@ -388,7 +388,7 @@
       "in": "args.content",
       "pattern": "(已验证|已测试|已完成(测试|验证)|测试(已)?通过|运行稳定|运行正常|不影响(核心)?业务|经(过|充分)验证|无(任何)?错误|无警告)"
     },
-    "action": "steer",
+    "action": "warn",
     "severity": "B",
     "message": "这段文字里出现了「已验证／运行稳定／无错误」这类断言，但没写凭什么这么说",
     "fix": "补上证据：跑过哪条命令、几个用例、结果是什么；没跑过就把断言改成「未验证，待确认」",
@@ -468,7 +468,7 @@
       "in": "args.file_path",
       "pattern": "(最终版|最后版|真的最终|终极版|最新版最终)"
     },
-    "action": "steer",
+    "action": "warn",
     "severity": "C",
     "message": "文件名里带着「最终版」这类说法，过几天就分不清哪个才是最后一版",
     "fix": "改成带日期或版本号的名字，例如 项目A-技术报告-20261124.md",
@@ -499,7 +499,9 @@
   },
   {
     "id": "CAT-OVERWRITE-01",
-    "needs": ["history"],
+    "needs": [
+      "history"
+    ],
     "title": "往一个早就存在的文件上写，本轮没读过也没备份过",
     "when": "tool:pre",
     "appliesTo": {
@@ -556,7 +558,9 @@
   },
   {
     "id": "CAT-CITE-01",
-    "needs": ["history"],
+    "needs": [
+      "history"
+    ],
     "title": "写出 DOI 这类出处，本会话一次检索都没做过",
     "when": "tool:pre",
     "appliesTo": {
@@ -614,7 +618,9 @@
   },
   {
     "id": "CAT-CITE-02",
-    "needs": ["history"],
+    "needs": [
+      "history"
+    ],
     "title": "引用带网址，但那个页面本会话一次都没打开",
     "when": "tool:pre",
     "appliesTo": {
@@ -663,6 +669,57 @@
             "content": "这段结论来自我打开的原始页面，细节已核对"
           },
           "expect": "pass"
+        }
+      ]
+    }
+  },
+  {
+    "id": "AGENT-NO-ACCEPTANCE-01",
+    "title": "派给子代理的任务没写怎么算做完",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "subagent"
+    },
+    "condition": {
+      "type": "regexMiss",
+      "in": "args.prompt",
+      "pattern": "验收|标准|成功条件|完成标准|通过条件|才算完|算通过|全部通过|判据|acceptance|expected|must pass"
+    },
+    "action": "warn",
+    "severity": "B",
+    "message": "这个子代理任务没写怎么算做完，交回来的东西对不对只能靠猜",
+    "fix": "补一句验收：交什么文件、跑什么命令、看到什么输出算通过；写不出验收条件，说明这活还没想清楚",
+    "reversible": true,
+    "evidence": {
+      "hits": 3,
+      "sessions": 1,
+      "source": "本机三次派活返工（派了没说验收标准，交回来对不上要求）"
+    },
+    "scene": "派活的时候只说做什么，不说交回来什么样算完；子代理交回来的东西对不上，才发现两个人想的不是一件事。",
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "description": "改登录页",
+            "prompt": "把登录页的按钮改成蓝色"
+          },
+          "expect": "block",
+          "note": "只说做什么，没说怎么算完"
+        },
+        {
+          "args": {
+            "description": "跑测试",
+            "prompt": "跑 npm test，全部通过才算完，失败用例贴出来"
+          },
+          "expect": "pass",
+          "note": "写了验收条件"
+        },
+        {
+          "args": {
+            "description": "无 prompt 字段"
+          },
+          "expect": "pass",
+          "note": "没有 prompt：不判"
         }
       ]
     }

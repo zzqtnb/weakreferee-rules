@@ -1,12 +1,12 @@
 {
   "_说明": "每个包的 rules.json 指纹。改规则要重新生成这份清单，否则加载时会提示不符。它只能发现文件被改动，不是签名。",
-  "generatedAt": "2026-11-24T18:37:55.355Z",
+  "generatedAt": "2026-11-25T14:50:04.138Z",
   "packs": {
     "core": {
       "file": "rules.json",
-      "rules": 12,
-      "bytes": 20224,
-      "sha256": "a7599aacabac8caf8d11d40e4624ee5d0c2a6a475410d9ce4d511c812e81de9d"
+      "rules": 13,
+      "bytes": 22012,
+      "sha256": "819f62a34c89608abe94326c6d8eeb502cfc5e637d175a8de1211a5ea17e3b85"
     },
     "cross-call": {
       "file": "rules.json",
@@ -16,15 +16,15 @@
     },
     "dsh-host": {
       "file": "rules.json",
-      "rules": 3,
-      "bytes": 5097,
-      "sha256": "76f1f59972e46d7c60fd2af3e918f1913ba91228edc48d75394a9fc1288866cd"
+      "rules": 4,
+      "bytes": 7684,
+      "sha256": "7b9c63c234f540b789ef3fa85292664ce7708ceeaf2110e4d39e90685de00750"
     },
     "windows-powershell": {
       "file": "rules.json",
       "rules": 16,
-      "bytes": 29825,
-      "sha256": "071ce5103145b5c1472f83c23f2aec3246bdacdf85f33a9c7d486feb62488789"
+      "bytes": 29824,
+      "sha256": "9fa361a1dd07c397ee28134d14302323febdb4f66bb41e57ee1f5cf4659c78ef"
     }
   }
 }

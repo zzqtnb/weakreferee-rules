@@ -2,6 +2,8 @@
 
 > 管 AI 的「手」：在它调用工具之前，检查这次调用的参数写对没有。
 
+判据清单在线版（4 个包 34 条，每条写明它看什么、命中时说什么、怎么改）：<https://zzqtnb.github.io/weakreferee-rules/>
+
 ## What this is (English)
 
 WeakReferee is a **guardrail** pack for AI coding agents: it inspects the arguments of a **tool call** *before* the call runs — missing required keys, near-miss key names, illegal JSON, PowerShell writes without `-Encoding`, and a few cross-call patterns such as sending an identical failed command again, or claiming a file was edited when nothing ever wrote it.
@@ -9,6 +11,8 @@ WeakReferee is a **guardrail** pack for AI coding agents: it inspects the argume
 Four ways to run it: a DSH **plugin**, an **MCP server** (Claude Code, Cursor, or any MCP client), a CLI, and a plain rules package. Rules are data, not code: a few dozen hand-written judgements expand into several hundred checks. It only ships checks that can be decided from the call itself; anything that needs judgement is recorded as a warning instead of a block.
 
 What it is not: not the first project of its kind (closely related ideas exist under *vacuity*, *record-replay divergence* and tool-call schema validation), and not an LLM evaluator — it cannot tell whether an answer is *correct*. It catches malformed or self-defeating agent behaviour, and blocks only what cannot possibly be meant.
+
+Every rule is listed publicly, with what it looks at, what it says when it fires, and how to fix it: <https://zzqtnb.github.io/weakreferee-rules/>
 
 Keywords: AI agent guardrail, LLM tool call validation, tool-call schema validation, MCP server, Claude Code / Cursor plugin, agent retry loop detection, empty tool result, PowerShell encoding guard, DSH plugin, AGPL-3.0.
 

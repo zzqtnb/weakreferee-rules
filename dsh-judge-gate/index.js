@@ -532,6 +532,7 @@ export function apply(ctx, config) {
       // cross-call 装了却一条都没加载，命令行的 packs 与运行时看到的不是同一批包）。
       const dirs = [];
       for (const p of packs) {
+        if (p === 'mine' || p === 'custom') continue; // 这两个走下面的 data/custom 分支
         if (!/^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(p)) continue;
         const byName = join(SELF_DIR, 'rules', p);
         if (existsSync(byName)) dirs.push(byName);

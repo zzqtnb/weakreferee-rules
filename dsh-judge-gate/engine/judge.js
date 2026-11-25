@@ -366,6 +366,18 @@ const CONDITION = {
     return !recentHistory(p.within || 20, hist).some(h => tools.includes(h.tool));
   },
 
+  // 最近 within 次调用里，指定工具出现过至少 min 次（默认 1）。
+  // 和 noCallSince 互补：要判「先做过 A、还没做 B」这种组合时，两个一起用。
+  calledSince(p, ctx) {
+    const hist = histOf(ctx);
+    if (!hist.length) return false;
+    const tools = (p.tools || [p.tool]).filter(Boolean);
+    if (!tools.length) return false;
+    const min = p.min == null ? 1 : p.min;
+    const n = recentHistory(p.within || 20, hist).filter(h => tools.includes(h.tool)).length;
+    return n >= min;
+  },
+
   // 最近 within 次调用里，指定工具出现次数少于 min 次（默认 1）。
   // 是 noCallSince 的放宽版：「至少要跑过两次」这种要求用它。
   callCountSince(p, ctx) {

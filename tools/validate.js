@@ -27,7 +27,7 @@ const CONDITION = [
   'missingFlag', 'regexHit', 'regexMiss', 'fileLacksBom', 'fileHasBom',
   'fileAnchorMissing', 'fileAnchorMultiple', 'fileNewerThan', 'fileNewerThanProcessStart', 'fileExistsBefore',
   'unknownKey', 'pathOutside', 'cmdAbsPathWritten',
-  'noCallSince', 'callCountSince', 'argRepeat',
+  'noCallSince', 'callCountSince', 'calledSince', 'argRepeat',
   'failRepeat', 'failCountSince', 'claimUnbacked',
 ];
 

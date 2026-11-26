@@ -40,14 +40,14 @@
 <body>
 <header>
   <h1>弱裁判 · 判据包索引</h1>
-  <p class="lead">这是一套装在 AI 和工具之间的检查。每次 AI 要动手之前，先把这次调用的参数过一遍判据：<b>能当场判死的拦下，判不了的说未验，不确定的只提醒</b>。一共 4 个包、34 条判据，装哪几条由用的人自己定，规矩以 JSON 存在本地，能读、能改、能带走。</p>
+  <p class="lead">这是一套装在 AI 和工具之间的检查。每次 AI 要动手之前，先把这次调用的参数过一遍判据：<b>能当场判死的拦下，判不了的说未验，不确定的只提醒</b>。一共 4 个包、38 条判据，装哪几条由用的人自己定，规矩以 JSON 存在本地，能读、能改、能带走。</p>
   <p class="lead">最后那列「累计命中」是作者机器上记过的次数，写在每条规则的 evidence 里，含改判据之前的历史。它不是实时数——实时数在本地那份面板里，按判据编号现算，只算改了记账格式之后的记录。0 次的分两种：还没到过那个场景，或者刚加上还没跑够。</p>
 </header>
 <main>
 <section id="core">
-    <h2>core <span class="n">12 条</span></h2>
+    <h2>core <span class="n">13 条</span></h2>
     <p class="what">通用规矩，跟哪台机器无关。协议写错、参数形态不对、交付物里留着占位符、没核就写「已验证」、引用没打开过的网址。</p>
-    <p class="note">任何装了这套东西的机器都适用。　12 条里 3 条会拦下，9 条只提示不拦截。</p>
+    <p class="note">任何装了这套东西的机器都适用。　13 条里 3 条会拦下，10 条只提示不拦截。</p>
     <div class="cmd"><code>node tools/judge-packs.cjs add core</code><button data-cmd="node tools/judge-packs.cjs add core">复制</button></div>
     <table>
       <thead><tr><th>编号</th><th>它看什么</th><th>命中时说什么</th><th>怎么改</th><th>后果</th><th>累计命中</th></tr></thead>
@@ -64,7 +64,7 @@
         <td class="id">CORE-PARAMS-GEN</td>
         <td class="t">参数形态（由工具契约表编译，不手写）</td>
         <td class="m"></td>
-        <td class="f"></td>
+        <td class="f">—</td>
         <td class="a block">拦下</td>
         <td class="h">165</td>
       </tr>
@@ -81,7 +81,7 @@
         <td class="t">git push 带 --force 会覆盖远端别人的提交</td>
         <td class="m">git push 带 --force 会把远端别人的提交直接顶掉，被顶的人下次拉取会丢一批记录</td>
         <td class="f">改用 --force-with-lease：远端要是被别人推过，它会拒绝，不会闷头覆盖</td>
-        <td class="a steer">只提示</td>
+        <td class="a warn">只提示</td>
         <td class="h">—</td>
       </tr>
 <tr>
@@ -89,7 +89,7 @@
         <td class="t">交给别人的文件里还留着占位符</td>
         <td class="m">写进去的内容里带着 [待补充] 这类占位符，交给别人就是一份没写完的东西</td>
         <td class="f">把占位符换成实际内容，或者明确写「此处待定：缺什么、等谁给」</td>
-        <td class="a steer">只提示</td>
+        <td class="a warn">只提示</td>
         <td class="h">—</td>
       </tr>
 <tr>
@@ -97,7 +97,7 @@
         <td class="t">写出来的东西满篇套话</td>
         <td class="m">正文里有明显的套话句式，交给别人一眼就能看出不是人写的</td>
         <td class="f">删掉套话，换成具体的事：谁做了什么、什么时候、结果是多少</td>
-        <td class="a steer">只提示</td>
+        <td class="a warn">只提示</td>
         <td class="h">—</td>
       </tr>
 <tr>
@@ -105,7 +105,7 @@
         <td class="t">文件内容里带出本机会话号或内部路径</td>
         <td class="m">正文里带着本机的会话号或内部路径，对外发出去等于把自己的目录结构交出去</td>
         <td class="f">把内部路径换成相对说法（「工作区里」「本地」），会话号删掉</td>
-        <td class="a steer">只提示</td>
+        <td class="a warn">只提示</td>
         <td class="h">—</td>
       </tr>
 <tr>
@@ -113,7 +113,7 @@
         <td class="t">交付文档里写了没证据的「已验证、运行稳定」</td>
         <td class="m">这段文字里出现了「已验证／运行稳定／无错误」这类断言，但没写凭什么这么说</td>
         <td class="f">补上证据：跑过哪条命令、几个用例、结果是什么；没跑过就把断言改成「未验证，待确认」</td>
-        <td class="a steer">只提示</td>
+        <td class="a warn">只提示</td>
         <td class="h">—</td>
       </tr>
 <tr>
@@ -121,7 +121,7 @@
         <td class="t">交付物名字里带「最终版」这类说法</td>
         <td class="m">文件名里带着「最终版」这类说法，过几天就分不清哪个才是最后一版</td>
         <td class="f">改成带日期或版本号的名字，例如 项目A-技术报告-20261124.md</td>
-        <td class="a steer">只提示</td>
+        <td class="a warn">只提示</td>
         <td class="h">—</td>
       </tr>
 <tr>
@@ -148,13 +148,21 @@
         <td class="a warn">只提示</td>
         <td class="h">—</td>
       </tr>
+<tr>
+        <td class="id">AGENT-NO-ACCEPTANCE-01</td>
+        <td class="t">派给子代理的任务没写怎么算做完</td>
+        <td class="m">这个子代理任务没写怎么算做完，交回来的东西对不对只能靠猜</td>
+        <td class="f">补一句验收：交什么文件、跑什么命令、看到什么输出算通过；写不出验收条件，说明这活还没想清楚</td>
+        <td class="a warn">只提示</td>
+        <td class="h">—</td>
+      </tr>
       </tbody>
     </table>
   </section>
 <section id="cross-call">
-    <h2>cross-call <span class="n">3 条</span></h2>
+    <h2>cross-call <span class="n">5 条</span></h2>
     <p class="what">单次调用看不出来、要连着看才发现的。同一条命令失败过又原样重发、同一个文件连着两次没过、嘴上说改好了但记录里没那次写。</p>
-    <p class="note">要读调用历史，装之前先确认宿主留了记录。　3 条里 0 条会拦下，3 条只提示不拦截。</p>
+    <p class="note">要读调用历史，装之前先确认宿主留了记录。　5 条里 0 条会拦下，5 条只提示不拦截。</p>
     <div class="cmd"><code>node tools/judge-packs.cjs add cross-call</code><button data-cmd="node tools/judge-packs.cjs add cross-call">复制</button></div>
     <table>
       <thead><tr><th>编号</th><th>它看什么</th><th>命中时说什么</th><th>怎么改</th><th>后果</th><th>累计命中</th></tr></thead>
@@ -183,13 +191,29 @@
         <td class="a warn">只提示</td>
         <td class="h">—</td>
       </tr>
+<tr>
+        <td class="id">WORK-CLAIM-VERIFIED-01</td>
+        <td class="t">说「全过/验证过了」，但最近没有一次成功的验证命令</td>
+        <td class="m">这条说验证过了，但记录里最近 15 分钟没有一次成功的 pwsh / node 调用</td>
+        <td class="f">把验的那条命令贴出来（哪条、输出哪几行），或者说清引用的是哪一次的结果</td>
+        <td class="a warn">只提醒</td>
+        <td class="h">—</td>
+      </tr>
+<tr>
+        <td class="id">WORK-EDIT-NO-SYNC-01</td>
+        <td class="t">改了规则 / 引擎 / 契约表，后面的调用里没出现过同步或重启核对</td>
+        <td class="m">改过规则 / 引擎 / 契约表，之后 30 次调用里没出现同步或重启核对——改的东西可能还没到运行位</td>
+        <td class="f">跑一次 judge-sync.ps1 -Apply；只改不发布就说明「这次不发」</td>
+        <td class="a warn">只提醒</td>
+        <td class="h">—</td>
+      </tr>
       </tbody>
     </table>
   </section>
 <section id="dsh-host">
-    <h2>dsh-host <span class="n">3 条</span></h2>
+    <h2>dsh-host <span class="n">4 条</span></h2>
     <p class="what">只管 DSH 这个宿主。改文件前锚点还在不在、判定结果是不是比代码还旧（改了判据没重启）、动文件前有没有留底。</p>
-    <p class="note">换个工具宿主就不适用，所以单独成包。　3 条里 1 条会拦下，2 条只提示不拦截。</p>
+    <p class="note">换个工具宿主就不适用，所以单独成包。　4 条里 1 条会拦下，3 条只提示不拦截。</p>
     <div class="cmd"><code>node tools/judge-packs.cjs add dsh-host</code><button data-cmd="node tools/judge-packs.cjs add dsh-host">复制</button></div>
     <table>
       <thead><tr><th>编号</th><th>它看什么</th><th>命中时说什么</th><th>怎么改</th><th>后果</th><th>累计命中</th></tr></thead>
@@ -215,7 +239,15 @@
         <td class="t">用命令改文件前先留个底</td>
         <td class="m">这条命令会覆盖或删掉一个绝对路径下的文件</td>
         <td class="f">先把它挪进回收站再动手：recycle.ps1 -Put &lt;路径&gt;</td>
-        <td class="a steer">只提示</td>
+        <td class="a warn">只提示</td>
+        <td class="h">—</td>
+      </tr>
+<tr>
+        <td class="id">BROWSER-CLICK-NO-SHOT-01</td>
+        <td class="t">按坐标点页面前没截过图</td>
+        <td class="m">按坐标点页面，但最近没截过图，点偏了也不知道点到哪</td>
+        <td class="f">先截图看这一屏再点坐标；或者改用元素定位（css / 文字）代替坐标</td>
+        <td class="a warn">只提示</td>
         <td class="h">—</td>
       </tr>
       </tbody>
@@ -271,17 +303,17 @@
       </tr>
 <tr>
         <td class="id">WIN-RMDIR-01<span class="legacy">J9</span></td>
-        <td class="t">递归删除没带 -WhatIf</td>
-        <td class="m">递归删除未带 -WhatIf（影子期只记不拦）</td>
-        <td class="f">先落完整清单，或先加 -WhatIf 干跑一遍再删</td>
+        <td class="t">递归删除变量/通配路径没带 -WhatIf</td>
+        <td class="m">递归删除的路径是变量或通配（删错目录救不回，回收站也未必留得住）</td>
+        <td class="f">先把要删的清单落成文件看一眼（Get-ChildItem $p -Recurse | Tee-Object 清单 -Encoding utf8），或先加 -WhatIf 干跑；字面路径直接删不归这条管</td>
         <td class="a warn">只提示</td>
         <td class="h">—</td>
       </tr>
 <tr>
         <td class="id">WIN-IRREVERSIBLE-01<span class="legacy">J13</span></td>
         <td class="t">不可逆系统动作前先备回滚材料</td>
-        <td class="m">不可逆动作（改注册表/服务/计划任务/磁盘/网络配置），rewind 与回收站都救不回</td>
-        <td class="f">先导出回滚材料（reg export / 服务定义 / 任务 XML），再执行</td>
+        <td class="m">不可逆系统动作，且这条命令里没带导出回滚材料（rewind 与回收站都救不回）</td>
+        <td class="f">同一条命令里先导出：reg export 键 文件、schtasks /query /xml、Export-Clixml；或加 -WhatIf 干跑。导出过了这条就不拦</td>
         <td class="a warn">只提示</td>
         <td class="h">—</td>
       </tr>
@@ -354,7 +386,7 @@
         <td class="t">往系统盘或临时目录写东西、装东西</td>
         <td class="m">目标是系统盘或临时目录：临时目录会被清掉，系统目录改了会影响别的软件</td>
         <td class="f">工具和依赖装到 D 盘独立目录（D:\&lt;软件名&gt;\），纯临时文件明确放 _tmp 并在收尾清掉</td>
-        <td class="a steer">只提示</td>
+        <td class="a warn">只提示</td>
         <td class="h">—</td>
       </tr>
       </tbody>

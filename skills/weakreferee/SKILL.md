@@ -1,6 +1,6 @@
 ---
 name: weakreferee
-description: 弱裁判把「我觉得对」换成机器能戳穿的检查：一套可自测的判据包（core / dsh-host / windows-powershell / cross-call 四个包，手写 36 条、展开 485 条细项）加三种接法——DSH 插件在工具调用前同步拦、安装包接任意 MCP 客户端或直接跑命令行、本 skill 只做自查提醒。用户问「这个操作该不该拦」「我之前踩过哪些重复的坑」「装个闸」「检查这次改动会不会又犯老错」「这套检查怎么给别人用」时使用。
+description: 弱裁判把「我觉得对」换成机器能戳穿的检查：一套可自测的判据包（core / dsh-host / windows-powershell / cross-call 四个包，手写 38 条、展开 487 条细项）加三种接法——DSH 插件在工具调用前同步拦、安装包接任意 MCP 客户端或直接跑命令行、本 skill 只做自查提醒。用户问「这个操作该不该拦」「我之前踩过哪些重复的坑」「装个闸」「检查这次改动会不会又犯老错」「这套检查怎么给别人用」时使用。
 license: AGPL-3.0
 compatibility: 插件形态需要 DSH 桌面版；安装包形态只需要 Node.js 22 以上（包里不带 node 运行时）；规则里 windows-powershell 域只在 Windows 上生效，core 域跨平台。
 metadata:

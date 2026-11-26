@@ -1,0 +1,46 @@
+name: ci
+
+# 为什么只跑这三条：
+#   validate 是结构闸（规则字段、编号唯一、两处同源清单一致），
+#   packs 是完整性（手写条数 → 展开条数、契约表读没读到），
+#   selftest 是行为闸（39 项装载/冒烟/记账/统计断言）。
+# 都不需要宿主、不需要网络、不需要装包，跑完一两分钟。
+# Windows runner：判据包里有一整个 windows-powershell，路径分隔符与 PowerShell 语义
+# 在 Linux 上验不准，宁可多花点 CI 分钟，也不让「本地过、CI 假过」。
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: 结构校验（规则字段 / 编号唯一 / 两处同源清单）
+        run: node tools/validate.js
+
+      - name: 判据包完整性（手写 → 展开、契约表读到没）
+        run: node weakreferee-cli.js packs
+
+      - name: 自检（装载 / 冒烟 / 记账 / 统计）
+        run: node weakreferee-cli.js selftest
+
+      # 门面数字别跟真身走散：文档是生成的，生成结果与仓库里那份不一致就算失败
+      - name: 文档与判据包一致（gen-docs 干跑）
+        shell: pwsh
+        run: |
+          $before = Get-FileHash docs/index.html -Algorithm SHA256
+          node tools/gen-docs.js --apply
+          $after = Get-FileHash docs/index.html -Algorithm SHA256
+          git checkout -- docs/index.html
+          if ($before.Hash -ne $after.Hash) {
+            Write-Error "docs/index.html 与 packs 不一致：跑 node tools/gen-docs.js --apply 并提交"
+          }

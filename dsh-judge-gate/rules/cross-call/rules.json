@@ -380,7 +380,7 @@
           "history": [
             {
               "tool": "write",
-              "target": "D:\\deepseek\\工作区\\weakreferee-rules\\dsh-judge-gate\\rules\\cross-call\\rules.json",
+              "target": "D:\\demo\\weakreferee\\dsh-judge-gate\\rules\\cross-call\\rules.json",
               "ok": true,
               "at": 1794999760000
             },
@@ -402,14 +402,14 @@
           "history": [
             {
               "tool": "write",
-              "target": "D:\\deepseek\\工作区\\weakreferee-rules\\dsh-judge-gate\\rules\\cross-call\\rules.json",
+              "target": "D:\\demo\\weakreferee\\dsh-judge-gate\\rules\\cross-call\\rules.json",
               "ok": true,
               "at": 1794999640000
             },
             {
               "tool": "pwsh",
               "args": {
-                "command": "powershell -File D:\\deepseek\\系统\\脚本\\judge-sync.ps1 -Apply"
+                "command": "powershell -File D:\\demo\\weakreferee\\judge-sync.ps1 -Apply"
               },
               "target": "",
               "ok": true,
@@ -443,7 +443,7 @@
           "history": [
             {
               "tool": "edit",
-              "target": "D:\\deepseek\\工作区\\weakreferee-rules\\dsh-judge-gate\\engine\\judge.js",
+              "target": "D:\\demo\\weakreferee\\dsh-judge-gate\\engine\\judge.js",
               "ok": true,
               "at": 1794999520000
             },
@@ -459,7 +459,7 @@
             {
               "tool": "pwsh",
               "args": {
-                "command": "powershell -File D:\\deepseek\\系统\\脚本\\judge-sync.ps1 -Apply"
+                "command": "powershell -File D:\\demo\\weakreferee\\judge-sync.ps1 -Apply"
               },
               "target": "",
               "ok": true,

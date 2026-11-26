@@ -42,7 +42,7 @@ const LEDGER_FILE = path.join(DATA, 'panel-ledger.jsonl');
 const PORT = Number(argVal('--port', process.env.WR_PANEL_PORT || 7788));
 
 // 拦截账本：默认指向本项目工作区那份，可用 WR_LEDGER 覆盖
-const LEDGER = process.env.WR_LEDGER || 'D:\\deepseek\\工作区\\弱裁判\\拦截.tsv';
+const LEDGER = process.env.WR_LEDGER || path.join(ROOT, '..', '..', '拦截.tsv');
 
 // ---------- 判据库：catalog 里那批带「判据／例子／边界」的说明条目 ----------
 // 说明条目不是判据本身（正则与自测在包里），它回答「这条在查什么、什么该拦什么不该拦」。

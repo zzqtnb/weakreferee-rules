@@ -196,7 +196,7 @@ function check(name, args, badJson) {
 }
 
 // ── J8 / J9 / J10：从错误库搬过来的三条文本判据（2026-11-20）
-// 交接条件（见 经验库\教训去向.json）：只判「写法形态确定」的事，不判语义。
+// 交接条件（见 系统\规则\经验库\教训去向.json）：只判「写法形态确定」的事，不判语义。
 //   J8  pwsh 用 > 重定向或 Out-File/Set-Content/Add-Content 写文本文件却没 -Encoding
 //       ——中文会按默认编码落盘，读回来就是乱码（e-m-02，6 天记了 10 条、从未合并）
 //   J9  递归删除没带 -WhatIf（e-m-05）。**影子期：只记不拦**，先看一周误拦率再决定要不要拦
@@ -388,9 +388,9 @@ function taskTier(name, args) {
     const tp = String(args.file_path || "").replace(/\//g, "\\");
     if (!tp) return 0;
     if (/_tmp\\/i.test(tp)) return 1;
-    if (/经验库\\/i.test(tp)) return 0;
-    if (/工具脚本\\/i.test(tp) && /\.(ps1|js|mjs|cjs|json)$/i.test(tp)) return 4;
-    if (/交付区\\|自动化报告\\/i.test(tp)) return 3;
+    if (/(?:系统\\规则\\)?经验库\\/i.test(tp)) return 0;
+    if (/(?:工具脚本|系统\\脚本)\\/i.test(tp) && /\.(ps1|js|mjs|cjs|json)$/i.test(tp)) return 4;
+    if (/(?:交付区|自动化报告|资产\\交付|系统\\报表)\\/i.test(tp)) return 3;
     return 2;
   }
   if (name === "pwsh") {
@@ -398,7 +398,7 @@ function taskTier(name, args) {
     const w = new RegExp("(Set-" + "Content|Add-" + "Content|Out-" + "File|WriteAllText|WriteAllLines|Copy-Item|Move-Item|Remove-Item|New-Item)\\b", "i");
     if (w.test(maskQuoted(c))) {
       if (/_tmp/i.test(c)) return 1;
-      if (/工具脚本/i.test(c)) return 4;
+      if (/工具脚本|系统\\脚本/i.test(c)) return 4;
       return 2;
     }
     return 0;

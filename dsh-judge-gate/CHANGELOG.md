@@ -2,6 +2,29 @@
 
 只写「换到这一版会有什么不同」，不写内部重构过程。
 
+## 0.4.2 — 2026-11-26
+
+这一版加的是「一串调用当整体看」的判据（此前 36 条里只有 cross-call 3 条属这一族），装的规矩没动。
+
+- 引擎新增两个条件类型：`claimCmdUnbacked`（说验证过了但最近没有一次成功的命令）、`obligationPending`（开了口子之后没出现收口动作）。两个都是新增分支，已有条件一个没改
+- 历史条目多认几种形状：运行位小本子存 `{tool,target,ok,at}`，自测与回放的历史条可能带 `args` —— 工作链判据两边都认（`histText()`），缺哪个退到下一个
+- cross-call 包 3 条 → 5 条：`WORK-CLAIM-VERIFIED-01`（说全过但没跑过命令）、`WORK-EDIT-NO-SYNC-01`（改了 rules/engine/契约表没同步）。两条都只有自测用例、真机 0 命中，动作档是 **steer** 不是 warn——按入库存档口径「推断档 + 误拦 medium 最多 steer」，真机命中并人判为真再升
+- `validate.js` 的条件白名单补两个类型；`packs/cross-call/pack.json` 条数与 ruleIds 跟上
+- 判据库说明补两条（`catalog/workflow/WORK-*.json`），都写「未实测｜真机 0 命中」，不冒充已测
+- `install.ps1` 的卸载与覆盖分支原来直接 `Remove-Item -Recurse -Force`：目标若是目录联接，会顺着链接把真身目录一起删掉。现在先判 `ReparsePoint`／`LinkType`，是联接只摘链接、不碰目标；同时给三处 `IndexOf` 加了负数保护（找不到分隔符时不再把整行当子串传下去）
+## 0.4.1 — 2026-11-26
+
+这一版修的是「判据写了但根本不响」和「拦得太宽」，装上前后的差别有五处：
+
+- 类型判据开始真的判了：包内缺 `contract/tool-types.json` 时引擎的类型表是空的，`CORE-ARGTYPE-01` 一直静默放行。补上这张表（275 个工具的参数形状）并随安装包一起发
+- 自测用例里写的 `tool` 现在生效了：此前 `packmgr.mkCall` 一律用规则自己的 `appliesTo.tool`，`*` 的规则永远查不到类型表，用例怎么改都还是红
+- `WIN-RMDIR-01` 收窄：只认「删除动词后面直接跟变量或通配」的写法，命令尾部字符串里出现 `$()` 不再算；同一批语料 241 → 154
+- `WIN-IRREVERSIBLE-01` 收窄：`vssadmin`／`wbadmin` 只认改的命令（`create|delete|resize|revert`、`start|delete|disable`），`vssadmin list shadows` 这类只读不再算
+- 六条命中不了任何真实调用的判据从运行位移出（`data/judges-installed.json` 的 `removed`），判据库说明照旧保留：`CAT-NAMING-01`、`WIN-SQL-DELETE-01`、`WIN-GIT-DISCARD-01`、`WIN-PERM-OPEN-01`、`WIN-SQL-DROP-01`、`WIN-LOG-WIPE-01`
+
+现在跑在闸里的是 33 条（手写 36 减 removed 6，加自建 3），展开细项不变。四包自测全过（core 12 条 35 用例、windows-powershell 16 条 61 用例、dsh-host 4 条 10 用例、cross-call 3 条 8 用例）；29,949 条历史工具调用重放会拦下 386 次。
+
+改完要重启宿主才生效：规则文件比宿主进程新时，闸跑的还是旧逻辑。
 ## 0.4.0 — 2026-11-25
 
 这一版改的是「怎么用它」，闸的判断逻辑本身没动。装上后行为有五点不同：

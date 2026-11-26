@@ -324,7 +324,7 @@
   {
     "id": "WIN-RMDIR-01",
     "legacyJudge": "J9",
-    "title": "递归删除没带 -WhatIf",
+    "title": "递归删除变量/通配路径没带 -WhatIf",
     "when": "tool:pre",
     "appliesTo": {
       "tool": "pwsh",
@@ -341,6 +341,12 @@
           "pattern": "\\b(Remove-Item|rm|ri|del|erase|rd|rmdir)\\b[^|;]*(-Recurse\\b|/s\\b|-r\\b|/q\\s*/s)"
         },
         {
+          "type": "regexHit",
+          "in": "args.command",
+          "maskQuoted": true,
+          "pattern": "\\b(Remove-Item|ri|rm|del|erase|rd|rmdir)\\b\\s+(?:(?:-\\w+|/\\w+)\\s+)*(?:\"[\\$*]|'[\\$*]|\\$[A-Za-z_{(]|%[A-Za-z_][A-Za-z0-9_]*%|[^\\s;|]*\\*)"
+        },
+        {
           "type": "regexMiss",
           "in": "args.command",
           "maskQuoted": true,
@@ -350,8 +356,8 @@
     },
     "action": "warn",
     "severity": "A",
-    "message": "递归删除未带 -WhatIf（影子期只记不拦）",
-    "fix": "先落完整清单，或先加 -WhatIf 干跑一遍再删",
+    "message": "递归删除的路径是变量或通配（删错目录救不回，回收站也未必留得住）",
+    "fix": "先把要删的清单落成文件看一眼（Get-ChildItem $p -Recurse | Tee-Object 清单 -Encoding utf8），或先加 -WhatIf 干跑；字面路径直接删不归这条管",
     "reversible": false,
     "evidence": {
       "hits": 0,
@@ -362,24 +368,40 @@
       "cases": [
         {
           "args": {
-            "command": "Remove-Item D:\\x -Recurse"
+            "command": "Remove-Item $p -Recurse"
           },
           "expect": "block"
         },
         {
           "args": {
-            "command": "Remove-Item D:\\x -Recurse -WhatIf"
+            "command": "Remove-Item D:\\tmp\\* -Recurse"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "Remove-Item 'D:\\tmp\\old' -Recurse"
           },
           "expect": "pass"
         },
         {
           "args": {
-            "command": "Get-Content a | Select-String 'Remove-Item -Recurse'"
+            "command": "Remove-Item $p -Recurse -WhatIf"
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
+            "command": "Get-Content a.ps1 | Select-String 'Remove-Item \\$p -Recurse'"
           },
           "expect": "pass"
         }
       ],
-      "needFs": false
+      "needFs": false,
+      "note": [
+        "2026-11-26 收窄：原来凡递归删都提示（历史 241 次全是日常清理），改成只在「删除目标本身是变量/通配」时提示",
+        "第三轮再收紧：变量/通配必须出现在删除动词的参数位上；命令尾部字符串里的 $() 不算（190 条假阳全来自这种写法）"
+      ]
     },
     "scene": "一条递归删除直接跑下去，删完才发现目录里还混着不该删的东西，回收站里也未必找得回来。"
   },
@@ -395,15 +417,25 @@
       ]
     },
     "condition": {
-      "type": "regexHit",
-      "in": "args.command",
-      "maskQuoted": true,
-      "pattern": "\\b(reg\\s+(add|delete|import)|New-Service|Set-Service|Remove-Service|Register-ScheduledTask|Unregister-ScheduledTask|Format-Volume|Initialize-Disk|Clear-Disk|vssadmin|wbadmin)\\b|\\bsc(\\.exe)?\\s+(create|delete|config)\\b|\\bschtasks(\\.exe)?\\s+/(create|delete)\\b|\\bnetsh\\s+(int|advfirewall|winsock)\\s+\\w+\\s+(set|reset|delete)\\b|\\bdiskpart\\b"
+      "all": [
+        {
+          "type": "regexHit",
+          "in": "args.command",
+          "maskQuoted": true,
+          "pattern": "\\b(reg\\s+(add|delete|import)|New-Service|Set-Service|Remove-Service|Register-ScheduledTask|Unregister-ScheduledTask|Format-Volume|Initialize-Disk|Clear-Disk|vssadmin\\s+(create|delete|resize|revert)|wbadmin\\s+(start|delete|disable))\\b|\\bsc(\\.exe)?\\s+(create|delete|config)\\b|\\bschtasks(\\.exe)?\\s+/(create|delete)\\b|\\bnetsh\\s+(int|advfirewall|winsock)\\s+\\w+\\s+(set|reset|delete)\\b|\\bdiskpart\\b"
+        },
+        {
+          "type": "regexMiss",
+          "in": "args.command",
+          "maskQuoted": true,
+          "pattern": "\\breg\\s+export\\b|\\bschtasks[^|;]*/query\\b|\\bExport-[A-Za-z]+\\b|\\bGet-Service\\b[^|;]*\\|\\s*Export-Csv|--dry-run\\b|-WhatIf\\b"
+        }
+      ]
     },
     "action": "warn",
     "severity": "A",
-    "message": "不可逆动作（改注册表/服务/计划任务/磁盘/网络配置），rewind 与回收站都救不回",
-    "fix": "先导出回滚材料（reg export / 服务定义 / 任务 XML），再执行",
+    "message": "不可逆系统动作，且这条命令里没带导出回滚材料（rewind 与回收站都救不回）",
+    "fix": "同一条命令里先导出：reg export 键 文件、schtasks /query /xml、Export-Clixml；或加 -WhatIf 干跑。导出过了这条就不拦",
     "reversible": false,
     "evidence": {
       "hits": 0,
@@ -426,6 +458,18 @@
         },
         {
           "args": {
+            "command": "reg export HKCU\\Software\\x x.reg; reg add HKCU\\Software\\x /v y /d z"
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
+            "command": "Set-Service Spooler -StartupType Disabled -WhatIf"
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
             "command": "Get-Service"
           },
           "expect": "pass"
@@ -437,7 +481,10 @@
           "expect": "pass"
         }
       ],
-      "needFs": false
+      "needFs": false,
+      "note": [
+        "2026-11-26 改：原来只要出现不可逆动作就提示，不看有没有先导出（历史 11 次多为正常操作）"
+      ]
     },
     "scene": "改注册表、服务或计划任务之前没有导出旧配置，出问题只能靠回忆往回改，改错一处就再也回不到原样。"
   },

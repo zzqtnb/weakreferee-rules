@@ -78,7 +78,11 @@ function Find-JsonBlock([Collections.Generic.List[string]]$ls, [string]$key) {
       $text = ''
       for ($j = $i; $j -lt $ls.Count; $j++) {
         $line = $ls[$j]
-        if ($j -eq $i) { $line = $line.Substring($line.IndexOf($open)) }
+        if ($j -eq $i) {
+          $iOp = $line.IndexOf($open)
+          if ($iOp -lt 0) { return $null }   # 找不到开括号：形状认不出，交回上层（IndexOf 返回 -1 别当位置用）
+          $line = $line.Substring($iOp)
+        }
         foreach ($ch in $line.ToCharArray()) {
           if ($ch -eq $open) { $depth++ }
           elseif ($ch -eq $close) { $depth-- }
@@ -99,6 +103,7 @@ function Insert-BlockEntry([Collections.Generic.List[string]]$ls, $blk, [string]
     $line = $ls[$blk.start]
     $iOpen = $line.IndexOf($blk.open)
     $iClose = $line.LastIndexOf($blk.close)
+    if ($iOpen -lt 0 -or $iClose -le $iOpen) { return $false }   # 形状认不出就别猜着改
     $head = $line.Substring(0, $iOpen + 1)
     $inner = ''
     if ($iClose -gt $iOpen + 1) { $inner = $line.Substring($iOpen + 1, $iClose - $iOpen - 1) }
@@ -138,6 +143,20 @@ function Add-InlineEntry([Collections.Generic.List[string]]$ls, [string]$key, [s
   return $true
 }
 
+# 递归删除前先判联接：目标是 junction/符号链接就只摘链接，不进真目录（错误库 L115 / 判据 J11）
+function Remove-DirSafe([string]$path) {
+  if (-not (Test-Path -LiteralPath $path)) { return '不存在，跳过' }
+  $it = Get-Item -LiteralPath $path -Force
+  $isLink = (([int]$it.Attributes -band [int][IO.FileAttributes]::ReparsePoint) -ne 0) -or [bool]$it.LinkType
+  if ($isLink) {
+    # 只摘链接本身：junction 的 Delete() 不会跟随进入指向的真实目录
+    $it.Delete()
+    return '目标是联接，只摘了链接（指向的真目录没动）'
+  }
+  Remove-Item -LiteralPath $path -Recurse -Force
+  return '目录已删'
+}
+
 if ($Uninstall) {
   Write-Step 2 "卸载目标 $target"
   if ($DryRun) {
@@ -149,8 +168,7 @@ if ($Uninstall) {
   Copy-Item -LiteralPath $pjPath -Destination $bak -Force
   Write-Step 3 "备份 $bak"
   if (Test-Path -LiteralPath $target) {
-    Remove-Item -LiteralPath $target -Recurse -Force
-    Write-Step 4 '目录已删'
+    Write-Step 4 (Remove-DirSafe $target)
   } else {
     Write-Step 4 '目录本来就不在'
   }
@@ -198,7 +216,7 @@ Copy-Item -LiteralPath $pjPath -Destination $bak -Force
 Write-Step 3 "备份 $bak"
 
 New-Item -ItemType Directory -Force -Path $nmDir | Out-Null
-if (Test-Path -LiteralPath $target) { Remove-Item -LiteralPath $target -Recurse -Force }
+if (Test-Path -LiteralPath $target) { $null = Remove-DirSafe $target }
 New-Item -ItemType Directory -Force -Path $target | Out-Null
 foreach ($item in $Bundled) {
   Copy-Item -LiteralPath (Join-Path $Source $item) -Destination $target -Recurse -Force

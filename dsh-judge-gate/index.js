@@ -142,10 +142,10 @@ function tierInfo(exec) {
   }
   // 4 档：改脚本或判据
   if ((name === 'write' || name === 'edit') && paths.some((p) => SCRIPT_EXT.test(p))) return { tier: 4, why: '改脚本/配置' };
-  if (name === 'pwsh' && /工具脚本|判据库|rules\.json/.test(cmd) && WRITE_VERB.test(cmd)) return { tier: 4, why: '命令改脚本/判据' };
+  if (name === 'pwsh' && /工具脚本|系统\\脚本|判据库|rules\.json/.test(cmd) && WRITE_VERB.test(cmd)) return { tier: 4, why: '命令改脚本/判据' };
   // 3 档：交付/收尾
   if (['present', 'dsh_im_return_file', 'office_edit', 'office_save', 'novel_write_chapter'].includes(name)) return { tier: 3, why: '交付/收尾' };
-  if ((name === 'write' || name === 'edit') && paths.some((p) => /交付区|自动化报告/.test(p))) return { tier: 3, why: '写交付区/报告' };
+  if ((name === 'write' || name === 'edit') && paths.some((p) => /交付区|自动化报告|资产\\交付|系统\\报表/.test(p))) return { tier: 3, why: '写交付区/报告' };
   // 2 档：动正式位置（写 _tmp / 经验库 / 回收站 不算）
   if (name === 'pwsh' && WRITE_VERB.test(cmd) && !SOFT_DIR.test(cmd)) return { tier: 2, why: '命令动文件' };
   if ((name === 'write' || name === 'edit') && paths.some((p) => /[\\/]/.test(p) && !SOFT_DIR.test(p))) return { tier: 2, why: '写正式位置' };

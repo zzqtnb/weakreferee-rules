@@ -1,0 +1,29 @@
+{
+  "id": "WORK-EDIT-NO-SYNC-01",
+  "title": "WORK-EDIT-NO-SYNC-01 改了规则 / 引擎 / 契约表，后面的调用里没出现过同步或重启核对",
+  "domain": "workflow",
+  "audience": [
+    "dev"
+  ],
+  "evidence": {
+    "level": "推断",
+    "hits": 0,
+    "sessions": 0,
+    "source": "2026-11-26 实战：仓库那份改完要靠 judge-sync 才到运行位，漏了这一步时「改了却没生效」只能靠人记着——当天就漏过一次（改完先跑 manifest 再拷文件，顺序反了）"
+  },
+  "falsePositiveRisk": "medium",
+  "defaultAction": "steer",
+  "message": "改过规则 / 引擎 / 契约表，之后 30 次调用里没出现同步或重启核对——改的东西可能还没到运行位",
+  "fix": "跑一次 judge-sync.ps1 -Apply；只改不发布就说明「这次不发」",
+  "severity": "C",
+  "reversible": true,
+  "promotedTo": "cross-call#WORK-EDIT-NO-SYNC-01",
+  "notes": [
+    "判据：最近 30 次调用里最后一次「改了 rules/*/rules.json、engine/*.js、contract/tool-types.json」，之后没有任何一条命中 judge-sync / -Apply / Get-CimInstance Win32_Process / Get-Process",
+    "例子｜该拦：改完 rules.json 接着去读别的文件；不该拦：改完跑了同步、或者改的只是普通文档",
+    "边界：改完先攒着、晚点一次性同步（在这段窗口里会一路提示）；只改仓库不打算发布（提示属噪声，正确做法是嘴上说明「这次不发」）",
+    "未实测｜真机 0 命中（这条上线前的所有同步都是手工做的，没有账本可数）——先挂 warn 观察",
+    "本条以 rules.json 为准；本文件只说明「检查什么、为什么、怎么救」",
+    "动作档：steer（2026-11-26 validate 口径——推断档 + 误拦 medium 最多到 steer；真机命中且人判为真再升 warn）"
+  ]
+}

@@ -1,0 +1,3979 @@
+{
+ "generatedAt": "2026-11-19T09:46:52.457Z",
+ "sources": [
+  "D:\\deepseek\\工作区\\ai训练\\_tmp\\session-40e772cf.txt",
+  "D:\\deepseek\\工作区\\ai训练\\_tmp\\archive\\19333fc3.txt",
+  "D:\\deepseek\\工作区\\ai训练\\_tmp\\archive\\2163139a.txt",
+  "D:\\deepseek\\工作区\\ai训练\\_tmp\\archive\\5ff97019.txt"
+ ],
+ "headers": 115,
+ "totals": {
+  "tools": 275,
+  "withType": 247,
+  "typedKeys": 979,
+  "enumKeys": 90
+ },
+ "tools": {
+  "acp_cache": {
+   "detail": {
+    "type": "string",
+    "enum": [
+     "summary",
+     "full"
+    ]
+   }
+  },
+  "acp_read_original_image": {
+   "ref": {
+    "type": "string"
+   }
+  },
+  "acp_status": {
+   "scope": {
+    "type": "string"
+   },
+   "view": {
+    "type": "string"
+   },
+   "tool": {
+    "type": "string"
+   },
+   "sort": {
+    "type": "string"
+   },
+   "limit": {
+    "type": "number"
+   },
+   "archiveDetail": {
+    "type": "boolean"
+   }
+  },
+  "activate_tools": {
+   "identifiers": {
+    "type": "array"
+   },
+   "reason": {
+    "type": "string"
+   }
+  },
+  "advanced_search": {
+   "query": {
+    "type": "string"
+   },
+   "maxResults": {
+    "type": "number"
+   },
+   "timeRange": {
+    "type": "string"
+   },
+   "engine": {
+    "type": "string"
+   }
+  },
+  "ask_user_question": {
+   "questions": {
+    "type": "array"
+   }
+  },
+  "automation_create": {
+   "name": {
+    "type": "string"
+   },
+   "prompt": {
+    "type": "string"
+   },
+   "kind": {
+    "type": "string",
+    "enum": [
+     "once",
+     "interval",
+     "hourly",
+     "daily",
+     "weekly",
+     "monthly",
+     "custom"
+    ]
+   },
+   "time_zone": {
+    "type": "string"
+   },
+   "at": {
+    "type": "string"
+   },
+   "every_minutes": {
+    "type": "integer"
+   },
+   "minute": {
+    "type": "integer"
+   },
+   "time": {
+    "type": "string"
+   },
+   "weekdays": {
+    "type": "array"
+   },
+   "month_day": {
+    "type": "integer"
+   },
+   "every_days": {
+    "type": "integer"
+   },
+   "max_concurrent_runs": {
+    "type": "integer"
+   },
+   "permission": {
+    "type": "string",
+    "enum": [
+     "read-only",
+     "workspace-write",
+     "danger-full-access"
+    ]
+   },
+   "agent_preset": {
+    "type": "string"
+   },
+   "workspace": {
+    "type": "string"
+   },
+   "cross_workspace": {
+    "type": "boolean"
+   },
+   "session_mode": {
+    "type": "string",
+    "enum": [
+     "fresh",
+     "reuse"
+    ]
+   }
+  },
+  "automation_delete": {
+   "id": {
+    "type": "string"
+   },
+   "cross_workspace": {
+    "type": "boolean"
+   }
+  },
+  "automation_list": {
+   "all_workspaces": {
+    "type": "boolean"
+   },
+   "include_prompt": {
+    "type": "boolean"
+   }
+  },
+  "automation_run_now": {
+   "id": {
+    "type": "string"
+   },
+   "cross_workspace": {
+    "type": "boolean"
+   }
+  },
+  "automation_runs": {
+   "automation_id": {
+    "type": "string"
+   },
+   "limit": {
+    "type": "integer"
+   }
+  },
+  "automation_update": {
+   "id": {
+    "type": "string"
+   },
+   "name": {
+    "type": "string"
+   },
+   "prompt": {
+    "type": "string"
+   },
+   "status": {
+    "type": "string",
+    "enum": [
+     "active",
+     "paused"
+    ]
+   },
+   "workspace": {
+    "type": "string"
+   },
+   "cross_workspace": {
+    "type": "boolean"
+   },
+   "kind": {
+    "type": "string",
+    "enum": [
+     "once",
+     "interval",
+     "hourly",
+     "daily",
+     "weekly",
+     "monthly",
+     "custom"
+    ]
+   },
+   "time_zone": {
+    "type": "string"
+   },
+   "at": {
+    "type": "string"
+   },
+   "every_minutes": {
+    "type": "integer"
+   },
+   "minute": {
+    "type": "integer"
+   },
+   "time": {
+    "type": "string"
+   },
+   "weekdays": {
+    "type": "array"
+   },
+   "month_day": {
+    "type": "integer"
+   },
+   "every_days": {
+    "type": "integer"
+   },
+   "max_concurrent_runs": {
+    "type": "integer"
+   },
+   "permission": {
+    "type": "string",
+    "enum": [
+     "read-only",
+     "workspace-write",
+     "danger-full-access"
+    ]
+   },
+   "agent_preset": {
+    "type": "string"
+   },
+   "session_mode": {
+    "type": "string",
+    "enum": [
+     "fresh",
+     "reuse"
+    ]
+   }
+  },
+  "ba_exec": {
+   "command": {
+    "type": "string"
+   },
+   "cwd": {
+    "type": "string"
+   },
+   "timeoutMs": {
+    "type": "integer"
+   }
+  },
+  "ba_read": {
+   "path": {
+    "type": "string"
+   },
+   "offset": {
+    "type": "integer"
+   },
+   "limit": {
+    "type": "integer"
+   }
+  },
+  "ba_write": {
+   "path": {
+    "type": "string"
+   },
+   "content": {
+    "type": "string"
+   },
+   "append": {
+    "type": "boolean"
+   }
+  },
+  "cache_search": {
+   "query": {
+    "type": "string"
+   },
+   "limit": {
+    "type": "number"
+   }
+  },
+  "cad_assembly_connect": {
+   "instanceId": {
+    "type": "string"
+   },
+   "parent": {
+    "type": "string"
+   },
+   "parentLabel": {
+    "type": "string"
+   },
+   "childLabel": {
+    "type": "string"
+   }
+  },
+  "cad_assembly_drive": {
+   "instanceId": {
+    "type": "string"
+   },
+   "label": {
+    "type": "string"
+   }
+  },
+  "cad_assembly_explode": {
+   "factor": {
+    "type": "number"
+   }
+  },
+  "cad_assembly_info": {},
+  "cad_assembly_insert": {
+   "bodyId": {
+    "type": "string"
+   },
+   "at": {
+    "type": "array"
+   },
+   "rotate": {
+    "type": "array"
+   },
+   "name": {
+    "type": "string"
+   }
+  },
+  "cad_assembly_joint": {
+   "instanceId": {
+    "type": "string"
+   },
+   "label": {
+    "type": "string"
+   }
+  },
+  "cad_assembly_move": {
+   "instanceId": {
+    "type": "string"
+   },
+   "at": {
+    "type": "array"
+   },
+   "rotate": {
+    "type": "array"
+   }
+  },
+  "cad_assembly_remove": {
+   "instanceId": {
+    "type": "string"
+   }
+  },
+  "cad_assembly_solve": {},
+  "cad_boolean": {
+   "op": {
+    "type": "string",
+    "enum": [
+     "fuse",
+     "cut",
+     "common"
+    ]
+   },
+   "target": {
+    "type": "string"
+   },
+   "tools": {
+    "type": "array"
+   }
+  },
+  "cad_chamfer": {
+   "target": {
+    "type": "string"
+   },
+   "distance": {
+    "type": "number"
+   }
+  },
+  "cad_constraint": {
+   "entities": {
+    "type": "array"
+   },
+   "constraints": {
+    "type": "array"
+   },
+   "clear": {
+    "type": "boolean"
+   }
+  },
+  "cad_create_prim": {
+   "kind": {
+    "type": "string",
+    "enum": [
+     "box",
+     "cylinder",
+     "sphere",
+     "cone",
+     "torus"
+    ]
+   },
+   "dx": {
+    "type": "number"
+   },
+   "dy": {
+    "type": "number"
+   },
+   "dz": {
+    "type": "number"
+   },
+   "radius": {
+    "type": "number"
+   },
+   "radius1": {
+    "type": "number"
+   },
+   "radius2": {
+    "type": "number"
+   },
+   "height": {
+    "type": "number"
+   },
+   "majorRadius": {
+    "type": "number"
+   },
+   "minorRadius": {
+    "type": "number"
+   },
+   "at": {
+    "type": "array"
+   },
+   "axis": {
+    "type": "array"
+   },
+   "name": {
+    "type": "string"
+   }
+  },
+  "cad_delete": {
+   "target": {
+    "type": "string"
+   }
+  },
+  "cad_doc_delete": {
+   "doc": {
+    "type": "string"
+   },
+   "confirm": {
+    "type": "boolean"
+   }
+  },
+  "cad_doc_new": {
+   "name": {
+    "type": "string"
+   }
+  },
+  "cad_doc_open": {
+   "doc": {
+    "type": "string"
+   }
+  },
+  "cad_doc_rename": {
+   "doc": {
+    "type": "string"
+   },
+   "name": {
+    "type": "string"
+   }
+  },
+  "cad_docs": {},
+  "cad_draft": {
+   "target": {
+    "type": "string"
+   },
+   "angle": {
+    "type": "number"
+   },
+   "direction": {
+    "type": "array"
+   }
+  },
+  "cad_drawing": {
+   "target": {
+    "type": "string"
+   },
+   "paper": {
+    "type": "string",
+    "enum": [
+     "A4",
+     "A3"
+    ]
+   },
+   "name": {
+    "type": "string"
+   }
+  },
+  "cad_export": {
+   "target": {
+    "type": "string"
+   },
+   "path": {
+    "type": "string"
+   }
+  },
+  "cad_extrude_profile": {
+   "points": {
+    "type": "array"
+   },
+   "sketch": {
+    "type": "string"
+   },
+   "height": {
+    "type": "number"
+   },
+   "base": {
+    "type": "number"
+   },
+   "name": {
+    "type": "string"
+   }
+  },
+  "cad_fillet": {
+   "target": {
+    "type": "string"
+   },
+   "radius": {
+    "type": "number"
+   }
+  },
+  "cad_freecad": {
+   "steps": {
+    "type": "array"
+   },
+   "input": {
+    "type": "string"
+   },
+   "exportPath": {
+    "type": "string"
+   },
+   "headless": {
+    "type": "boolean"
+   }
+  },
+  "cad_fusion": {
+   "steps": {
+    "type": "array"
+   },
+   "exportPath": {
+    "type": "string"
+   }
+  },
+  "cad_image_profile": {
+   "path": {
+    "type": "string"
+   },
+   "threshold": {
+    "type": "number"
+   },
+   "invert": {
+    "type": "boolean"
+   },
+   "tolerance": {
+    "type": "number"
+   },
+   "scale": {
+    "type": "number"
+   }
+  },
+  "cad_info": {
+   "path": {
+    "type": "string"
+   }
+  },
+  "cad_loft": {
+   "sections": {
+    "type": "array"
+   },
+   "smooth": {
+    "type": "boolean"
+   },
+   "ruled": {
+    "type": "boolean"
+   },
+   "solid": {
+    "type": "boolean"
+   },
+   "name": {
+    "type": "string"
+   }
+  },
+  "cad_motion": {
+   "constraintId": {
+    "type": "number"
+   },
+   "from": {
+    "type": "number"
+   },
+   "to": {
+    "type": "number"
+   },
+   "frames": {
+    "type": "number"
+   }
+  },
+  "cad_onshape": {
+   "steps": {
+    "type": "array"
+   },
+   "documentId": {
+    "type": "string"
+   },
+   "workspaceId": {
+    "type": "string"
+   },
+   "elementId": {
+    "type": "string"
+   },
+   "documentName": {
+    "type": "string"
+   },
+   "readback": {
+    "type": "string"
+   },
+   "exportPath": {
+    "type": "string"
+   }
+  },
+  "cad_pattern": {
+   "target": {
+    "type": "string"
+   },
+   "mode": {
+    "type": "string",
+    "enum": [
+     "linear",
+     "circular"
+    ]
+   },
+   "count": {
+    "type": "number"
+   },
+   "delta": {
+    "type": "array"
+   },
+   "axis": {
+    "type": "array"
+   },
+   "at": {
+    "type": "array"
+   },
+   "angle": {
+    "type": "number"
+   }
+  },
+  "cad_revolve": {
+   "sketch": {
+    "type": "string"
+   },
+   "angle": {
+    "type": "number"
+   },
+   "axis": {
+    "type": "array"
+   },
+   "at": {
+    "type": "array"
+   },
+   "name": {
+    "type": "string"
+   }
+  },
+  "cad_script": {
+   "language": {
+    "type": "string",
+    "enum": [
+     "js",
+     "py"
+    ]
+   },
+   "code": {
+    "type": "string"
+   },
+   "timeoutMs": {
+    "type": "number"
+   }
+  },
+  "cad_shell": {
+   "target": {
+    "type": "string"
+   },
+   "thickness": {
+    "type": "number"
+   },
+   "open": {
+    "type": "array"
+   }
+  },
+  "cad_sketch_delete": {
+   "name": {
+    "type": "string"
+   }
+  },
+  "cad_sketch_edit": {
+   "name": {
+    "type": "string"
+   }
+  },
+  "cad_sketch_list": {},
+  "cad_sketch_new": {
+   "name": {
+    "type": "string"
+   }
+  },
+  "cad_solve": {},
+  "cad_step_import": {
+   "file": {
+    "type": "string"
+   }
+  },
+  "cad_sweep": {
+   "sketch": {
+    "type": "string"
+   },
+   "path": {
+    "type": "array"
+   },
+   "name": {
+    "type": "string"
+   }
+  },
+  "cad_transform": {
+   "target": {
+    "type": "string"
+   },
+   "translate": {
+    "type": "array"
+   },
+   "rotate": {
+    "type": "array"
+   },
+   "mirror": {
+    "type": "array"
+   }
+  },
+  "cad_view": {
+   "path": {
+    "type": "string"
+   }
+  },
+  "cad_volume": {
+   "target": {
+    "type": "string"
+   }
+  },
+  "cite_batch": {
+   "action": {
+    "type": "string",
+    "enum": [
+     "list",
+     "preview",
+     "import",
+     "enrich",
+     "job",
+     "cancel",
+     "export"
+    ]
+   },
+   "kind": {
+    "type": "string",
+    "enum": [
+     "doi",
+     "bibtex",
+     "references",
+     "backup"
+    ]
+   },
+   "text": {
+    "type": "string"
+   },
+   "label": {
+    "type": "string"
+   },
+   "preview": {
+    "type": "string"
+   },
+   "selection": {
+    "type": "array"
+   },
+   "ids": {
+    "type": "array"
+   },
+   "revision": {
+    "type": "integer"
+   },
+   "job": {
+    "type": "string"
+   },
+   "style": {
+    "type": "string",
+    "enum": [
+     "gb-t-7714",
+     "apa",
+     "mla",
+     "chicago"
+    ]
+   },
+   "lang": {
+    "type": "string",
+    "enum": [
+     "zh",
+     "en"
+    ]
+   }
+  },
+  "cite_bibtex": {
+   "doi": {
+    "type": "string"
+   },
+   "key": {
+    "type": "string"
+   }
+  },
+  "cite_check": {
+   "text": {
+    "type": "string"
+   },
+   "maxChecks": {
+    "type": "integer"
+   }
+  },
+  "cite_format": {
+   "doi": {
+    "type": "string"
+   },
+   "style": {
+    "type": "string",
+    "enum": [
+     "gb-t-7714",
+     "apa",
+     "mla",
+     "chicago"
+    ]
+   },
+   "lang": {
+    "type": "string",
+    "enum": [
+     "zh",
+     "en"
+    ]
+   }
+  },
+  "cite_health": {},
+  "cite_lookup": {
+   "doi": {
+    "type": "string"
+   },
+   "query": {
+    "type": "string"
+   },
+   "limit": {
+    "type": "integer"
+   }
+  },
+  "compress": {
+   "content": {
+    "type": "string"
+   }
+  },
+  "create_goal": {
+   "objective": {
+    "type": "string"
+   },
+   "max_goal_rounds": {
+    "type": "number"
+   }
+  },
+  "create_skill": {
+   "name": {
+    "type": "string"
+   },
+   "description": {
+    "type": "string"
+   },
+   "body": {
+    "type": "string"
+   }
+  },
+  "decompress": {
+   "blockId": {
+    "type": "string"
+   },
+   "toFile": {
+    "type": "string"
+   },
+   "full": {
+    "type": "boolean"
+   },
+   "imageRef": {
+    "type": "string"
+   }
+  },
+  "domain_search": {
+   "engine": {
+    "type": "string"
+   },
+   "query": {
+    "type": "string"
+   }
+  },
+  "doubao_paint": {
+   "prompt": {
+    "type": "string"
+   },
+   "prompts": {
+    "type": "array"
+   },
+   "ref_images": {
+    "type": "array"
+   },
+   "out_dir": {
+    "type": "string"
+   },
+   "timeout_ms": {
+    "type": "number"
+   }
+  },
+  "doubao_status": {},
+  "dsh_browser_a11y": {
+   "includeHidden": {
+    "type": "boolean"
+   },
+   "maxNodes": {
+    "type": "number"
+   },
+   "coords": {
+    "type": "boolean"
+   }
+  },
+  "dsh_browser_assert": {
+   "selector": {
+    "type": "string"
+   },
+   "text": {
+    "type": "string"
+   },
+   "url": {
+    "type": "string"
+   },
+   "js": {
+    "type": "string"
+   }
+  },
+  "dsh_browser_auth": {
+   "action": {
+    "type": "string",
+    "enum": [
+     "flush",
+     "restore"
+    ]
+   },
+   "cookies": {
+    "type": "array"
+   }
+  },
+  "dsh_browser_back": {},
+  "dsh_browser_challenge": {},
+  "dsh_browser_check": {
+   "target": {
+    "type": "object"
+   },
+   "checked": {
+    "type": "boolean"
+   }
+  },
+  "dsh_browser_clear": {
+   "target": {
+    "type": "object"
+   }
+  },
+  "dsh_browser_click": {
+   "target": {
+    "type": "object"
+   },
+   "x": {
+    "type": "number"
+   },
+   "y": {
+    "type": "number"
+   }
+  },
+  "dsh_browser_click_sequence": {
+   "points": {
+    "type": "array"
+   },
+   "intervalMs": {
+    "type": "number"
+   }
+  },
+  "dsh_browser_close_tab": {
+   "tabId": {
+    "type": "string"
+   }
+  },
+  "dsh_browser_console": {
+   "limit": {
+    "type": "number"
+   },
+   "filter": {
+    "type": "string"
+   },
+   "clear": {
+    "type": "boolean"
+   }
+  },
+  "dsh_browser_content": {
+   "format": {
+    "type": "string",
+    "enum": [
+     "html",
+     "markdown",
+     "txt",
+     "json"
+    ]
+   },
+   "selector": {
+    "type": "string"
+   },
+   "maxChars": {
+    "type": "number"
+   },
+   "timeoutMs": {
+    "type": "number"
+   }
+  },
+  "dsh_browser_dialog": {
+   "policy": {
+    "type": "string",
+    "enum": [
+     "native",
+     "accept",
+     "dismiss"
+    ]
+   },
+   "limit": {
+    "type": "number"
+   }
+  },
+  "dsh_browser_do": {
+   "steps": {
+    "type": "array"
+   },
+   "timeoutMs": {
+    "type": "number"
+   },
+   "autoDismiss": {
+    "type": "boolean"
+   }
+  },
+  "dsh_browser_doctor": {},
+  "dsh_browser_download": {
+   "url": {
+    "type": "string"
+   },
+   "savePath": {
+    "type": "string"
+   }
+  },
+  "dsh_browser_drag": {
+   "fromX": {
+    "type": "number"
+   },
+   "fromY": {
+    "type": "number"
+   },
+   "toX": {
+    "type": "number"
+   },
+   "toY": {
+    "type": "number"
+   },
+   "steps": {
+    "type": "number"
+   }
+  },
+  "dsh_browser_execute": {
+   "script": {
+    "type": "string"
+   },
+   "args": {
+    "type": "array"
+   }
+  },
+  "dsh_browser_fill": {
+   "fields": {
+    "type": "array"
+   },
+   "submit": {
+    "type": "boolean"
+   }
+  },
+  "dsh_browser_find": {
+   "text": {
+    "type": "string"
+   },
+   "all": {
+    "type": "boolean"
+   }
+  },
+  "dsh_browser_forward": {},
+  "dsh_browser_get_value": {
+   "target": {
+    "type": "object"
+   }
+  },
+  "dsh_browser_help": {
+   "topic": {
+    "type": "string"
+   }
+  },
+  "dsh_browser_history": {
+   "verbose": {
+    "type": "boolean"
+   }
+  },
+  "dsh_browser_hover": {
+   "target": {
+    "type": "object"
+   },
+   "settleMs": {
+    "type": "number"
+   }
+  },
+  "dsh_browser_key": {
+   "key": {
+    "type": "string",
+    "enum": [
+     "Enter",
+     "Tab",
+     "Escape",
+     "Backspace",
+     "Delete",
+     "ArrowUp",
+     "ArrowDown",
+     "ArrowLeft",
+     "ArrowRight",
+     "Home",
+     "End",
+     "PageUp",
+     "PageDown",
+     "Space"
+    ]
+   }
+  },
+  "dsh_browser_list_tabs": {},
+  "dsh_browser_network": {
+   "limit": {
+    "type": "number"
+   },
+   "filter": {
+    "type": "string"
+   },
+   "onlyFailures": {
+    "type": "boolean"
+   },
+   "clear": {
+    "type": "boolean"
+   }
+  },
+  "dsh_browser_open": {
+   "url": {
+    "type": "string"
+   },
+   "newTab": {
+    "type": "boolean"
+   }
+  },
+  "dsh_browser_refresh": {},
+  "dsh_browser_replay": {
+   "seq": {
+    "type": "number"
+   }
+  },
+  "dsh_browser_reset": {},
+  "dsh_browser_reset_session": {},
+  "dsh_browser_restrict": {
+   "allowed": {
+    "type": "array"
+   }
+  },
+  "dsh_browser_scrape": {
+   "item": {
+    "type": "string"
+   },
+   "fields": {
+    "type": "object"
+   },
+   "timeoutMs": {
+    "type": "number"
+   }
+  },
+  "dsh_browser_screenshot": {
+   "fullPage": {
+    "type": "boolean"
+   },
+   "savePath": {
+    "type": "string"
+   },
+   "format": {
+    "type": "string",
+    "enum": [
+     "png",
+     "jpeg"
+    ]
+   },
+   "quality": {
+    "type": "number"
+   },
+   "maxWidth": {
+    "type": "number"
+   },
+   "maxHeight": {
+    "type": "number"
+   }
+  },
+  "dsh_browser_scroll": {
+   "deltaX": {
+    "type": "number"
+   },
+   "deltaY": {
+    "type": "number"
+   },
+   "selector": {
+    "type": "string"
+   },
+   "toTop": {
+    "type": "boolean"
+   },
+   "toBottom": {
+    "type": "boolean"
+   }
+  },
+  "dsh_browser_select": {
+   "target": {
+    "type": "object"
+   },
+   "optionValue": {
+    "type": "string"
+   },
+   "optionText": {
+    "type": "string"
+   },
+   "optionIndex": {
+    "type": "number"
+   }
+  },
+  "dsh_browser_session": {},
+  "dsh_browser_set_value": {
+   "target": {
+    "type": "object"
+   },
+   "value": {
+    "type": "string"
+   }
+  },
+  "dsh_browser_snapshot": {
+   "coords": {
+    "type": "boolean"
+   }
+  },
+  "dsh_browser_state": {},
+  "dsh_browser_switch_tab": {
+   "tabId": {
+    "type": "string"
+   }
+  },
+  "dsh_browser_type": {
+   "text": {
+    "type": "string"
+   },
+   "target": {
+    "type": "object"
+   }
+  },
+  "dsh_browser_upload": {
+   "target": {
+    "type": "object"
+   },
+   "path": {
+    "type": "string"
+   },
+   "mime": {
+    "type": "string"
+   }
+  },
+  "dsh_browser_visited": {
+   "limit": {
+    "type": "number"
+   },
+   "domain": {
+    "type": "string"
+   },
+   "query": {
+    "type": "string"
+   },
+   "session": {
+    "type": "string"
+   }
+  },
+  "dsh_browser_wait": {
+   "timeoutMs": {
+    "type": "number"
+   },
+   "url": {
+    "type": "string"
+   },
+   "selector": {
+    "type": "string"
+   }
+  },
+  "dsh_browser_wait_for_response": {
+   "urlContains": {
+    "type": "string"
+   },
+   "status": {
+    "type": "number"
+   },
+   "timeoutMs": {
+    "type": "number"
+   }
+  },
+  "dsh_im_group_file": {
+   "attachmentId": {
+    "type": "string"
+   }
+  },
+  "dsh_im_group_history": {
+   "kind": {
+    "type": "string",
+    "enum": [
+     "messages",
+     "files"
+    ]
+   },
+   "from": {
+    "type": "string"
+   },
+   "to": {
+    "type": "string"
+   },
+   "keyword": {
+    "type": "string"
+   },
+   "cursor": {
+    "type": "string"
+   },
+   "limit": {
+    "type": "integer"
+   }
+  },
+  "dsh_im_return_file": {
+   "path": {
+    "type": "string"
+   }
+  },
+  "edit": {
+   "file_path": {
+    "type": "string"
+   },
+   "old_string": {
+    "type": "string"
+   },
+   "new_string": {
+    "type": "string"
+   },
+   "replace_all": {
+    "type": "boolean"
+   },
+   "sandbox_permissions": {
+    "type": "string",
+    "enum": [
+     "workspace-write",
+     "danger-full-access"
+    ]
+   },
+   "justification": {
+    "type": "string"
+   }
+  },
+  "excel_create": {
+   "path": {
+    "type": "string"
+   },
+   "sheets": {
+    "type": "array"
+   },
+   "overwrite": {
+    "type": "boolean"
+   }
+  },
+  "excel_read": {
+   "path": {
+    "type": "string"
+   },
+   "sheet": {
+    "type": "string"
+   },
+   "max_rows": {
+    "type": "integer"
+   }
+  },
+  "excel_update": {
+   "path": {
+    "type": "string"
+   },
+   "sheets": {
+    "type": "array"
+   },
+   "cell_updates": {
+    "type": "array"
+   }
+  },
+  "exit_plan_mode": {
+   "plan": {
+    "type": "string"
+   }
+  },
+  "ffmpeg_adjust": {
+   "input": {
+    "type": "string"
+   },
+   "speed": {
+    "type": "number"
+   },
+   "volume": {
+    "type": "string"
+   },
+   "mute": {
+    "type": "boolean"
+   },
+   "rotate": {
+    "type": "integer"
+   },
+   "output": {
+    "type": "string"
+   }
+  },
+  "ffmpeg_concat": {
+   "inputs": {
+    "type": "array"
+   },
+   "output": {
+    "type": "string"
+   },
+   "reencode": {
+    "type": "boolean"
+   },
+   "width": {
+    "type": "integer"
+   },
+   "height": {
+    "type": "integer"
+   },
+   "fps": {
+    "type": "number"
+   }
+  },
+  "ffmpeg_cut": {
+   "input": {
+    "type": "string"
+   },
+   "start": {
+    "type": "string"
+   },
+   "end": {
+    "type": "string"
+   },
+   "duration": {
+    "type": "string"
+   },
+   "output": {
+    "type": "string"
+   },
+   "reencode": {
+    "type": "boolean"
+   }
+  },
+  "ffmpeg_encode": {
+   "input": {
+    "type": "string"
+   },
+   "preset": {
+    "type": "string"
+   },
+   "crf": {
+    "type": "integer"
+   },
+   "fps": {
+    "type": "number"
+   },
+   "scale": {
+    "type": "string"
+   },
+   "output": {
+    "type": "string"
+   }
+  },
+  "ffmpeg_extract": {
+   "input": {
+    "type": "string"
+   },
+   "what": {
+    "type": "string"
+   },
+   "output": {
+    "type": "string"
+   },
+   "start": {
+    "type": "string"
+   },
+   "duration": {
+    "type": "string"
+   },
+   "fps": {
+    "type": "number"
+   },
+   "streamIndex": {
+    "type": "integer"
+   }
+  },
+  "ffmpeg_frames": {
+   "input": {
+    "type": "string"
+   },
+   "every": {
+    "type": "number"
+   },
+   "times": {
+    "type": "array"
+   },
+   "maxFrames": {
+    "type": "integer"
+   },
+   "outputDir": {
+    "type": "string"
+   },
+   "format": {
+    "type": "string"
+   }
+  },
+  "ffmpeg_gif": {
+   "input": {
+    "type": "string"
+   },
+   "start": {
+    "type": "string"
+   },
+   "duration": {
+    "type": "string"
+   },
+   "fps": {
+    "type": "integer"
+   },
+   "width": {
+    "type": "integer"
+   },
+   "output": {
+    "type": "string"
+   }
+  },
+  "ffmpeg_health": {},
+  "ffmpeg_probe": {
+   "input": {
+    "type": "string"
+   }
+  },
+  "ffmpeg_storyboard": {
+   "input": {
+    "type": "string"
+   },
+   "output": {
+    "type": "string"
+   },
+   "count": {
+    "type": "integer"
+   },
+   "columns": {
+    "type": "integer"
+   },
+   "width": {
+    "type": "integer"
+   }
+  },
+  "ffmpeg_subtitle": {
+   "input": {
+    "type": "string"
+   },
+   "subtitle": {
+    "type": "string"
+   },
+   "output": {
+    "type": "string"
+   }
+  },
+  "fishtalk_check": {
+   "text": {
+    "type": "string"
+   },
+   "keep": {
+    "type": "boolean"
+   }
+  },
+  "fishtalk_deep": {
+   "scene": {
+    "type": "string"
+   },
+   "save": {
+    "type": "string"
+   },
+   "n": {
+    "type": "number"
+   }
+  },
+  "fishtalk_feed": {
+   "lines": {
+    "type": "array"
+   },
+   "where": {
+    "type": "string"
+   },
+   "source": {
+    "type": "string"
+   },
+   "scene": {
+    "type": "string"
+   }
+  },
+  "fishtalk_learn": {
+   "site": {
+    "type": "string",
+    "enum": [
+     "bili",
+     "tieba"
+    ]
+   },
+   "target": {
+    "type": "string"
+   },
+   "limit": {
+    "type": "number"
+   }
+  },
+  "fishtalk_pack": {
+   "scene": {
+    "type": "string"
+   },
+   "like": {
+    "type": "string"
+   },
+   "n": {
+    "type": "number"
+   },
+   "scenes": {
+    "type": "boolean"
+   }
+  },
+  "free_search_test": {
+   "engines": {
+    "type": "array"
+   },
+   "query": {
+    "type": "string"
+   }
+  },
+  "get_goal": {},
+  "glob": {
+   "pattern": {
+    "type": "string"
+   },
+   "path": {
+    "type": "string"
+   }
+  },
+  "grep": {
+   "pattern": {
+    "type": "string"
+   },
+   "path": {
+    "type": "string"
+   },
+   "include": {
+    "type": "string"
+   }
+  },
+  "interrupt_agent": {
+   "agent_id": {
+    "type": "string"
+   }
+  },
+  "job_kill": {
+   "job_id": {
+    "type": "string"
+   },
+   "reason": {
+    "type": "string"
+   }
+  },
+  "job_list": {},
+  "job_output": {
+   "job_id": {
+    "type": "string"
+   },
+   "wait": {
+    "type": "boolean"
+   },
+   "timeout_ms": {
+    "type": "number"
+   }
+  },
+  "list_agents": {
+   "scope": {
+    "type": "string",
+    "enum": [
+     "children",
+     "descendants"
+    ]
+   }
+  },
+  "list_mcp_resource_templates": {
+   "server": {
+    "type": "string"
+   },
+   "cursor": {
+    "type": "string"
+   }
+  },
+  "list_mcp_resources": {
+   "server": {
+    "type": "string"
+   },
+   "cursor": {
+    "type": "string"
+   }
+  },
+  "load_workspace_dependencies": {},
+  "map_bicycling_route": {
+   "origin": {
+    "type": "string"
+   },
+   "destination": {
+    "type": "string"
+   },
+   "waypoints": {
+    "type": "string"
+   },
+   "alternatives": {
+    "type": "boolean"
+   }
+  },
+  "map_driving_route": {
+   "origin": {
+    "type": "string"
+   },
+   "destination": {
+    "type": "string"
+   },
+   "waypoints": {
+    "type": "string"
+   },
+   "alternatives": {
+    "type": "boolean"
+   }
+  },
+  "map_geocode": {
+   "address": {
+    "type": "string"
+   }
+  },
+  "map_poi_search": {
+   "keywords": {
+    "type": "string"
+   },
+   "location": {
+    "type": "string"
+   },
+   "radiusM": {
+    "type": "number"
+   },
+   "region": {
+    "type": "string"
+   },
+   "types": {
+    "type": "string"
+   }
+  },
+  "map_reverse_geocode": {
+   "location": {
+    "type": "string"
+   }
+  },
+  "map_transit_route": {
+   "origin": {
+    "type": "string"
+   },
+   "destination": {
+    "type": "string"
+   },
+   "waypoints": {
+    "type": "string"
+   },
+   "alternatives": {
+    "type": "boolean"
+   }
+  },
+  "map_walking_route": {
+   "origin": {
+    "type": "string"
+   },
+   "destination": {
+    "type": "string"
+   },
+   "waypoints": {
+    "type": "string"
+   },
+   "alternatives": {
+    "type": "boolean"
+   }
+  },
+  "mcp__autocad__call_tool": {
+   "name": {
+    "type": "string"
+   },
+   "arguments": {
+    "type": "anyOf",
+    "anyOf": [
+     "object",
+     "null"
+    ]
+   }
+  },
+  "mcp__autocad__search_tools": {
+   "query": {
+    "type": "string"
+   },
+   "limit": {
+    "type": "integer"
+   },
+   "risk": {
+    "type": "string",
+    "enum": [
+     "any",
+     "write",
+     "read"
+    ]
+   }
+  },
+  "mnemon_document_create": {
+   "title": {
+    "type": "string"
+   },
+   "description": {
+    "type": "string"
+   },
+   "content": {
+    "type": "string"
+   },
+   "sourcePaths": {
+    "type": "array"
+   }
+  },
+  "mnemon_document_manage": {
+   "action": {
+    "type": "string",
+    "enum": [
+     "create",
+     "update",
+     "archive"
+    ]
+   },
+   "id": {
+    "type": "string"
+   },
+   "title": {
+    "type": "string"
+   },
+   "description": {
+    "type": "string"
+   },
+   "content": {
+    "type": "string"
+   },
+   "sourcePaths": {
+    "type": "array"
+   }
+  },
+  "mnemon_document_search": {
+   "query": {
+    "type": "string"
+   },
+   "includeArchived": {
+    "type": "boolean"
+   },
+   "limit": {
+    "type": "integer"
+   }
+  },
+  "mnemon_forget": {
+   "id": {
+    "type": "string"
+   },
+   "memoryBodyId": {
+    "type": "string"
+   }
+  },
+  "mnemon_link": {
+   "sourceId": {
+    "type": "string"
+   },
+   "targetId": {
+    "type": "string"
+   },
+   "type": {
+    "type": "string",
+    "enum": [
+     "temporal",
+     "semantic",
+     "causal",
+     "entity"
+    ]
+   },
+   "weight": {
+    "type": "number"
+   },
+   "reason": {
+    "type": "string"
+   },
+   "memoryBodyId": {
+    "type": "string"
+   }
+  },
+  "mnemon_memory_bodies": {},
+  "mnemon_memory_body_create": {
+   "name": {
+    "type": "string"
+   },
+   "description": {
+    "type": "string"
+   },
+   "providerId": {
+    "type": "string"
+   },
+   "reason": {
+    "type": "string"
+   },
+   "confidence": {
+    "type": "string",
+    "enum": [
+     "high",
+     "medium",
+     "low"
+    ]
+   }
+  },
+  "mnemon_memory_body_merge": {
+   "targetMemoryBodyId": {
+    "type": "string"
+   },
+   "sourceMemoryBodyIds": {
+    "type": "array"
+   },
+   "deactivateSources": {
+    "type": "boolean"
+   }
+  },
+  "mnemon_memory_body_update": {
+   "memoryBodyId": {
+    "type": "string"
+   },
+   "name": {
+    "type": "string"
+   },
+   "description": {
+    "type": "string"
+   },
+   "active": {
+    "type": "boolean"
+   }
+  },
+  "mnemon_recall": {
+   "query": {
+    "type": "string"
+   },
+   "mode": {
+    "type": "string",
+    "enum": [
+     "smart",
+     "keyword",
+     "basic"
+    ]
+   },
+   "limit": {
+    "type": "integer"
+   },
+   "memoryBodyIds": {
+    "type": "array"
+   }
+  },
+  "mnemon_related": {
+   "id": {
+    "type": "string"
+   },
+   "depth": {
+    "type": "integer"
+   },
+   "edge": {
+    "type": "string",
+    "enum": [
+     "temporal",
+     "semantic",
+     "causal",
+     "entity"
+    ]
+   },
+   "memoryBodyId": {
+    "type": "string"
+   }
+  },
+  "mnemon_remember": {
+   "content": {
+    "type": "string"
+   },
+   "category": {
+    "type": "string",
+    "enum": [
+     "preference",
+     "decision",
+     "fact",
+     "insight",
+     "context",
+     "general"
+    ]
+   },
+   "importance": {
+    "type": "integer"
+   },
+   "tags": {
+    "type": "array"
+   },
+   "entities": {
+    "type": "array"
+   },
+   "source": {
+    "type": "string",
+    "enum": [
+     "user",
+     "agent",
+     "external"
+    ]
+   },
+   "memoryBodyId": {
+    "type": "string"
+   }
+  },
+  "mnemon_runtime_memory": {
+   "action": {
+    "type": "string",
+    "enum": [
+     "add",
+     "replace",
+     "remove"
+    ]
+   },
+   "target": {
+    "type": "string",
+    "enum": [
+     "memory",
+     "user"
+    ]
+   },
+   "content": {
+    "type": "string"
+   },
+   "old_text": {
+    "type": "string"
+   },
+   "importance": {
+    "type": "string",
+    "enum": [
+     "critical",
+     "normal",
+     "low"
+    ]
+   },
+   "branches": {
+    "type": "array"
+   }
+  },
+  "mnemon_status": {},
+  "mnemon_subagent_result": {
+   "requestId": {
+    "type": "string"
+   },
+   "result": {
+    "type": "object"
+   }
+  },
+  "mnemon_view_action": {
+   "offerId": {
+    "type": "string"
+   },
+   "input": {
+    "type": "object"
+   }
+  },
+  "mnemon_view_route": {
+   "routeId": {
+    "type": "string"
+   },
+   "input": {
+    "type": "object"
+   }
+  },
+  "modlens_read_image": {
+   "path": {
+    "type": "string"
+   },
+   "prompt": {
+    "type": "string"
+   }
+  },
+  "multi_search": {
+   "query": {
+    "type": "string"
+   },
+   "maxResults": {
+    "type": "number"
+   },
+   "engines": {
+    "type": "array"
+   }
+  },
+  "novel_arc": {
+   "action": {
+    "type": "string",
+    "enum": [
+     "update",
+     "query",
+     "status_at",
+     "diagnose"
+    ]
+   },
+   "book": {
+    "type": "string"
+   },
+   "updates": {
+    "type": "string"
+   },
+   "character": {
+    "type": "string"
+   },
+   "dimension": {
+    "type": "string"
+   },
+   "at": {
+    "type": "integer"
+   },
+   "chapter": {
+    "type": "integer"
+   }
+  },
+  "novel_audit": {
+   "book": {
+    "type": "string"
+   },
+   "chapter": {
+    "type": "integer"
+   },
+   "continuity": {
+    "type": "boolean"
+   },
+   "voice": {
+    "type": "boolean"
+   },
+   "platform": {
+    "type": "string"
+   },
+   "censor": {
+    "type": "boolean"
+   },
+   "exempt": {
+    "type": "string"
+   }
+  },
+  "novel_briefing": {
+   "book": {
+    "type": "string"
+   },
+   "chapter": {
+    "type": "integer"
+   },
+   "cast": {
+    "type": "string"
+   }
+  },
+  "novel_character": {
+   "action": {
+    "type": "string",
+    "enum": [
+     "save",
+     "list",
+     "voice_repair"
+    ]
+   },
+   "book": {
+    "type": "string"
+   },
+   "name": {
+    "type": "string"
+   },
+   "card": {
+    "type": "string"
+   },
+   "voice": {
+    "type": "string"
+   },
+   "apply": {
+    "type": "boolean"
+   }
+  },
+  "novel_clone_project": {
+   "from_book": {
+    "type": "string"
+   },
+   "new_book": {
+    "type": "string"
+   },
+   "title": {
+    "type": "string"
+   }
+  },
+  "novel_diagnose": {
+   "book": {
+    "type": "string"
+   },
+   "chapters": {
+    "type": "integer"
+   }
+  },
+  "novel_export": {
+   "book": {
+    "type": "string"
+   },
+   "format": {
+    "type": "string",
+    "enum": [
+     "md",
+     "txt"
+    ]
+   },
+   "file": {
+    "type": "string"
+   }
+  },
+  "novel_extract": {
+   "book": {
+    "type": "string"
+   },
+   "from": {
+    "type": "integer"
+   },
+   "to": {
+    "type": "integer"
+   },
+   "kind": {
+    "type": "string",
+    "enum": [
+     "all",
+     "character",
+     "worldbook"
+    ]
+   }
+  },
+  "novel_glossary": {
+   "action": {
+    "type": "string",
+    "enum": [
+     "add",
+     "remove",
+     "list"
+    ]
+   },
+   "book": {
+    "type": "string"
+   },
+   "term": {
+    "type": "string"
+   },
+   "definition": {
+    "type": "string"
+   }
+  },
+  "novel_import": {
+   "action": {
+    "type": "string",
+    "enum": [
+     "preview",
+     "import",
+     "backfill"
+    ]
+   },
+   "approve": {
+    "type": "boolean"
+   },
+   "book": {
+    "type": "string"
+   },
+   "title": {
+    "type": "string"
+   },
+   "genre": {
+    "type": "string"
+   },
+   "logline": {
+    "type": "string"
+   },
+   "content": {
+    "type": "string"
+   },
+   "file": {
+    "type": "string"
+   }
+  },
+  "novel_ledger": {
+   "action": {
+    "type": "string",
+    "enum": [
+     "query",
+     "status_at",
+     "timeline",
+     "update",
+     "foreshadow_setup",
+     "foreshadow_payoff",
+     "list",
+     "cognition",
+     "pledge_setup",
+     "pledge_replan",
+     "pledge_resolve",
+     "pledge_list",
+     "sample_add",
+     "sample_allow",
+     "sample_revoke",
+     "sample_remove",
+     "sample_list",
+     "sample_prompt"
+    ]
+   },
+   "book": {
+    "type": "string"
+   },
+   "entity": {
+    "type": "string"
+   },
+   "key": {
+    "type": "string"
+   },
+   "since": {
+    "type": "integer"
+   },
+   "at": {
+    "type": "integer"
+   },
+   "chapter": {
+    "type": "integer"
+   },
+   "updates": {
+    "type": "string"
+   },
+   "setup": {
+    "type": "string"
+   },
+   "plan": {
+    "type": "integer"
+   },
+   "id": {
+    "type": "string"
+   },
+   "force": {
+    "type": "boolean"
+   },
+   "kind": {
+    "type": "string"
+   },
+   "subject": {
+    "type": "string"
+   },
+   "statement": {
+    "type": "string"
+   },
+   "deadlineChapter": {
+    "type": "integer"
+   },
+   "status": {
+    "type": "string"
+   },
+   "sampleContent": {
+    "type": "string"
+   },
+   "sampleTitle": {
+    "type": "string"
+   },
+   "sampleNotes": {
+    "type": "string"
+   },
+   "sampleScope": {
+    "type": "string"
+   },
+   "sampleSceneType": {
+    "type": "string"
+   },
+   "sampleSourceKind": {
+    "type": "string"
+   },
+   "sampleId": {
+    "type": "string"
+   },
+   "samplePurpose": {
+    "type": "string"
+   },
+   "note": {
+    "type": "string"
+   }
+  },
+  "novel_library": {
+   "action": {
+    "type": "string",
+    "enum": [
+     "import",
+     "list",
+     "read",
+     "analyze",
+     "semantic",
+     "delete"
+    ]
+   },
+   "title": {
+    "type": "string"
+   },
+   "id": {
+    "type": "string"
+   },
+   "path": {
+    "type": "string"
+   },
+   "text": {
+    "type": "string"
+   },
+   "from": {
+    "type": "integer"
+   },
+   "to": {
+    "type": "integer"
+   },
+   "dimensions": {
+    "type": "string"
+   },
+   "compare_book": {
+    "type": "string"
+   }
+  },
+  "novel_noai_scan": {
+   "text": {
+    "type": "string"
+   },
+   "book": {
+    "type": "string"
+   },
+   "chapter": {
+    "type": "integer"
+   }
+  },
+  "novel_outline": {
+   "action": {
+    "type": "string",
+    "enum": [
+     "save_book",
+     "save_chapter",
+     "approve",
+     "align"
+    ]
+   },
+   "book": {
+    "type": "string"
+   },
+   "chapter": {
+    "type": "integer"
+   },
+   "outline": {
+    "type": "string"
+   }
+  },
+  "novel_polish": {
+   "action": {
+    "type": "string",
+    "enum": [
+     "analyze",
+     "submit"
+    ]
+   },
+   "book": {
+    "type": "string"
+   },
+   "chapter": {
+    "type": "integer"
+   },
+   "content": {
+    "type": "string"
+   },
+   "reason": {
+    "type": "string"
+   },
+   "review_quotes": {
+    "type": "string"
+   }
+  },
+  "novel_project": {
+   "action": {
+    "type": "string",
+    "enum": [
+     "init",
+     "status",
+     "phase",
+     "set_stage",
+     "repair",
+     "check",
+     "promise",
+     "promise_template",
+     "promise_review",
+     "preference",
+     "platform",
+     "chars"
+    ]
+   },
+   "platform": {
+    "type": "string"
+   },
+   "chars": {
+    "type": "string"
+   },
+   "force": {
+    "type": "boolean"
+   },
+   "book": {
+    "type": "string"
+   },
+   "title": {
+    "type": "string"
+   },
+   "genre": {
+    "type": "string"
+   },
+   "logline": {
+    "type": "string"
+   },
+   "stage": {
+    "type": "string"
+   },
+   "promise": {
+    "type": "string"
+   },
+   "preference": {
+    "type": "string"
+   },
+   "preferenceId": {
+    "type": "string"
+   },
+   "confirmed": {
+    "type": "boolean"
+   },
+   "from": {
+    "type": "integer"
+   },
+   "to": {
+    "type": "integer"
+   },
+   "fullscan": {
+    "type": "boolean"
+   }
+  },
+  "novel_propose": {
+   "action": {
+    "type": "string",
+    "enum": [
+     "propose",
+     "list"
+    ]
+   },
+   "book": {
+    "type": "string"
+   },
+   "chapter": {
+    "type": "integer"
+   },
+   "content": {
+    "type": "string"
+   },
+   "patches": {
+    "type": "array"
+   },
+   "base_version": {
+    "type": "integer"
+   },
+   "reason": {
+    "type": "string"
+   }
+  },
+  "novel_quality": {
+   "action": {
+    "type": "string",
+    "enum": [
+     "view",
+     "settle"
+    ]
+   },
+   "book": {
+    "type": "string"
+   },
+   "chapter": {
+    "type": "integer"
+   }
+  },
+  "novel_relation": {
+   "action": {
+    "type": "string",
+    "enum": [
+     "update",
+     "query",
+     "status_at",
+     "timeline"
+    ]
+   },
+   "book": {
+    "type": "string"
+   },
+   "updates": {
+    "type": "string"
+   },
+   "a": {
+    "type": "string"
+   },
+   "b": {
+    "type": "string"
+   },
+   "dimension": {
+    "type": "string"
+   },
+   "at": {
+    "type": "integer"
+   },
+   "chapter": {
+    "type": "integer"
+   }
+  },
+  "novel_scene": {
+   "action": {
+    "type": "string",
+    "enum": [
+     "save",
+     "get",
+     "list",
+     "delete"
+    ]
+   },
+   "book": {
+    "type": "string"
+   },
+   "chapter": {
+    "type": "integer"
+   },
+   "scene": {
+    "type": "string"
+   },
+   "participants": {
+    "type": "string"
+   },
+   "hidden": {
+    "type": "string"
+   },
+   "settings": {
+    "type": "string"
+   },
+   "forbidden": {
+    "type": "string"
+   },
+   "notes": {
+    "type": "string"
+   }
+  },
+  "novel_search": {
+   "action": {
+    "type": "string",
+    "enum": [
+     "build",
+     "query",
+     "annotate",
+     "status"
+    ]
+   },
+   "book": {
+    "type": "string"
+   },
+   "q": {
+    "type": "string"
+   },
+   "limit": {
+    "type": "integer"
+   },
+   "min_hit": {
+    "type": "number"
+   },
+   "corpus": {
+    "type": "string"
+   },
+   "chapters": {
+    "type": "string"
+   },
+   "top": {
+    "type": "integer"
+   }
+  },
+  "novel_style": {
+   "action": {
+    "type": "string",
+    "enum": [
+     "build",
+     "check"
+    ]
+   },
+   "book": {
+    "type": "string"
+   },
+   "chapter": {
+    "type": "integer"
+   },
+   "text": {
+    "type": "string"
+   },
+   "tolerance": {
+    "type": "string"
+   }
+  },
+  "novel_worldbook": {
+   "action": {
+    "type": "string",
+    "enum": [
+     "add",
+     "update",
+     "list",
+     "remove",
+     "import",
+     "export"
+    ]
+   },
+   "book": {
+    "type": "string"
+   },
+   "id": {
+    "type": "string"
+   },
+   "keywords": {
+    "type": "string"
+   },
+   "priority": {
+    "type": "integer"
+   },
+   "content": {
+    "type": "string"
+   },
+   "always": {
+    "type": "boolean"
+   },
+   "payload": {
+    "type": "string"
+   }
+  },
+  "novel_write_chapter": {
+   "book": {
+    "type": "string"
+   },
+   "chapter": {
+    "type": "integer"
+   },
+   "title": {
+    "type": "string"
+   },
+   "content": {
+    "type": "string"
+   },
+   "summary": {
+    "type": "string"
+   },
+   "cast": {
+    "type": "string"
+   },
+   "facts_updates": {
+    "type": "string"
+   },
+   "facts_evidence": {
+    "type": "string"
+   },
+   "cognition_updates": {
+    "type": "string"
+   },
+   "basis": {
+    "type": "string"
+   },
+   "force": {
+    "type": "boolean"
+   }
+  },
+  "office_close": {
+   "doc": {
+    "type": "string"
+   },
+   "app": {
+    "type": "string",
+    "enum": [
+     "word",
+     "excel",
+     "ppt"
+    ]
+   },
+   "save": {
+    "type": "boolean"
+   }
+  },
+  "office_edit": {
+   "doc": {
+    "type": "string"
+   },
+   "app": {
+    "type": "string",
+    "enum": [
+     "word",
+     "excel",
+     "ppt"
+    ]
+   },
+   "ops": {
+    "type": "array"
+   }
+  },
+  "office_help": {
+   "app": {
+    "type": "string",
+    "enum": [
+     "word",
+     "excel",
+     "ppt"
+    ]
+   }
+  },
+  "office_open": {
+   "path": {
+    "type": "string"
+   },
+   "template": {
+    "type": "string"
+   },
+   "app": {
+    "type": "string",
+    "enum": [
+     "word",
+     "excel",
+     "ppt"
+    ]
+   },
+   "show": {
+    "type": "boolean"
+   }
+  },
+  "office_read": {
+   "doc": {
+    "type": "string"
+   },
+   "app": {
+    "type": "string",
+    "enum": [
+     "word",
+     "excel",
+     "ppt"
+    ]
+   },
+   "from": {
+    "type": "integer"
+   },
+   "count": {
+    "type": "integer"
+   },
+   "full": {
+    "type": "boolean"
+   },
+   "footnotes": {
+    "type": "boolean"
+   },
+   "table": {
+    "type": "integer"
+   },
+   "sheet": {
+    "type": "string"
+   },
+   "range": {
+    "type": "string"
+   },
+   "profile": {
+    "type": "boolean"
+   },
+   "slide": {
+    "type": "integer"
+   }
+  },
+  "office_render": {
+   "doc": {
+    "type": "string"
+   },
+   "app": {
+    "type": "string",
+    "enum": [
+     "word",
+     "excel",
+     "ppt"
+    ]
+   },
+   "page": {
+    "type": "integer"
+   },
+   "slide": {
+    "type": "integer"
+   },
+   "to": {
+    "type": "integer"
+   },
+   "overview": {
+    "type": "boolean"
+   },
+   "sheet": {
+    "type": "string"
+   },
+   "range": {
+    "type": "string"
+   },
+   "chart": {
+    "type": "string"
+   }
+  },
+  "office_save": {
+   "doc": {
+    "type": "string"
+   },
+   "app": {
+    "type": "string",
+    "enum": [
+     "word",
+     "excel",
+     "ppt"
+    ]
+   },
+   "path": {
+    "type": "string"
+   }
+  },
+  "office_status": {},
+  "platform_search": {
+   "platform": {
+    "type": "string"
+   },
+   "query": {
+    "type": "string"
+   },
+   "maxResults": {
+    "type": "number"
+   }
+  },
+  "ppt_create": {
+   "path": {
+    "type": "string"
+   },
+   "title": {
+    "type": "string"
+   },
+   "slides": {
+    "type": "array"
+   },
+   "overwrite": {
+    "type": "boolean"
+   }
+  },
+  "ppt_read": {
+   "path": {
+    "type": "string"
+   },
+   "max_chars": {
+    "type": "integer"
+   }
+  },
+  "present": {
+   "files": {
+    "type": "array"
+   }
+  },
+  "purge_apply": {},
+  "purge_revert": {},
+  "purge_status": {},
+  "pwsh": {
+   "description": {
+    "type": "string"
+   },
+   "command": {
+    "type": "string"
+   },
+   "timeoutMs": {
+    "type": "number"
+   },
+   "workdir": {
+    "type": "string"
+   },
+   "run_in_background": {
+    "type": "boolean"
+   },
+   "sandbox_permissions": {
+    "type": "string",
+    "enum": [
+     "workspace-write",
+     "danger-full-access"
+    ]
+   },
+   "justification": {
+    "type": "string"
+   }
+  },
+  "read": {
+   "file_path": {
+    "type": "string"
+   },
+   "offset": {
+    "type": "number"
+   },
+   "limit": {
+    "type": "number"
+   }
+  },
+  "read_image": {
+   "file_path": {
+    "type": "string"
+   }
+  },
+  "read_mcp_resource": {
+   "server": {
+    "type": "string"
+   },
+   "uri": {
+    "type": "string"
+   }
+  },
+  "research": {
+   "question": {
+    "type": "string"
+   },
+   "depth": {
+    "type": "number"
+   }
+  },
+  "schedule_create": {
+   "prompt": {
+    "type": "string"
+   },
+   "title": {
+    "type": "string"
+   },
+   "after_seconds": {
+    "type": "number"
+   },
+   "every_seconds": {
+    "type": "number"
+   },
+   "daily": {
+    "type": "object"
+   },
+   "weekly": {
+    "type": "object"
+   },
+   "cron": {
+    "type": "object"
+   }
+  },
+  "schedule_delete": {
+   "id": {
+    "type": "string"
+   }
+  },
+  "schedule_list": {},
+  "schedule_update": {
+   "id": {
+    "type": "string"
+   },
+   "title": {
+    "type": "string"
+   },
+   "prompt": {
+    "type": "string"
+   },
+   "every_seconds": {
+    "type": "number"
+   },
+   "daily": {
+    "type": "object"
+   },
+   "weekly": {
+    "type": "object"
+   },
+   "cron": {
+    "type": "object"
+   }
+  },
+  "search_context": {
+   "query": {
+    "type": "string"
+   },
+   "limit": {
+    "type": "number"
+   }
+  },
+  "search_meme_wiki": {
+   "query": {
+    "type": "string"
+   }
+  },
+  "send_message": {
+   "agent_id": {
+    "type": "string"
+   },
+   "message": {
+    "type": "string"
+   }
+  },
+  "skill": {
+   "name": {
+    "type": "string"
+   }
+  },
+  "subagent": {
+   "cwd": {
+    "type": "string"
+   },
+   "description": {
+    "type": "string"
+   },
+   "prompt": {
+    "type": "string"
+   }
+  },
+  "subagent_fork": {
+   "cwd": {
+    "type": "string"
+   },
+   "description": {
+    "type": "string"
+   },
+   "prompt": {
+    "type": "string"
+   }
+  },
+  "todo_write": {
+   "todos": {
+    "type": "array"
+   }
+  },
+  "update_goal": {
+   "goal_id": {
+    "type": "string"
+   },
+   "revision": {
+    "type": "number"
+   },
+   "action": {
+    "type": "string",
+    "enum": [
+     "edit",
+     "pause",
+     "resume",
+     "complete",
+     "blocked"
+    ]
+   },
+   "objective": {
+    "type": "string"
+   },
+   "max_goal_rounds": {
+    "type": "number"
+   },
+   "blocked_reason": {
+    "type": "string"
+   }
+  },
+  "video_locate": {
+   "input": {
+    "type": "string"
+   },
+   "query": {
+    "type": "string"
+   },
+   "from": {
+    "type": "number"
+   },
+   "to": {
+    "type": "number"
+   },
+   "max": {
+    "type": "number"
+   },
+   "transcriptFile": {
+    "type": "string"
+   },
+   "cookies": {
+    "type": "string"
+   },
+   "allowAnonymous": {
+    "type": "boolean"
+   }
+  },
+  "video_outline": {
+   "input": {
+    "type": "string"
+   },
+   "windows": {
+    "type": "number"
+   },
+   "top": {
+    "type": "number"
+   }
+  },
+  "video_probe": {
+   "input": {
+    "type": "string"
+   },
+   "cookies": {
+    "type": "string"
+   },
+   "allowAnonymous": {
+    "type": "boolean"
+   }
+  },
+  "video_read": {
+   "input": {
+    "type": "string"
+   },
+   "start": {
+    "type": "number"
+   },
+   "end": {
+    "type": "number"
+   },
+   "maxScreens": {
+    "type": "number"
+   },
+   "transcriptFile": {
+    "type": "string"
+   },
+   "out": {
+    "type": "string"
+   }
+  },
+  "video_search": {
+   "query": {
+    "type": "string"
+   },
+   "source": {
+    "type": "string"
+   },
+   "maxResults": {
+    "type": "number"
+   }
+  },
+  "video_storyboard": {
+   "input": {
+    "type": "string"
+   },
+   "start": {
+    "type": "number"
+   },
+   "end": {
+    "type": "number"
+   },
+   "duration": {
+    "type": "number"
+   },
+   "detail": {
+    "type": "string",
+    "enum": [
+     "low",
+     "auto",
+     "high"
+    ]
+   },
+   "cells": {
+    "type": "number"
+   },
+   "pick": {
+    "type": "string",
+    "enum": [
+     "sharp",
+     "middle"
+    ]
+   },
+   "dedupe": {
+    "type": "string",
+    "enum": [
+     "shots",
+     "global"
+    ]
+   },
+   "transcriptFile": {
+    "type": "string"
+   },
+   "textOnly": {
+    "type": "boolean"
+   },
+   "cellRange": {
+    "type": "array"
+   },
+   "from": {
+    "type": "number"
+   },
+   "to": {
+    "type": "number"
+   },
+   "sheets": {
+    "type": "integer"
+   },
+   "need": {
+    "type": "string",
+    "enum": [
+     "shot",
+     "scene",
+     "text"
+    ]
+   },
+   "budget": {
+    "type": "integer"
+   },
+   "maxPerSheet": {
+    "type": "integer"
+   },
+   "segment": {
+    "type": "integer"
+   },
+   "burn": {
+    "type": "string",
+    "enum": [
+     "index",
+     "none"
+    ]
+   },
+   "minGap": {
+    "type": "number"
+   },
+   "adaptive": {
+    "type": "boolean"
+   },
+   "tileFirst": {
+    "type": "boolean"
+   },
+   "transcript": {
+    "type": "string",
+    "enum": [
+     "auto",
+     "off"
+    ]
+   },
+   "planThresholds": {
+    "type": "object"
+   },
+   "ocr": {
+    "type": "boolean"
+   },
+   "hotwords": {
+    "type": "string"
+   },
+   "size": {
+    "type": "string",
+    "enum": [
+     "small",
+     "medium",
+     "large"
+    ]
+   },
+   "quality": {
+    "type": "string",
+    "enum": [
+     "low",
+     "medium",
+     "high"
+    ]
+   },
+   "scanHeight": {
+    "type": "integer"
+   },
+   "cookies": {
+    "type": "string"
+   },
+   "allowAnonymous": {
+    "type": "boolean"
+   },
+   "sourceHash": {
+    "type": "boolean"
+   }
+  },
+  "video_subtitles": {
+   "input": {
+    "type": "string"
+   },
+   "from": {
+    "type": "number"
+   },
+   "to": {
+    "type": "number"
+   },
+   "maxStrips": {
+    "type": "number"
+   },
+   "stepSec": {
+    "type": "number"
+   },
+   "band": {
+    "type": "array"
+   },
+   "times": {
+    "type": "array"
+   },
+   "cookies": {
+    "type": "string"
+   },
+   "allowAnonymous": {
+    "type": "boolean"
+   }
+  },
+  "video_zoom": {
+   "input": {
+    "type": "string"
+   },
+   "start": {
+    "type": "number"
+   },
+   "end": {
+    "type": "number"
+   },
+   "duration": {
+    "type": "number"
+   },
+   "cells": {
+    "type": "number"
+   },
+   "at": {
+    "type": "number"
+   },
+   "detail": {
+    "type": "string",
+    "enum": [
+     "high",
+     "ultra"
+    ]
+   },
+   "from": {
+    "type": "number"
+   },
+   "to": {
+    "type": "number"
+   },
+   "pick": {
+    "type": "string",
+    "enum": [
+     "sharp",
+     "mid",
+     "thumb"
+    ]
+   },
+   "burn": {
+    "type": "string",
+    "enum": [
+     "index",
+     "none"
+    ]
+   },
+   "transcript": {
+    "type": "string",
+    "enum": [
+     "auto",
+     "off"
+    ]
+   },
+   "transcriptFile": {
+    "type": "string"
+   },
+   "cellId": {
+    "type": "integer"
+   },
+   "minGap": {
+    "type": "number"
+   },
+   "quality": {
+    "type": "string",
+    "enum": [
+     "low",
+     "medium",
+     "high"
+    ]
+   },
+   "size": {
+    "type": "string",
+    "enum": [
+     "small",
+     "medium",
+     "high"
+    ]
+   },
+   "zoomHeight": {
+    "type": "integer"
+   },
+   "scanHeight": {
+    "type": "integer"
+   },
+   "ocr": {
+    "type": "boolean"
+   },
+   "cookies": {
+    "type": "string"
+   },
+   "allowAnonymous": {
+    "type": "boolean"
+   },
+   "sourceHash": {
+    "type": "boolean"
+   }
+  },
+  "weather": {
+   "location": {
+    "type": "string"
+   },
+   "days": {
+    "type": "number"
+   }
+  },
+  "web_fetch": {
+   "url": {
+    "type": "string"
+   }
+  },
+  "web_search": {
+   "queries": {
+    "type": "array"
+   }
+  },
+  "word_create": {
+   "path": {
+    "type": "string"
+   },
+   "title": {
+    "type": "string"
+   },
+   "paragraphs": {
+    "type": "array"
+   },
+   "bullets": {
+    "type": "array"
+   },
+   "table": {
+    "type": "object"
+   },
+   "overwrite": {
+    "type": "boolean"
+   }
+  },
+  "word_read": {
+   "path": {
+    "type": "string"
+   },
+   "max_chars": {
+    "type": "integer"
+   },
+   "format": {
+    "type": "string",
+    "enum": [
+     "text",
+     "markdown"
+    ]
+   }
+  },
+  "word_update": {
+   "path": {
+    "type": "string"
+   },
+   "paragraphs": {
+    "type": "array"
+   },
+   "bullets": {
+    "type": "array"
+   },
+   "table": {
+    "type": "object"
+   }
+  },
+  "workflow": {
+   "script": {
+    "type": "string"
+   },
+   "meta": {
+    "type": "object"
+   },
+   "args": {
+    "type": "object"
+   },
+   "run_in_background": {
+    "type": "boolean"
+   }
+  },
+  "working_directory": {
+   "cd": {
+    "type": "string"
+   }
+  },
+  "write": {
+   "file_path": {
+    "type": "string"
+   },
+   "content": {
+    "type": "string"
+   },
+   "sandbox_permissions": {
+    "type": "string",
+    "enum": [
+     "workspace-write",
+     "danger-full-access"
+    ]
+   },
+   "justification": {
+    "type": "string"
+   }
+  },
+  "group_tools": {
+   "action": {
+    "type": "string",
+    "enum": [
+     "list",
+     "apply"
+    ]
+   },
+   "ops": {
+    "type": "array"
+   }
+  },
+  "pua_reference": {
+   "path": {
+    "type": "string"
+   }
+  },
+  "sidebar_open": {
+   "target": {
+    "type": "string"
+   },
+   "title": {
+    "type": "string"
+   }
+  },
+  "list_papers": {
+   "topic": {
+    "type": "string"
+   }
+  },
+  "search_paper": {
+   "query": {
+    "type": "string"
+   },
+   "k": {
+    "type": "integer"
+   },
+   "path": {
+    "type": "string"
+   },
+   "topic": {
+    "type": "string"
+   },
+   "name": {
+    "type": "string"
+   }
+  },
+  "study_progress": {
+   "path": {
+    "type": "string"
+   },
+   "topic": {
+    "type": "string"
+   },
+   "name": {
+    "type": "string"
+   }
+  },
+  "study_update": {
+   "action": {
+    "type": "string",
+    "enum": [
+     "set_plan",
+     "complete_step",
+     "record_quiz"
+    ]
+   },
+   "steps": {
+    "type": "array"
+   },
+   "step_id": {
+    "type": "integer"
+   },
+   "note": {
+    "type": "string"
+   },
+   "score": {
+    "type": "integer"
+   },
+   "total": {
+    "type": "integer"
+   },
+   "summary": {
+    "type": "string"
+   },
+   "path": {
+    "type": "string"
+   },
+   "topic": {
+    "type": "string"
+   },
+   "name": {
+    "type": "string"
+   }
+  },
+  "transcribe_pdf": {
+   "path": {
+    "type": "string"
+   },
+   "topic": {
+    "type": "string"
+   },
+   "name": {
+    "type": "string"
+   },
+   "force": {
+    "type": "boolean"
+   },
+   "source": {
+    "type": "string",
+    "enum": [
+     "auto",
+     "pdfjs",
+     "mineru-local",
+     "mineru-cloud"
+    ]
+   }
+  },
+  "task_board_create": {
+   "title": {
+    "type": "string"
+   },
+   "description": {
+    "type": "string"
+   },
+   "prompt": {
+    "type": "string"
+   },
+   "parentId": {
+    "type": "string"
+   },
+   "workspaceId": {
+    "type": "string"
+   },
+   "mode": {
+    "type": "string"
+   },
+   "permission": {
+    "type": "string",
+    "enum": [
+     "read-only",
+     "workspace-write",
+     "danger-full-access"
+    ]
+   },
+   "model": {
+    "type": "string"
+   },
+   "reasoningEffort": {
+    "type": "string"
+   },
+   "reuseSession": {
+    "type": "boolean"
+   },
+   "goalRun": {
+    "type": "boolean"
+   },
+   "skipVerification": {
+    "type": "boolean"
+   },
+   "tags": {
+    "type": "array"
+   },
+   "schedule": {
+    "type": "object"
+   }
+  },
+  "task_board_get": {
+   "taskId": {
+    "type": "string"
+   }
+  },
+  "task_board_list": {
+   "status": {
+    "type": "string",
+    "enum": [
+     "backlog",
+     "todo",
+     "running",
+     "done",
+     "failed"
+    ]
+   },
+   "parentId": {
+    "type": "string"
+   },
+   "rootsOnly": {
+    "type": "boolean"
+   },
+   "includeArchived": {
+    "type": "boolean"
+   },
+   "tag": {
+    "type": "string"
+   },
+   "query": {
+    "type": "string"
+   },
+   "limit": {
+    "type": "integer"
+   }
+  },
+  "task_board_manage": {
+   "taskId": {
+    "type": "string"
+   },
+   "action": {
+    "type": "string",
+    "enum": [
+     "move-todo",
+     "move-backlog",
+     "move-running",
+     "move-done",
+     "move-failed",
+     "archive",
+     "restore",
+     "delete",
+     "settle",
+     "reset-verification",
+     "record-external-outcome"
+    ]
+   },
+   "result": {
+    "type": "string",
+    "enum": [
+     "succeeded",
+     "failed"
+    ]
+   },
+   "initiatedBy": {
+    "type": "string"
+   },
+   "summary": {
+    "type": "string"
+   }
+  },
+  "task_board_run": {
+   "taskId": {
+    "type": "string"
+   },
+   "rerun": {
+    "type": "boolean"
+   }
+  },
+  "task_board_schedule": {
+   "taskId": {
+    "type": "string"
+   },
+   "enabled": {
+    "type": "boolean"
+   },
+   "mode": {
+    "type": "string",
+    "enum": [
+     "cron",
+     "once"
+    ]
+   },
+   "cron": {
+    "type": "string"
+   },
+   "at": {
+    "type": "integer"
+   },
+   "timeZone": {
+    "type": "string"
+   },
+   "maxRuns": {
+    "type": "integer"
+   }
+  },
+  "task_board_set_parent": {
+   "taskId": {
+    "type": "string"
+   },
+   "parentId": {
+    "type": "string"
+   }
+  },
+  "task_board_update": {
+   "taskId": {
+    "type": "string"
+   },
+   "title": {
+    "type": "string"
+   },
+   "description": {
+    "type": "string"
+   },
+   "prompt": {
+    "type": "string"
+   },
+   "workspaceId": {
+    "type": "string"
+   },
+   "mode": {
+    "type": "string"
+   },
+   "model": {
+    "type": "string"
+   },
+   "reasoningEffort": {
+    "type": "string"
+   },
+   "reuseSession": {
+    "type": "boolean"
+   },
+   "goalRun": {
+    "type": "boolean"
+   },
+   "skipVerification": {
+    "type": "boolean"
+   },
+   "tags": {
+    "type": "array"
+   }
+  }
+ }
+}

@@ -1,6 +1,6 @@
 {
   "name": "dsh-judge-gate",
-  "version": "0.4.0",
+  "version": "0.4.2",
   "description": "弱裁判事前闸：每次工具调用 dispatch 前同步核一遍参数形态（缺必填键、形近错键、多余键、写文本文件漏 -Encoding 等），拦下即拒，判定与日志全部随包自带，不依赖任何本机绝对路径。",
   "keywords": [
     "dsh-plugin",

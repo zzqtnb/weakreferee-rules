@@ -29,6 +29,7 @@ const CONDITION = [
   'unknownKey', 'pathOutside', 'cmdAbsPathWritten',
   'noCallSince', 'callCountSince', 'calledSince', 'argRepeat',
   'failRepeat', 'failCountSince', 'claimUnbacked',
+  'claimCmdUnbacked', 'obligationPending',
 ];
 
 const problems = [];

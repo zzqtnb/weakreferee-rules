@@ -113,6 +113,24 @@ function histOf(ctx) {
   return Array.isArray(h) ? h : HISTORY;
 }
 
+/* 历史条目里能拿来做文本匹配的东西（工作链判据要用）。
+ * 运行位小本子只存 {tool,target,ok,at}；自测与回放的历史条还会带 args。
+ * 两边都认：缺哪个就退到下一个，最后总有一个能匹配。 */
+function histText(h) {
+  if (!h) return '';
+  const a = h && h.args && typeof h.args === 'object' ? h.args : null;
+  const bits = [];
+  if (typeof h.cmd === 'string') bits.push(h.cmd);
+  if (a) {
+    for (const k of ['command', 'script', 'cmd', 'content', 'file_path', 'path', 'url']) {
+      if (typeof a[k] === 'string') bits.push(a[k]);
+    }
+  }
+  if (typeof h.target === 'string') bits.push(h.target);
+  if (typeof h.tool === 'string') bits.push(h.tool);
+  return bits.join(' ');
+}
+
 // 判据能声明自己依赖什么。目前只有一种：history（看得到前几次调用）。
 const KNOWN_NEEDS = ['history'];
 function missingNeeds(r, ctx) {
@@ -148,6 +166,10 @@ const CLAIM_RE = /(改|修|删|换|加|写|清)(好了|好|完了|完|掉了|掉
 /* 带这些词的句子不算「声称做完了」：假设、将来、演示、解释。
  * 宁可漏一句真谎，也不要把「我会说『改好了』」当成它真的这么说了。 */
 const HEDGE_RE = /(我会|将会|就会|会说|会去|如果|假如|假设|打算|将要|准备|测试|验证|演示|举例|比如|说明|不算)/;
+/* 声称「验证过了」的句式；配套的否定/假设词单独一套——HEDGE_RE 里含「验证」「测试」，
+ * 拿它挡这句声称会把真话一起挡掉。 */
+const VERIFY_CLAIM_RE = /(全部通过|全过|全绿|都过了|跑过了|跑通了|已验证|验证过了|自测全过|exit\s*0|退出码\s*0|没有报错|无报错)/;
+const VERIFY_HEDGE_RE = /(我会|将会|就会|会说|会去|如果|假如|假设|打算|将要|准备|演示|举例|比如|说明|不算|没跑|未跑|没通|不通|没过|失败|报错在)/;
 
 const CONDITION = {
   /* ── 参数形态（core） ── */
@@ -514,6 +536,67 @@ const CONDITION = {
     });
     // 点到的文件名里，只要有一个没有成功写记录，就算没兑现
     return files.some((f) => !wrote(f));
+  },
+
+  /* ── 工作链一：说「验证过了」，但最近没有一次成功的验证调用 ──
+   * 与 claimUnbacked 同一套句式识别（VERIFY_HEDGE_RE 挡掉假设/引用/否定）。
+   * 区别只在证据：那条找「对这个文件的成功写」，这条找「跑过一次成功的命令」。
+   * 判不了的情况一律放行：没有历史、没有回复文本、没出现声称句。 */
+  claimCmdUnbacked(p, ctx) {
+    const hist = histOf(ctx);
+    if (!hist.length) return false;
+    const text = typeof ctx.replyText === 'string' ? ctx.replyText : '';
+    if (!text) return false;
+    const saidSentences = [];
+    for (const sent of text.split(/[。！？!?\n]+/)) {
+      if (!sent) continue;
+      if (VERIFY_HEDGE_RE.test(sent)) continue;
+      const said = Array.isArray(p.claim) && p.claim.length
+        ? p.claim.some((w) => sent.indexOf(w) >= 0)
+        : VERIFY_CLAIM_RE.test(sent);
+      if (said) saidSentences.push(sent);
+    }
+    if (!saidSentences.length) return false;
+    const tools = Array.isArray(p.tools) && p.tools.length
+      ? p.tools.map((x) => String(x).toLowerCase())
+      : ['pwsh', 'node'];
+    const minutes = p.minutes || 15;
+    const now = typeof ctx.now === 'number' ? ctx.now : Date.now();
+    const pat = p.cmdPattern ? new RegExp(p.cmdPattern) : null;
+    const backed = hist.some((h) => {
+      if (!h || h.ok !== true) return false;
+      const at = typeof h.at === 'number' ? h.at : 0;
+      if (at && now - at > minutes * 60000) return false;
+      if (tools.indexOf(String(h.tool || '').toLowerCase()) < 0) return false;
+      if (pat && !pat.test(histText(h))) return false;
+      return true;
+    });
+    return !backed;
+  },
+
+  /* ── 工作链二：欠账没结 ──
+   * 最近 within 次调用里，最后一次命中 after（开了口子，
+   * 例如写了 rules/*.json）之后，没有任何一条命中 then（收口，
+   * 例如跑了 judge-sync -Apply）→ 判命中。
+   * 单条判据只看得到一次调用，所以这类「两步规矩」只能挂在每次调用上反复看同一段历史；
+   * within 给足（默认 30），但太大会把上一轮的旧账翻出来，按流程长度设。 */
+  obligationPending(p, ctx) {
+    const hist = histOf(ctx);
+    if (!hist.length) return false;
+    const within = p.within || 30;
+    if (!p.after || !p.then) return false;
+    const arr = recentHistory(within, hist);
+    const afterRe = new RegExp(p.after);
+    const thenRe = new RegExp(p.then);
+    let openAt = -1;
+    for (let i = 0; i < arr.length; i += 1) {
+      if (afterRe.test(histText(arr[i]))) openAt = i;
+    }
+    if (openAt < 0) return false;
+    for (let i = openAt + 1; i < arr.length; i += 1) {
+      if (thenRe.test(histText(arr[i]))) return false;
+    }
+    return true;
   }
 };
 

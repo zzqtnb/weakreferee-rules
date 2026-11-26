@@ -158,7 +158,10 @@
           "expect": "pass"
         }
       ],
-      "needFs": false
+      "needFs": false,
+      "note": [
+        "用例带 tool 字段，自测按用例的工具查契约表（packmgr 2026-11-26 修：原来一律用规则的 tool，'*' 永远查不到）"
+      ]
     },
     "scene": "给世界书塞关键词时把一串词包成数组传进去，工具照收不误，存下来是一个长字符串；后面按关键词检索，一条都命中不了。"
   },
@@ -243,7 +246,8 @@
     "condition": {
       "type": "regexHit",
       "in": "args.content",
-      "pattern": "\\[(待补充|待填|请填写|TODO|TBD|XXX)\\]|【(待补充|待填|请填写)】"
+      "pattern": "\\[(待补充|待填|请填写|TODO|TBD|XXX)\\]|【(待补充|待填|请填写)】",
+      "maskQuoted": true
     },
     "action": "warn",
     "severity": "B",
@@ -259,19 +263,15 @@
       "cases": [
         {
           "args": {
-            "content": "# 报告\n\n## 结论\n\n[待补充]"
+            "content": "# 报告\n\n## 结论\n\n[待补充]",
+            "file_path": "D:\\演示\\工作区\\交付\\报告.md"
           },
           "expect": "block"
         },
         {
           "args": {
-            "content": "# 报告\n\n## 结论\n\n三处要改，见下。"
-          },
-          "expect": "pass"
-        },
-        {
-          "args": {
-            "content": "模板里写 [待补充] 只是举例"
+            "content": "模板里写 \"[待补充]\" 只是举例，不是本文的占位",
+            "file_path": "D:\\演示\\工作区\\交付\\报告.md"
           },
           "expect": "pass"
         }
@@ -307,19 +307,22 @@
       "cases": [
         {
           "args": {
-            "content": "综上所述，该方案具有重要意义。"
+            "content": "综上所述，该方案具有重要意义。",
+            "file_path": "D:\\演示\\工作区\\交付\\报告.md"
           },
           "expect": "block"
         },
         {
           "args": {
-            "content": "这里有三处要改，第一处是第 12 行。"
+            "content": "这里有三处要改，第一处是第 12 行。",
+            "file_path": "D:\\演示\\工作区\\交付\\报告.md"
           },
           "expect": "pass"
         },
         {
           "args": {
-            "content": "这个功能起到了抓手作用，形成闭环。"
+            "content": "这个功能起到了抓手作用，形成闭环。",
+            "file_path": "D:\\演示\\工作区\\交付\\报告.md"
           },
           "expect": "block"
         }
@@ -551,7 +554,17 @@
             "content": "新内容"
           },
           "expect": "block",
-          "note": "仓库里本来就有的文件"
+          "note": "历史上只调过 grep/pwsh（没有读文件、没有联网），所以「覆盖旧文件」「引了 DOI 没检索」成立",
+          "history": [
+            {
+              "tool": "grep",
+              "args": {}
+            },
+            {
+              "tool": "pwsh",
+              "args": {}
+            }
+          ]
         }
       ]
     }
@@ -604,7 +617,18 @@
             "file_path": "D:\\演示\\工作区\\交付\\综述.md",
             "content": "参见 10.1038/s41598-023-41032-5"
           },
-          "expect": "block"
+          "expect": "block",
+          "history": [
+            {
+              "tool": "grep",
+              "args": {}
+            },
+            {
+              "tool": "pwsh",
+              "args": {}
+            }
+          ],
+          "note": "历史上只调过 grep/pwsh（没有读文件、没有联网），所以「覆盖旧文件」「引了 DOI 没检索」成立"
         },
         {
           "args": {
@@ -661,7 +685,18 @@
             "file_path": "D:\\演示\\工作区\\交付\\调研.md",
             "content": "据某文报道（https://example.com/post/1），该政策已废止"
           },
-          "expect": "block"
+          "expect": "block",
+          "history": [
+            {
+              "tool": "grep",
+              "args": {}
+            },
+            {
+              "tool": "pwsh",
+              "args": {}
+            }
+          ],
+          "note": "历史上只调过 grep/pwsh（没有读文件、没有联网），所以「覆盖旧文件」「引了 DOI 没检索」成立"
         },
         {
           "args": {

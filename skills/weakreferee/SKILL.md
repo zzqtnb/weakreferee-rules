@@ -56,7 +56,7 @@ node weakreferee-cli.js packs
 1. 改 `dsh-judge-gate\rules\<包>\rules.json`（判据库说明同步改 `catalog\<域>\<编号>.json`）
 2. `node tools\gen-manifest.js dsh-judge-gate/rules` 重算清单；仓库根 `packs\` 那份镜像也要一致
 3. `node tools\validate.js` 结构全部通过；`node weakreferee-cli.js packs` 完整性一致
-4. `powershell -File D:\deepseek\工具脚本\judge-sync.ps1 -Apply` 同步到 DSH 运行位与各副本
+4. `powershell -File D:\deepseek\系统\脚本\judge-sync.ps1 -Apply` 同步到 DSH 运行位与各副本
 5. 完全退出 DSH 再打开，新判据才生效
 
 入库有一条硬线：**实测档必须写明是哪个模型犯过、几次**；本机拦下的写「DSH 模型犯过 N 次」——DSH 背后就是模型，本机拦下就是它犯的。

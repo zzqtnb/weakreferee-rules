@@ -26,7 +26,7 @@ function toolOf(rule) {
 function mkCall(rule, args, extra) {
   const call = {
     when: rule.when || 'tool:pre',
-    tool: toolOf(rule),
+    tool: (extra && typeof extra.tool === 'string' && extra.tool) || toolOf(rule),
     args: args || {},
   };
   // 跨调用判据的用例要自带「前几次调用」：不给就永远判不出来，

@@ -1,0 +1,30 @@
+{
+  "id": "WORK-CLAIM-VERIFIED-01",
+  "title": "WORK-CLAIM-VERIFIED-01 说「全过 / 验证过了」，但最近没有一次成功的验证命令",
+  "domain": "workflow",
+  "audience": [
+    "dev",
+    "ops"
+  ],
+  "evidence": {
+    "level": "推断",
+    "hits": 0,
+    "sessions": 0,
+    "source": "2026-11-26 判据处置讨论：与 CROSS-CLAIM-01 同族——那条找「对这个文件的成功写」，这条找「跑过一次成功的命令」，因为「跑过了」这句话最容易被说在前面"
+  },
+  "falsePositiveRisk": "medium",
+  "defaultAction": "steer",
+  "message": "这条说验证过了，但记录里最近 15 分钟没有一次成功的 pwsh / node 调用",
+  "fix": "把验的那条命令贴出来（哪条、输出哪几行），或者说清引用的是哪一次的结果",
+  "severity": "B",
+  "reversible": true,
+  "promotedTo": "cross-call#WORK-CLAIM-VERIFIED-01",
+  "notes": [
+    "判据：回复里出现「全过 / 全绿 / 跑通了 / 已验证 / exit 0」这类声称，而最近 15 分钟的调用记录里没有一次成功的 pwsh 或 node",
+    "例子｜该拦：说「四包自测全过了」但这一轮只读过文件；不该拦：真跑过一条命令且成功、或者句子带「如果 / 打算 / 演示」",
+    "边界：引用的是上一轮的旧结果（超 15 分钟窗口就不算）；验证藏在脚本里由别的工具代跑（工具白名单里没有它就会误报，这是已知缺口）",
+    "未实测｜真机 0 命中、回放 0 命中（回放没有 replyText，判不了这类）——按「命中 0 次只当候选」挂 warn，等真机说话",
+    "本条以 rules.json 为准；本文件只说明「检查什么、为什么、怎么救」",
+    "动作档：steer（2026-11-26 validate 口径——推断档 + 误拦 medium 最多到 steer；真机命中且人判为真再升 warn）"
+  ]
+}

@@ -22,3 +22,7 @@ _tmp/
 release/
 # 考察期用不上的判据说明（2026-11-25 移出仓库，本地留在 _备份\2026-11-25\_unused-catalog）
 _unused-catalog/
+
+# notes 的运行时产物：攒下来的候选与起草出来的草案，都是本机产物（2026-11-27）
+notes/candidates.json
+drafts/

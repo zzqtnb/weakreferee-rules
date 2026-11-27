@@ -1378,6 +1378,7 @@ if (cmd === 'stats') return cmdStats(argv);
   if (cmd === 'trace') return cmdTrace(argv);
   if (cmd === 'check') return cmdCheck(splitArgs(argv.slice(1)));
   if (cmd === 'packs') return cmdPacks();
+  if (cmd === 'notes') return require('./tools/notes.js').cli(argv.slice(1));
   if (cmd === 'selftest') return cmdSelftest();
   console.error('不认识的子命令：' + cmd + '（用 --help 看用法）');
   return 3;

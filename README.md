@@ -148,13 +148,43 @@ node dsh-judge-gate/tools/judge-packs.cjs status                   # 现在实�
 
 面板还有一栏「库里」：整份判据库 45 条都在这里，装进闸的可以直接调三档，还没写成机器判据的显示成灰卡（右上标「还没写成规则」）。每条带「判据 / 例子 / 边界 / 已测」四段——它为什么存在、该拦什么、什么情况放过。说明来自仓库根的 `catalog/`，装成插件后跟包一起走。
 
-### 判据从哪来：两条路
+### 判据从哪来：三条路
 
 **一条人挑**：上面那些命令，`list` 看市场、`add` 装包或单条。适合「我知道我要防什么」。
 
 **一条机器挑**：`node weakreferee-cli.js mine` 扫自己的会话历史，把反复出现、现在没人管的写法列成草案；确认后 `judge-packs.cjs add --draft mine-rules.json` 把它装成一个自建包（落在 `data/custom/mine/`）。适合「我不知道自己会被什么坑，让记录说话」。草案的 `action` 一律是 `warn`（只提示不拦）。跑一段时间看它误拦多少，再决定要不要变严：面板点「拦」，或 `judge-packs.cjs action MINE-BAT-CJK-01 block`。
 
+**一条边干边攒**：`notes`——会话里遇到能被机器查出来的错，当场记一条候选；同一条反复出现就累加；够三次、正反例齐全，再起草一条判据草案，由人签字并进包。
+
 两条路的落点都是同一份清单，装载时不区分来源。哪条路进来都一样：装几条、拦几条、误拦归谁，账上都记着。
+
+#### notes 怎么用（十分钟上手）
+
+```bash
+# 1. 这一轮会话里遇到的错，写成一个小 JSON（数组或单条），交进去
+node weakreferee-cli.js notes add round.json
+
+# 2. 看现在攒了什么（按次数倒序；够三次的会标出来）
+node weakreferee-cli.js notes list
+
+# 3. 两条像又不完全像的，它不会自作主张合并，列出来问你
+node weakreferee-cli.js notes report
+node weakreferee-cli.js notes absorb N-0003 N-0001   # 人说「是一回事」才并
+
+# 4. 够次数了，起草（不加 --confirm 只打印，不落盘）
+node weakreferee-cli.js notes promote N-0001 --pack windows-powershell --confirm
+```
+
+四条规矩写死在工具里，不是靠自觉：
+
+| 规矩 | 为什么 |
+|---|---|
+| 只收能写成断言的错（`condition` 必须是引擎认的类型） | 描述类、判断类的错进了这里也永远不会命中，占地方而已 |
+| 必须带正反两个用例 | 一条判据自己都测不了，就没法证明它拦得对 |
+| 同工具 + 同类型 + 标题相似 ≥ 0.8 才自动并 | 不引模型：跨机器、离线也能跑；合并靠人点头（`absorb`） |
+| 够 3 次才许起草，草案不自动进包 | 偶发一次多半是环境问题；进包是人的动作 |
+
+起草出来的东西落在 `drafts/`，格式跟手写的判据一样，并进 `packs/<包>/rules.json` 后要顺手把 `pack.json` 里的 `rules` 数加一，再跑 `tools/validate.js` 与 `selftest`。细节看 `notes/README.md`。
 
 ### 装多装少的代价
 

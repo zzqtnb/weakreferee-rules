@@ -24,6 +24,7 @@ metadata:
 | 问单条命令会不会被拦 | `node dsh-judge-gate\check.cjs <工具名> "k=v"` | 「判定：拦下 / 提示 / 通过」，退出码 0 通过、1 拦下 |
 | 看装了哪些判据、条数对不对 | `node weakreferee-cli.js packs` | 末行「完整性：8 个包与清单一致」 |
 | 翻过去的会话，看重复踩了什么坑 | `node weakreferee-cli.js mine <会话目录>` | 命中按判据号分组 |
+| 把这一轮遇到的错攒成候选、够次数再起草 | `node weakreferee-cli.js notes add/list/report/promote` | `notes list` 里次数累加；`report` 标出「够次数」与「像同一条」；`promote` 只产 `drafts/` 草案，不自动进包 |
 | 改判据 / 加一条判据 | 改 `rules\<包>\rules.json` → 重新生成清单 | 见下面「改判据的流程」 |
 
 ## 三种接法

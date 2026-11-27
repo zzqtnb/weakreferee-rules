@@ -25,6 +25,7 @@ metadata:
 | 看装了哪些判据、条数对不对 | `node weakreferee-cli.js packs` | 末行「完整性：8 个包与清单一致」 |
 | 翻过去的会话，看重复踩了什么坑 | `node weakreferee-cli.js mine <会话目录>` | 命中按判据号分组 |
 | 把这一轮遇到的错攒成候选、够次数再起草 | `node weakreferee-cli.js notes add/list/report/promote` | `notes list` 里次数累加；`report` 标出「够次数」与「像同一条」；`promote` 只产 `drafts/` 草案，不自动进包 |
+| 看哪条判据该升级成拦、哪条该退回 | `node tools/observe.mjs --ledger <拦截台账.tsv> --days 7` | 一张表：触发次数 / 算几次 / 拦下 / 只提醒 / 结论；`--write` 落报告，`--json` 机读 |
 | 改判据 / 加一条判据 | 改 `rules\<包>\rules.json` → 重新生成清单 | 见下面「改判据的流程」 |
 
 ## 三种接法

@@ -26,3 +26,6 @@ _unused-catalog/
 # notes 的运行时产物：攒下来的候选与起草出来的草案，都是本机产物（2026-11-27）
 notes/candidates.json
 drafts/
+
+# observe.mjs 的产物（观察期报告），本机数据，不入库（2026-11-27）
+observations/

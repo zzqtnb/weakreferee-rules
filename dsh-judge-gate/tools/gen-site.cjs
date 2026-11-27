@@ -122,6 +122,8 @@ ${rows}
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>弱裁判 · 判据包索引</title>
+<link rel="icon" href="brand/favicon.ico" sizes="any">
+<link rel="icon" href="brand/mark-light.svg" type="image/svg+xml">
 <style>
   :root{--bg:#14161a;--card:#1b1e23;--line:#2a2f36;--text:#e6e8ea;--dim:#98a0aa;--warn:#d3b15a;--red:#e07a70}
   *{box-sizing:border-box}
@@ -157,6 +159,7 @@ ${rows}
 </head>
 <body>
 <header>
+  <img src="brand/logo-light.svg" alt="" width="86" style="display:block;margin-bottom:14px">
   <h1>弱裁判 · 判据包索引</h1>
   <p class="lead">这是一套装在 AI 和工具之间的检查。每次 AI 要动手之前，先把这次调用的参数过一遍判据：<b>能当场判死的拦下，判不了的说未验，不确定的只提醒</b>。一共 ${packs.length} 个包、${total} 条判据，装哪几条由用的人自己定，规矩以 JSON 存在本地，能读、能改、能带走。</p>
   <p class="lead">最后那列「累计命中」是作者机器上记过的次数，写在每条规则的 evidence 里，含改判据之前的历史。它不是实时数——实时数在本地那份面板里，按判据编号现算，只算改了记账格式之后的记录。0 次的分两种：还没到过那个场景，或者刚加上还没跑够。</p>

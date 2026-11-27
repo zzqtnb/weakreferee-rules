@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 'use strict';
+// 包的中文名：命令行输出给人看，英文 id 仍是仓库里的真名
+const PACK_CN = { core: '核心规矩', 'cross-call': '连着几次动作', 'dsh-host': 'DSH 自身', 'windows-powershell': 'Windows 命令', browser: '浏览器', 'doc-suite': '文档与表格', publish: '对外发布', preference: '个人偏好' };
 /**
  * 弱裁判 · 独立命令行（weakreferee-cli.js）v0.1
  *
@@ -547,12 +549,12 @@ function cmdPacks() {
   if (st.error) { console.error('失败：' + st.error); return 3; }
   const L = [];
   L.push('规则包目录：' + st.rulesDir);
-  L.push('契约表目录：' + (st.contractDir || '（缺失）'));
+  L.push('工具参数清单目录：' + (st.contractDir || '（缺失）'));
   L.push('');
   for (const d of st.packs) {
     let i;
     try { i = PACK.inspect(d); } catch (e) { L.push('  ' + path.basename(d) + '：读不了 ' + e.message); continue; }
-    L.push('  ' + i.pack + '：' + i.rules + ' 条，本环境生效 ' + i.appliedHere
+    L.push('  ' + i.pack + (PACK_CN[i.pack] ? '（' + PACK_CN[i.pack] + '）' : '') + '：' + i.rules + ' 条，本环境生效 ' + i.appliedHere
       + '，带实测证据 ' + i.withEvidence + '，作用例 ' + i.withCases);
   }
   L.push('');
@@ -905,7 +907,7 @@ function cmdConfig() {
   const L = [];
   L.push('配置文件：' + (CFG.path || '（没找到，用的是默认值）'));
   L.push('规则包目录：' + (resolveRulesDir() || '（缺失）'));
-  L.push('契约表目录：' + (resolveContractDir() || '（缺失）'));
+  L.push('工具参数清单目录：' + (resolveContractDir() || '（缺失）'));
   L.push('shell：' + (process.env.DSH_JUDGE_SHELL || 'powershell-5.1'));
   L.push('账本：' + (flagValue('--ledger') || cfgPath('ledger') || '（不记）'));
   const ig = collectIgnore();

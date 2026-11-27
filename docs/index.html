@@ -45,9 +45,9 @@
 </header>
 <main>
 <section id="core">
-    <h2>core <span class="n">13 条</span></h2>
+    <h2>核心规矩 <span class="en">core</span> <span class="n">13 条</span></h2>
     <p class="what">通用规矩，跟哪台机器无关。协议写错、参数形态不对、交付物里留着占位符、没核就写「已验证」、引用没打开过的网址。</p>
-    <p class="note">任何装了这套东西的机器都适用。　13 条里 5 条会拦下，8 条只提示不拦截。</p>
+    <p class="note">不依赖任何操作系统或宿主的规则。换平台、换模型、换宿主都成立。　13 条里 5 条会当场拦住，8 条只提醒（记着，不拦）。</p>
     <div class="cmd"><code>node tools/judge-packs.cjs add core</code><button data-cmd="node tools/judge-packs.cjs add core">复制</button></div>
     <table>
       <thead><tr><th>编号</th><th>它看什么</th><th>命中时说什么</th><th>怎么改</th><th>后果</th><th>累计命中</th></tr></thead>
@@ -57,7 +57,7 @@
         <td class="t">web_fetch 只接受 https</td>
         <td class="m">web_fetch 只收 https，http:// 会被工具直接拒绝</td>
         <td class="f">把 http:// 换成 https://</td>
-        <td class="a block">拦下</td>
+        <td class="a block">直接拦</td>
         <td class="h">3</td>
       </tr>
 <tr>
@@ -65,7 +65,7 @@
         <td class="t">参数形态（由工具契约表编译，不手写）</td>
         <td class="m"></td>
         <td class="f">—</td>
-        <td class="a block">拦下</td>
+        <td class="a block">直接拦</td>
         <td class="h">165</td>
       </tr>
 <tr>
@@ -73,7 +73,7 @@
         <td class="t">参数类型与契约表不符</td>
         <td class="m">参数类型跟工具要求的不一样（表里写 string，你给了数组之类）</td>
         <td class="f">按工具契约改类型：要字符串就传字符串（多个值用逗号连或分多次调用），要整数就别加引号</td>
-        <td class="a block">拦下</td>
+        <td class="a block">直接拦</td>
         <td class="h">7</td>
       </tr>
 <tr>
@@ -81,7 +81,7 @@
         <td class="t">git push 带 --force 会覆盖远端别人的提交</td>
         <td class="m">git push 带 --force 会把远端别人的提交直接顶掉，被顶的人下次拉取会丢一批记录</td>
         <td class="f">改用 --force-with-lease：远端要是被别人推过，它会拒绝，不会闷头覆盖</td>
-        <td class="a warn">只提示</td>
+        <td class="a warn">只提醒</td>
         <td class="h">—</td>
       </tr>
 <tr>
@@ -89,7 +89,7 @@
         <td class="t">交给别人的文件里还留着占位符</td>
         <td class="m">写进去的内容里带着 [待补充] 这类占位符，交给别人就是一份没写完的东西</td>
         <td class="f">把占位符换成实际内容，或者明确写「此处待定：缺什么、等谁给」</td>
-        <td class="a warn">只提示</td>
+        <td class="a warn">只提醒</td>
         <td class="h">—</td>
       </tr>
 <tr>
@@ -97,7 +97,7 @@
         <td class="t">写出来的东西满篇套话</td>
         <td class="m">正文里有明显的套话句式，交给别人一眼就能看出不是人写的</td>
         <td class="f">删掉套话，换成具体的事：谁做了什么、什么时候、结果是多少</td>
-        <td class="a warn">只提示</td>
+        <td class="a warn">只提醒</td>
         <td class="h">—</td>
       </tr>
 <tr>
@@ -105,7 +105,7 @@
         <td class="t">文件内容里带出本机会话号或内部路径</td>
         <td class="m">正文里带着本机的会话号或内部路径，对外发出去等于把自己的目录结构交出去</td>
         <td class="f">把内部路径换成相对说法（「工作区里」「本地」），会话号删掉</td>
-        <td class="a block">拦下</td>
+        <td class="a block">直接拦</td>
         <td class="h">—</td>
       </tr>
 <tr>
@@ -113,7 +113,7 @@
         <td class="t">交付文档里写了没证据的「已验证、运行稳定」</td>
         <td class="m">这段文字里出现了「已验证／运行稳定／无错误」这类断言，但没写凭什么这么说</td>
         <td class="f">补上证据：跑过哪条命令、几个用例、结果是什么；没跑过就把断言改成「未验证，待确认」</td>
-        <td class="a warn">只提示</td>
+        <td class="a warn">只提醒</td>
         <td class="h">—</td>
       </tr>
 <tr>
@@ -121,7 +121,7 @@
         <td class="t">交付物名字里带「最终版」这类说法</td>
         <td class="m">文件名里带着「最终版」这类说法，过几天就分不清哪个才是最后一版</td>
         <td class="f">改成带日期或版本号的名字，例如 项目A-技术报告-20261124.md</td>
-        <td class="a warn">只提示</td>
+        <td class="a warn">只提醒</td>
         <td class="h">—</td>
       </tr>
 <tr>
@@ -129,7 +129,7 @@
         <td class="t">往一个早就存在的文件上写，本轮没读过也没备份过</td>
         <td class="m">这个位置本来就有一份文件（不是本轮新建的），这轮一次没读过也没备份就直接写</td>
         <td class="f">先 read 看一眼，或者复制一份带日期的副本再覆盖</td>
-        <td class="a warn">只提示</td>
+        <td class="a warn">只提醒</td>
         <td class="h">—</td>
       </tr>
 <tr>
@@ -137,7 +137,7 @@
         <td class="t">写出 DOI 这类出处，本会话一次检索都没做过</td>
         <td class="m">正文里写了 DOI，这一轮却没查过任何文献——编造和卷期错位都出在这里</td>
         <td class="f">要么查到真出处再写，要么把出处删掉、只写「我记得有这么一个研究」</td>
-        <td class="a warn">只提示</td>
+        <td class="a warn">只提醒</td>
         <td class="h">—</td>
       </tr>
 <tr>
@@ -145,7 +145,7 @@
         <td class="t">引用带网址，但那个页面本会话一次都没打开</td>
         <td class="m">正文里带了网址，这一轮没打开过任何页面——只看了搜索摘要就写成结论，最容易过时</td>
         <td class="f">打开那一条看一眼再写，或者把出处换成真读过的来源</td>
-        <td class="a block">拦下</td>
+        <td class="a block">直接拦</td>
         <td class="h">—</td>
       </tr>
 <tr>
@@ -153,16 +153,16 @@
         <td class="t">派给子代理的任务没写怎么算做完</td>
         <td class="m">这个子代理任务没写怎么算做完，交回来的东西对不对只能靠猜</td>
         <td class="f">补一句验收：交什么文件、跑什么命令、看到什么输出算通过；写不出验收条件，说明这活还没想清楚</td>
-        <td class="a warn">只提示</td>
+        <td class="a warn">只提醒</td>
         <td class="h">—</td>
       </tr>
       </tbody>
     </table>
   </section>
 <section id="cross-call">
-    <h2>cross-call <span class="n">5 条</span></h2>
+    <h2>连着几次动作 <span class="en">cross-call</span> <span class="n">5 条</span></h2>
     <p class="what">单次调用看不出来、要连着看才发现的。同一条命令失败过又原样重发、同一个文件连着两次没过、嘴上说改好了但记录里没那次写。</p>
-    <p class="note">要读调用历史，装之前先确认宿主留了记录。　5 条里 1 条会拦下，4 条只提示不拦截。</p>
+    <p class="note">看前几次调用干了什么：同一条命令失败后又原样发、同一个工具连着失败还在改、同一个文件反复没成；另两条判「一串调用当整体」——说验证过了却没有跑过命令、改了规则没同步　5 条里 1 条会当场拦住，4 条只提醒（记着，不拦）。</p>
     <div class="cmd"><code>node tools/judge-packs.cjs add cross-call</code><button data-cmd="node tools/judge-packs.cjs add cross-call">复制</button></div>
     <table>
       <thead><tr><th>编号</th><th>它看什么</th><th>命中时说什么</th><th>怎么改</th><th>后果</th><th>累计命中</th></tr></thead>
@@ -172,7 +172,7 @@
         <td class="t">同一条命令失败过，5 分钟内又原样发一次</td>
         <td class="m">这条命令刚刚失败过，一个字的没改就又发了一遍</td>
         <td class="f">先说清上次为什么失败、这次改了什么；确实没得改就说明「只是重试一次」</td>
-        <td class="a warn">只提示</td>
+        <td class="a warn">只提醒</td>
         <td class="h">—</td>
       </tr>
 <tr>
@@ -180,7 +180,7 @@
         <td class="t">同一个文件连着失败两次以上，中间没成过</td>
         <td class="m">这个文件连着失败两次，中间一次没成，还在往它身上试</td>
         <td class="f">先读一遍现状（文件在不在、路径对不对、编码是什么），别继续猜着写</td>
-        <td class="a warn">只提示</td>
+        <td class="a warn">只提醒</td>
         <td class="h">—</td>
       </tr>
 <tr>
@@ -188,7 +188,7 @@
         <td class="t">它说「改好了」并点了文件名，但记录里没有那次写</td>
         <td class="m">上一条说改好了，但记录里没有对这个文件的成功写</td>
         <td class="f">把那次写真的做一遍，或者说明白改的是哪一次、在哪个文件</td>
-        <td class="a block">拦下</td>
+        <td class="a block">直接拦</td>
         <td class="h">—</td>
       </tr>
 <tr>
@@ -211,9 +211,9 @@
     </table>
   </section>
 <section id="dsh-host">
-    <h2>dsh-host <span class="n">3 条</span></h2>
+    <h2>DSH 自身 <span class="en">dsh-host</span> <span class="n">3 条</span></h2>
     <p class="what">只管 DSH 这个宿主。改文件前锚点还在不在、判定结果是不是比代码还旧（改了判据没重启）、动文件前有没有留底。</p>
-    <p class="note">换个工具宿主就不适用，所以单独成包。　3 条里 2 条会拦下，1 条只提示不拦截。</p>
+    <p class="note">依赖 DSH 宿主自身状态的规则（判据文件比进程新、编辑锚点是否还在、写绝对路径前有没有备份）。换宿主后这一包不装。　3 条里 2 条会当场拦住，1 条只提醒（记着，不拦）。</p>
     <div class="cmd"><code>node tools/judge-packs.cjs add dsh-host</code><button data-cmd="node tools/judge-packs.cjs add dsh-host">复制</button></div>
     <table>
       <thead><tr><th>编号</th><th>它看什么</th><th>命中时说什么</th><th>怎么改</th><th>后果</th><th>累计命中</th></tr></thead>
@@ -223,7 +223,7 @@
         <td class="t">改文件之前先确认要替换的原文还在</td>
         <td class="m">要替换的原文在这个文件里已经找不到（文件被改过，或你要改的是另一个版本）</td>
         <td class="f">先用 read 看一眼当前内容，再照实际内容改；如果确认内容没变还报，点「这条不对」</td>
-        <td class="a warn">只提示</td>
+        <td class="a warn">只提醒</td>
         <td class="h">1</td>
       </tr>
 <tr>
@@ -231,7 +231,7 @@
         <td class="t">判据改过但宿主没重启，闸跑的还是旧代码</td>
         <td class="m">判据文件比宿主进程新——闸正在用旧逻辑判定，等于没装</td>
         <td class="f">完全退出宿主再打开（不是关窗口，是退出进程）</td>
-        <td class="a block">拦下</td>
+        <td class="a block">直接拦</td>
         <td class="h">12</td>
       </tr>
 <tr>
@@ -239,16 +239,16 @@
         <td class="t">用命令改文件前先留个底</td>
         <td class="m">这条命令会覆盖或删掉一个绝对路径下的文件</td>
         <td class="f">先把它挪进回收站再动手：recycle.ps1 -Put &lt;路径&gt;</td>
-        <td class="a block">拦下</td>
+        <td class="a block">直接拦</td>
         <td class="h">—</td>
       </tr>
       </tbody>
     </table>
   </section>
 <section id="windows-powershell">
-    <h2>windows-powershell <span class="n">16 条</span></h2>
+    <h2>Windows 命令 <span class="en">windows-powershell</span> <span class="n">16 条</span></h2>
     <p class="what">Windows 和 PowerShell 上会真出事的那一类。写文本文件漏编码、给自动变量赋值、往 .ps1 里写中文丢 BOM、递归删除不带 -WhatIf、DELETE 不带 WHERE、往系统盘写东西。</p>
-    <p class="note">这台机器上踩过的错，不是网上抄的清单。　16 条里 11 条会拦下，5 条只提示不拦截。</p>
+    <p class="note">只在 Windows 上、且 shell 是 PowerShell 时生效的规则。换到 Linux 或 macOS 后这一整包都不装。　16 条里 11 条会当场拦住，5 条只提醒（记着，不拦）。</p>
     <div class="cmd"><code>node tools/judge-packs.cjs add windows-powershell</code><button data-cmd="node tools/judge-packs.cjs add windows-powershell">复制</button></div>
     <table>
       <thead><tr><th>编号</th><th>它看什么</th><th>命中时说什么</th><th>怎么改</th><th>后果</th><th>累计命中</th></tr></thead>
@@ -258,7 +258,7 @@
         <td class="t">写文本文件必须显式指定编码</td>
         <td class="m">写文本文件没带 -Encoding，中文会按默认编码落盘，读回来是乱码</td>
         <td class="f">加 -Encoding utf8，或改用 [System.IO.File]::WriteAllText($p,$s,(New-Object System.Text.UTF8Encoding($true)))</td>
-        <td class="a block">拦下</td>
+        <td class="a block">直接拦</td>
         <td class="h">29</td>
       </tr>
 <tr>
@@ -266,7 +266,7 @@
         <td class="t">命令行里不许给 PowerShell 自动变量赋值</td>
         <td class="m">给 PowerShell 自动变量赋值（只读，或影响解析）</td>
         <td class="f">换带固定前缀的多字名，如 $envPath 而不是 $home</td>
-        <td class="a block">拦下</td>
+        <td class="a block">直接拦</td>
         <td class="h">12</td>
       </tr>
 <tr>
@@ -274,7 +274,7 @@
         <td class="t">往 .ps1 里写自动变量赋值</td>
         <td class="m">往 .ps1 里写了 PowerShell 自动变量赋值（只读或影响解析）</td>
         <td class="f">换个带前缀的多字名，如 $envPath</td>
-        <td class="a block">拦下</td>
+        <td class="a block">直接拦</td>
         <td class="h">1</td>
       </tr>
 <tr>
@@ -282,7 +282,7 @@
         <td class="t">write 往 .ps1 写中文正文</td>
         <td class="m">write 落盘是无 BOM 的 UTF-8，Windows PowerShell 5.1 会按 GBK 解析中文成乱码、报一串假语法错</td>
         <td class="f">改用 pwsh 一次写完：[System.IO.File]::WriteAllText($p,$s,(New-Object System.Text.UTF8Encoding($true)))，同一次调用里回读 [System.IO.File]::ReadAllBytes($p)[0..2] 必须是 239,187,191</td>
-        <td class="a block">拦下</td>
+        <td class="a block">直接拦</td>
         <td class="h">91</td>
       </tr>
 <tr>
@@ -290,7 +290,7 @@
         <td class="t">edit 会去掉 .ps1 的 BOM</td>
         <td class="m">这个 .ps1 带 BOM，edit 落盘会把 BOM 去掉（实测 73→70 字节，纯 ASCII 替换也会）</td>
         <td class="f">改用 pwsh 一次改完：ReadAllText 取全文、替换、WriteAllText 带 UTF8Encoding($true) 写回，并回读前三字节确认 239,187,191</td>
-        <td class="a block">拦下</td>
+        <td class="a block">直接拦</td>
         <td class="h">100</td>
       </tr>
 <tr>
@@ -298,7 +298,7 @@
         <td class="t">递归删除变量/通配路径没带 -WhatIf</td>
         <td class="m">递归删除的路径是变量或通配（删错目录救不回，回收站也未必留得住）</td>
         <td class="f">先把要删的清单落成文件看一眼（Get-ChildItem $p -Recurse | Tee-Object 清单 -Encoding utf8），或先加 -WhatIf 干跑；字面路径直接删不归这条管</td>
-        <td class="a block">拦下</td>
+        <td class="a block">直接拦</td>
         <td class="h">—</td>
       </tr>
 <tr>
@@ -306,7 +306,7 @@
         <td class="t">不可逆系统动作前先备回滚材料</td>
         <td class="m">不可逆系统动作，且这条命令里没带导出回滚材料（rewind 与回收站都救不回）</td>
         <td class="f">同一条命令里先导出：reg export 键 文件、schtasks /query /xml、Export-Clixml；或加 -WhatIf 干跑。导出过了这条就不拦</td>
-        <td class="a warn">只提示</td>
+        <td class="a warn">只提醒</td>
         <td class="h">—</td>
       </tr>
 <tr>
@@ -314,7 +314,7 @@
         <td class="t">整目录镜像前先查目录联接</td>
         <td class="m">整目录镜像/清理未先查目录联接：robocopy 跟随 junction，镜像一个含联接的目录等于清空链接目标</td>
         <td class="f">先 Get-ChildItem -Force 看目标里有没有 ReparsePoint，有就只删链接不动内容</td>
-        <td class="a warn">只提示</td>
+        <td class="a warn">只提醒</td>
         <td class="h">—</td>
       </tr>
 <tr>
@@ -322,7 +322,7 @@
         <td class="t">write 往 .bat/.cmd 写中文正文</td>
         <td class="m">批处理文件按本地代码页解析（中文系统是 GBK），写进去的中文会变乱码，或者让 cmd 读到一半报错</td>
         <td class="f">批处理里只写 ASCII；必须输出中文时，在文件开头加 chcp 65001，并让 bat 用 type 输出一个外部 UTF-8 文本文件</td>
-        <td class="a warn">只提示</td>
+        <td class="a warn">只提醒</td>
         <td class="h">9</td>
       </tr>
 <tr>
@@ -330,7 +330,7 @@
         <td class="t">DELETE / UPDATE 没有 WHERE</td>
         <td class="m">DELETE / UPDATE 里没有 WHERE（会动整张表）</td>
         <td class="f">补上 WHERE；真要清空整表就写 TRUNCATE 并说明理由，别让一条语句看不出意图</td>
-        <td class="a block">拦下</td>
+        <td class="a block">直接拦</td>
         <td class="h">—</td>
       </tr>
 <tr>
@@ -338,7 +338,7 @@
         <td class="t">git 丢弃未提交改动</td>
         <td class="m">git 这条命令会丢掉未提交的改动</td>
         <td class="f">先 git status 看清楚，需要留就 git stash 或先提交；确实要丢，加一句说明再执行</td>
-        <td class="a block">拦下</td>
+        <td class="a block">直接拦</td>
         <td class="h">—</td>
       </tr>
 <tr>
@@ -346,7 +346,7 @@
         <td class="t">权限开给所有人</td>
         <td class="m">把权限开给了所有人（777 或 Everyone:F）</td>
         <td class="f">授权到具体账号或用户组；实在要放开，先写清给谁、多久收回</td>
-        <td class="a block">拦下</td>
+        <td class="a block">直接拦</td>
         <td class="h">—</td>
       </tr>
 <tr>
@@ -354,7 +354,7 @@
         <td class="t">变量路径递归删除</td>
         <td class="m">递归删除的路径是变量拼出来的（变量为空或带尾分隔符会删过头）</td>
         <td class="f">先把变量打印出来看一眼，或写成字面量；至少加 -WhatIf 干跑一遍</td>
-        <td class="a block">拦下</td>
+        <td class="a block">直接拦</td>
         <td class="h">—</td>
       </tr>
 <tr>
@@ -362,7 +362,7 @@
         <td class="t">删表或清空表</td>
         <td class="m">命令里有 DROP / TRUNCATE（表或库会直接消失）</td>
         <td class="f">先备份或导出；确实要删，写一句「删的是哪张表、为什么要删」再执行</td>
-        <td class="a block">拦下</td>
+        <td class="a block">直接拦</td>
         <td class="h">—</td>
       </tr>
 <tr>
@@ -370,7 +370,7 @@
         <td class="t">清日志或审计</td>
         <td class="m">这条命令会清掉日志或审计记录</td>
         <td class="f">先导出再清（wevtutil epl）；平时只需要截取最近几条就用 Get-WinEvent -MaxEvents</td>
-        <td class="a warn">只提示</td>
+        <td class="a warn">只提醒</td>
         <td class="h">—</td>
       </tr>
 <tr>
@@ -378,16 +378,16 @@
         <td class="t">往系统盘或临时目录写东西、装东西</td>
         <td class="m">目标是系统盘或临时目录：临时目录会被清掉，系统目录改了会影响别的软件</td>
         <td class="f">工具和依赖装到 D 盘独立目录（D:\&lt;软件名&gt;\），纯临时文件明确放 _tmp 并在收尾清掉</td>
-        <td class="a warn">只提示</td>
+        <td class="a warn">只提醒</td>
         <td class="h">—</td>
       </tr>
       </tbody>
     </table>
   </section>
   <section id="browser">
-    <h2>browser <span class="n">4 条</span></h2>
+    <h2>浏览器 <span class="en">browser</span> <span class="n">4 条</span></h2>
     <p class="what">管浏览器自动化的外发与登录态：往页面填凭据、上传密钥文件、读 cookie。</p>
-    <p class="note">由 pack.json 的 description 说明。　4 条里 0 条会拦下，4 条只提示不拦截。</p>
+    <p class="note">管浏览器自动化的外发与登录态：往页面填凭据、上传密钥文件、读 cookie。　4 条里 0 条会当场拦住，4 条只提醒（记着，不拦）。</p>
     <div class="cmd"><code>node tools/judge-packs.cjs add browser</code><button data-cmd="node tools/judge-packs.cjs add browser">复制</button></div>
     <table>
       <thead><tr><th>编号</th><th>它看什么</th><th>命中时说什么</th><th>怎么改</th><th>后果</th><th>累计命中</th></tr></thead>
@@ -397,7 +397,7 @@
         <td class="t">往网页输入框里敲疑似凭据</td>
         <td class="m">这一次往页面里输的文本含令牌/私钥形状的串</td>
         <td class="f">凭据用输入框粘贴或让用户自己填，别经模型参数中转（会进流水与日志）</td>
-        <td class="a warn">只提示</td>
+        <td class="a warn">只提醒</td>
         <td class="h">—</td>
       </tr>
 <tr>
@@ -405,7 +405,7 @@
         <td class="t">把凭据类文件塞进上传框</td>
         <td class="m">上传的文件名像密钥/凭据文件</td>
         <td class="f">确认这是有意上传；否则换一个非凭据文件，或让用户自己选文件</td>
-        <td class="a warn">只提示</td>
+        <td class="a warn">只提醒</td>
         <td class="h">—</td>
       </tr>
 <tr>
@@ -413,7 +413,7 @@
         <td class="t">在页面里读 cookie 或本地存储</td>
         <td class="m">这段脚本在读登录态（cookie / 本地存储）</td>
         <td class="f">需要登录态就用浏览器自身会话；非读不可时只说用途、不回显值</td>
-        <td class="a warn">只提示</td>
+        <td class="a warn">只提醒</td>
         <td class="h">—</td>
       </tr>
 <tr>
@@ -421,16 +421,16 @@
         <td class="t">按坐标点页面前没截过图</td>
         <td class="m">按坐标点页面，但最近没截过图，点偏了也不知道点到哪</td>
         <td class="f">先截图看这一屏再点坐标；或者改用元素定位（css / 文字）代替坐标</td>
-        <td class="a warn">只提示</td>
+        <td class="a warn">只提醒</td>
         <td class="h">—</td>
       </tr>
       </tbody>
     </table>
   </section>
   <section id="doc-suite">
-    <h2>doc-suite <span class="n">3 条</span></h2>
+    <h2>文档与表格 <span class="en">doc-suite</span> <span class="n">3 条</span></h2>
     <p class="what">管在真窗口里改文档的不可逆动作：覆盖既有文件、整表替换、把标记当正文。</p>
-    <p class="note">由 pack.json 的 description 说明。　3 条里 0 条会拦下，3 条只提示不拦截。</p>
+    <p class="note">管在真窗口里改文档的不可逆动作：覆盖既有文件、整表替换、把标记当正文。　3 条里 0 条会当场拦住，3 条只提醒（记着，不拦）。</p>
     <div class="cmd"><code>node tools/judge-packs.cjs add doc-suite</code><button data-cmd="node tools/judge-packs.cjs add doc-suite">复制</button></div>
     <table>
       <thead><tr><th>编号</th><th>它看什么</th><th>命中时说什么</th><th>怎么改</th><th>后果</th><th>累计命中</th></tr></thead>
@@ -440,7 +440,7 @@
         <td class="t">覆盖一份本来就存在的文档</td>
         <td class="m">要写的这份文件本轮之前就存在，覆盖后旧版本没了</td>
         <td class="f">先复制一份到备份目录再保存，或另存新名</td>
-        <td class="a warn">只提示</td>
+        <td class="a warn">只提醒</td>
         <td class="h">—</td>
       </tr>
 <tr>
@@ -448,7 +448,7 @@
         <td class="t">整张表被数组替换</td>
         <td class="m">sheets 参数是整表替换：该表原有内容与公式会整体丢弃</td>
         <td class="f">要改几格就用 cell_updates；确要整表重写先备份工作簿</td>
-        <td class="a warn">只提示</td>
+        <td class="a warn">只提醒</td>
         <td class="h">—</td>
       </tr>
 <tr>
@@ -456,16 +456,16 @@
         <td class="t">把表格标记当正文写进文档</td>
         <td class="m">这段文本里有 HTML/OOXML 标记，会被当纯文字原样排进文档</td>
         <td class="f">表格用文档自己的表格能力插入；要标记也要先确认宿主认</td>
-        <td class="a warn">只提示</td>
+        <td class="a warn">只提醒</td>
         <td class="h">—</td>
       </tr>
       </tbody>
     </table>
   </section>
   <section id="publish">
-    <h2>publish <span class="n">2 条</span></h2>
+    <h2>对外发布 <span class="en">publish</span> <span class="n">2 条</span></h2>
     <p class="what">管发出去的东西：命令行明文令牌、写进文件的本机路径。</p>
-    <p class="note">由 pack.json 的 description 说明。　2 条里 0 条会拦下，2 条只提示不拦截。</p>
+    <p class="note">管发出去的东西：命令行明文令牌、写进文件的本机路径。　2 条里 0 条会当场拦住，2 条只提醒（记着，不拦）。</p>
     <div class="cmd"><code>node tools/judge-packs.cjs add publish</code><button data-cmd="node tools/judge-packs.cjs add publish">复制</button></div>
     <table>
       <thead><tr><th>编号</th><th>它看什么</th><th>命中时说什么</th><th>怎么改</th><th>后果</th><th>累计命中</th></tr></thead>
@@ -475,7 +475,7 @@
         <td class="t">命令行里出现明文令牌</td>
         <td class="m">这条命令把令牌写在参数里，会被完整记进流水与日志</td>
         <td class="f">令牌从凭据库或环境变量取，命令里只出现变量名</td>
-        <td class="a warn">只提示</td>
+        <td class="a warn">只提醒</td>
         <td class="h">—</td>
       </tr>
 <tr>
@@ -483,16 +483,16 @@
         <td class="t">写出去的文件里带本机绝对路径</td>
         <td class="m">要写入的正文含本机绝对路径</td>
         <td class="f">换成占位符或相对路径；确实要给本机用的文档就放本机目录、别进仓库</td>
-        <td class="a warn">只提示</td>
+        <td class="a warn">只提醒</td>
         <td class="h">—</td>
       </tr>
       </tbody>
     </table>
   </section>
   <section id="preference">
-    <h2>preference <span class="n">3 条</span></h2>
+    <h2>个人偏好 <span class="en">preference</span> <span class="n">3 条</span></h2>
     <p class="what">用户自己的偏好：默认短、要链接、别捧场这类。出厂只有三条示例，条件永不命中，等同未启用；改成你自己的断言才生效。跟前几包的区别是来源——这些不是模型犯过的错，是你要的样子。</p>
-    <p class="note">由 pack.json 的 description 说明。　3 条里 0 条会拦下，3 条只提示不拦截。</p>
+    <p class="note">用户自己的偏好：默认短、要链接、别捧场这类。出厂只有三条示例，条件永不命中，等同未启用；改成你自己的断言才生效。跟前几包的区别是来源——这些不是模型犯过的错，是你要的样子。　3 条里 0 条会当场拦住，3 条只提醒（记着，不拦）。</p>
     <div class="cmd"><code>node tools/judge-packs.cjs add preference</code><button data-cmd="node tools/judge-packs.cjs add preference">复制</button></div>
     <table>
       <thead><tr><th>编号</th><th>它看什么</th><th>命中时说什么</th><th>怎么改</th><th>后果</th><th>累计命中</th></tr></thead>

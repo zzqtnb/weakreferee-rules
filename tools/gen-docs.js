@@ -55,7 +55,20 @@ function esc(s) {
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-const ACTION_LABEL = { block: ['block', '拦下'], warn: ['warn', '只提示'], steer: ['warn', '只提醒'] };
+// 包的中文名：给人看的那一层用中文，英文 id 仍留在括号里（仓库、命令行、文档锚点都靠它）
+const PACK_CN = {
+  core: '核心规矩',
+  'cross-call': '连着几次动作',
+  'dsh-host': 'DSH 自身',
+  'windows-powershell': 'Windows 命令',
+  browser: '浏览器',
+  'doc-suite': '文档与表格',
+  publish: '对外发布',
+  preference: '个人偏好',
+};
+const packCn = (n) => PACK_CN[n] || n;
+
+const ACTION_LABEL = { block: ['block', '直接拦'], warn: ['warn', '只提醒'], steer: ['warn', '只提醒'] };
 
 function rowHtml(r, legacyHits) {
   const [cls, label] = ACTION_LABEL[r.action] || ['warn', '只提示'];
@@ -110,9 +123,9 @@ function main() {
       const where = esc(p.meta.description || '');
       const sec = [
         `<section id="${p.name}">`,
-        `    <h2>${p.name} <span class="n">${p.rules.length} 条</span></h2>`,
+        `    <h2>${packCn(p.name)} <span class="en">${p.name}</span> <span class="n">${p.rules.length} 条</span></h2>`,
         `    <p class="what">${where}</p>`,
-        `    <p class="note">由 pack.json 的 description 说明。　${p.rules.length} 条里 ${blockN} 条会拦下，${warnN} 条只提示不拦截。</p>`,
+        `    <p class="note">由 pack.json 的 description 说明。　${p.rules.length} 条里 ${blockN} 条会当场拦住，${warnN} 条只提醒（记着，不拦）不拦截。</p>`,
         `    <div class="cmd"><code>node tools/judge-packs.cjs add ${p.name}</code><button data-cmd="node tools/judge-packs.cjs add ${p.name}">复制</button></div>`,
         '    <table>',
         '      <thead><tr><th>编号</th><th>它看什么</th><th>命中时说什么</th><th>怎么改</th><th>后果</th><th>累计命中</th></tr></thead>',
@@ -131,13 +144,13 @@ function main() {
     const blockN = p.rules.filter((r) => r.action === 'block').length;
     const warnN = p.rules.length - blockN;
 
-    // 条数徽标
-    body = body.replace(/(<span class="n">)\d+(\s*条<\/span>)/, `$1${p.rules.length}$2`);
-    // note 句
-    body = body.replace(
-      /(　)\d+(\s*条里\s*)\d+(\s*条会拦下，)\d+(\s*条只提示不拦截。)/,
-      `$1${p.rules.length}$2${blockN}$3${warnN}$4`
-    );
+    // 标题：中文名 + 英文 id + 条数
+    body = body.replace(/<h2>[\s\S]*?<span class="n">\d+\s*条<\/span><\/h2>/,
+      `<h2>${packCn(p.name)} <span class="en">${p.name}</span> <span class="n">${p.rules.length} 条</span></h2>`);
+    // note 句整段重写（旧版靠正则改数字，措辞一变就失效）
+    const desc = (p.meta && p.meta.description) ? p.meta.description : '';
+    body = body.replace(/<p class="note">[\s\S]*?<\/p>/,
+      `<p class="note">${desc}　${p.rules.length} 条里 ${blockN} 条会当场拦住，${warnN} 条只提醒（记着，不拦）。</p>`);
 
     // 表格行
     const tbRe = /(<tbody>)([\s\S]*?)(<\/tbody>)/;

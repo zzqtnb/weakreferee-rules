@@ -1,0 +1,29 @@
+{
+  "id": "browser",
+  "name": "浏览器包",
+  "version": "0.1.0",
+  "kind": "core",
+  "description": "管浏览器自动化的外发与登录态：往页面填凭据、上传密钥文件、读 cookie。",
+  "author": "ZQ",
+  "license": "AGPL-3.0-only",
+  "appliesTo": {},
+  "loadOrder": 20,
+  "rules": 4,
+  "ruleIds": [
+    "BROWSER-CRED-IN-TEXT-01",
+    "BROWSER-SECRET-UPLOAD-01",
+    "BROWSER-COOKIE-EXFIL-01",
+    "BROWSER-CLICK-NO-SHOT-01"
+  ],
+  "testedOn": {
+    "host": "DSH 桌面版（Windows）",
+    "model": "deepseek-chat",
+    "period": "2026-11-27",
+    "calls": 0,
+    "hits": 0,
+    "note": "新装，影子期"
+  },
+  "notes": [
+    "由 rule-gate 自动装上的草稿，动作先 warn，观察期攒数据后由周报请人签转正。"
+  ]
+}

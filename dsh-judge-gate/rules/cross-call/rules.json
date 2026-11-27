@@ -71,7 +71,8 @@
           "note": "上次是成功的，重发不算事"
         }
       ]
-    }
+    },
+    "origin": "model-error"
   },
   {
     "id": "CROSS-BLIND-01",
@@ -153,7 +154,8 @@
           "note": "中间成功过一次，连败已断——这不是死磕"
         }
       ]
-    }
+    },
+    "origin": "model-error"
   },
   {
     "id": "CROSS-CLAIM-01",
@@ -167,7 +169,7 @@
       "type": "claimUnbacked",
       "minutes": 15
     },
-    "action": "warn",
+    "action": "block",
     "severity": "B",
     "message": "上一条说改好了，但记录里没有对这个文件的成功写",
     "fix": "把那次写真的做一遍，或者说明白改的是哪一次、在哪个文件",
@@ -234,7 +236,8 @@
           "note": "没点具体文件名，不判"
         }
       ]
-    }
+    },
+    "origin": "model-error"
   },
   {
     "id": "WORK-CLAIM-VERIFIED-01",
@@ -345,7 +348,8 @@
           "note": "没有历史：显式跳过，不算命中"
         }
       ]
-    }
+    },
+    "origin": "model-error"
   },
   {
     "id": "WORK-EDIT-NO-SYNC-01",
@@ -477,6 +481,7 @@
           "note": "改引擎→语法检查→同步，链条完整"
         }
       ]
-    }
+    },
+    "origin": "model-error"
   }
 ]

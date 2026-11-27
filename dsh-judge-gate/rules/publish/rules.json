@@ -1,0 +1,106 @@
+[
+  {
+    "id": "PUB-SECRET-IN-CMD-01",
+    "title": "命令行里出现明文令牌",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tools": [
+        "pwsh"
+      ]
+    },
+    "condition": {
+      "any": [
+        {
+          "type": "regexHit",
+          "in": "args.command",
+          "pattern": "ghp_[A-Za-z0-9]{20,}|sk-[A-Za-z0-9]{20,}|AKIA[0-9A-Z]{16}|xox[baprs]-[A-Za-z0-9-]{10,}|-----BEGIN [A-Z ]*PRIVATE KEY-----"
+        }
+      ]
+    },
+    "action": "warn",
+    "severity": "A",
+    "message": "这条命令把令牌写在参数里，会被完整记进流水与日志",
+    "fix": "令牌从凭据库或环境变量取，命令里只出现变量名",
+    "reversible": false,
+    "origin": "model-error",
+    "evidence": {
+      "hits": 0,
+      "sessions": 0,
+      "source": "2026-11-27 归纳（真实场景：从凭据库取 token 时差点整串打印）"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "command": "curl -H \"Authorization: token ghp_aaaaaaaaaaaaaaaaaaaaaaaaaaaa\" API_ENDPOINT"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "git credential fill"
+          },
+          "expect": "pass"
+        }
+      ],
+      "needFs": false
+    },
+    "scene": "给代码托管改仓库简介，token 直接写进请求命令，命令记进了会话历史，等于把钥匙贴在墙上。"
+  },
+  {
+    "id": "PUB-HOSTPATH-IN-CONTENT-01",
+    "title": "写出去的文件里带本机绝对路径",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tools": [
+        "write",
+        "edit"
+      ]
+    },
+    "condition": {
+      "any": [
+        {
+          "type": "regexHit",
+          "in": "args.content",
+          "pattern": "[A-Za-z]:[\\\\/]{1,2}(?:Users|deepseek)[\\\\/]{1,2}"
+        },
+        {
+          "type": "regexHit",
+          "in": "args.new_string",
+          "pattern": "[A-Za-z]:[\\\\/]{1,2}(?:Users|deepseek)[\\\\/]{1,2}"
+        }
+      ]
+    },
+    "action": "warn",
+    "severity": "B",
+    "message": "要写入的正文含本机绝对路径",
+    "fix": "换成占位符或相对路径；确实要给本机用的文档就放本机目录、别进仓库",
+    "reversible": true,
+    "origin": "model-error",
+    "evidence": {
+      "hits": 0,
+      "sessions": 0,
+      "source": "2026-11-27 归纳（私隐清理那次改了 9 个文件才清干净）"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "file_path": "D:/demo/a.md",
+            "content": "配置在 D:\\\\deepseek\\\\dsh\\\\home"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "file_path": "D:/demo/a.md",
+            "content": "配置在 <DSH_HOME>"
+          },
+          "expect": "pass"
+        }
+      ],
+      "needFs": false
+    },
+    "scene": "把一份说明书推到公开仓库，里面写着本机路径与用户名，等于顺手报了家门。"
+  }
+]

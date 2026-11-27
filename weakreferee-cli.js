@@ -602,7 +602,7 @@ function cmdSelftest() {
       tool: 'pwsh', args: { command: 'Set-Content -Path a.txt -Value "中文"', description: 'x' } },
     { name: '带 -Encoding utf8 → 放', want: 'pass',
       tool: 'pwsh', args: { command: 'Set-Content -Path a.txt -Value "中文" -Encoding utf8', description: 'x' } },
-    { name: '递归删除不带 -WhatIf → 提示', want: ['warn', 'steer'],
+    { name: '递归删除不带 -WhatIf → 拦', want: 'block',
       tool: 'pwsh', args: { command: 'Remove-Item D:\\work\\old -Recurse -Force', description: 'x' } },
     { name: '递归删除带 -WhatIf → 放', want: 'pass',
       tool: 'pwsh', args: { command: 'Remove-Item D:\\work\\old -Recurse -WhatIf', description: 'x' } },

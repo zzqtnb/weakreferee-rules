@@ -40,14 +40,14 @@
 <body>
 <header>
   <h1>弱裁判 · 判据包索引</h1>
-  <p class="lead">这是一套装在 AI 和工具之间的检查。每次 AI 要动手之前，先把这次调用的参数过一遍判据：<b>能当场判死的拦下，判不了的说未验，不确定的只提醒</b>。一共 4 个包、38 条判据，装哪几条由用的人自己定，规矩以 JSON 存在本地，能读、能改、能带走。</p>
+  <p class="lead">这是一套装在 AI 和工具之间的检查。每次 AI 要动手之前，先把这次调用的参数过一遍判据：<b>能当场判死的拦下，判不了的说未验，不确定的只提醒</b>。一共 8 个包、49 条判据，装哪几条由用的人自己定，规矩以 JSON 存在本地，能读、能改、能带走。</p>
   <p class="lead">最后那列「累计命中」是作者机器上记过的次数，写在每条规则的 evidence 里，含改判据之前的历史。它不是实时数——实时数在本地那份面板里，按判据编号现算，只算改了记账格式之后的记录。0 次的分两种：还没到过那个场景，或者刚加上还没跑够。</p>
 </header>
 <main>
 <section id="core">
     <h2>core <span class="n">13 条</span></h2>
     <p class="what">通用规矩，跟哪台机器无关。协议写错、参数形态不对、交付物里留着占位符、没核就写「已验证」、引用没打开过的网址。</p>
-    <p class="note">任何装了这套东西的机器都适用。　13 条里 3 条会拦下，10 条只提示不拦截。</p>
+    <p class="note">任何装了这套东西的机器都适用。　13 条里 5 条会拦下，8 条只提示不拦截。</p>
     <div class="cmd"><code>node tools/judge-packs.cjs add core</code><button data-cmd="node tools/judge-packs.cjs add core">复制</button></div>
     <table>
       <thead><tr><th>编号</th><th>它看什么</th><th>命中时说什么</th><th>怎么改</th><th>后果</th><th>累计命中</th></tr></thead>
@@ -105,7 +105,7 @@
         <td class="t">文件内容里带出本机会话号或内部路径</td>
         <td class="m">正文里带着本机的会话号或内部路径，对外发出去等于把自己的目录结构交出去</td>
         <td class="f">把内部路径换成相对说法（「工作区里」「本地」），会话号删掉</td>
-        <td class="a warn">只提示</td>
+        <td class="a block">拦下</td>
         <td class="h">—</td>
       </tr>
 <tr>
@@ -145,7 +145,7 @@
         <td class="t">引用带网址，但那个页面本会话一次都没打开</td>
         <td class="m">正文里带了网址，这一轮没打开过任何页面——只看了搜索摘要就写成结论，最容易过时</td>
         <td class="f">打开那一条看一眼再写，或者把出处换成真读过的来源</td>
-        <td class="a warn">只提示</td>
+        <td class="a block">拦下</td>
         <td class="h">—</td>
       </tr>
 <tr>
@@ -162,7 +162,7 @@
 <section id="cross-call">
     <h2>cross-call <span class="n">5 条</span></h2>
     <p class="what">单次调用看不出来、要连着看才发现的。同一条命令失败过又原样重发、同一个文件连着两次没过、嘴上说改好了但记录里没那次写。</p>
-    <p class="note">要读调用历史，装之前先确认宿主留了记录。　5 条里 0 条会拦下，5 条只提示不拦截。</p>
+    <p class="note">要读调用历史，装之前先确认宿主留了记录。　5 条里 1 条会拦下，4 条只提示不拦截。</p>
     <div class="cmd"><code>node tools/judge-packs.cjs add cross-call</code><button data-cmd="node tools/judge-packs.cjs add cross-call">复制</button></div>
     <table>
       <thead><tr><th>编号</th><th>它看什么</th><th>命中时说什么</th><th>怎么改</th><th>后果</th><th>累计命中</th></tr></thead>
@@ -188,7 +188,7 @@
         <td class="t">它说「改好了」并点了文件名，但记录里没有那次写</td>
         <td class="m">上一条说改好了，但记录里没有对这个文件的成功写</td>
         <td class="f">把那次写真的做一遍，或者说明白改的是哪一次、在哪个文件</td>
-        <td class="a warn">只提示</td>
+        <td class="a block">拦下</td>
         <td class="h">—</td>
       </tr>
 <tr>
@@ -211,9 +211,9 @@
     </table>
   </section>
 <section id="dsh-host">
-    <h2>dsh-host <span class="n">4 条</span></h2>
+    <h2>dsh-host <span class="n">3 条</span></h2>
     <p class="what">只管 DSH 这个宿主。改文件前锚点还在不在、判定结果是不是比代码还旧（改了判据没重启）、动文件前有没有留底。</p>
-    <p class="note">换个工具宿主就不适用，所以单独成包。　4 条里 1 条会拦下，3 条只提示不拦截。</p>
+    <p class="note">换个工具宿主就不适用，所以单独成包。　3 条里 2 条会拦下，1 条只提示不拦截。</p>
     <div class="cmd"><code>node tools/judge-packs.cjs add dsh-host</code><button data-cmd="node tools/judge-packs.cjs add dsh-host">复制</button></div>
     <table>
       <thead><tr><th>编号</th><th>它看什么</th><th>命中时说什么</th><th>怎么改</th><th>后果</th><th>累计命中</th></tr></thead>
@@ -239,15 +239,7 @@
         <td class="t">用命令改文件前先留个底</td>
         <td class="m">这条命令会覆盖或删掉一个绝对路径下的文件</td>
         <td class="f">先把它挪进回收站再动手：recycle.ps1 -Put &lt;路径&gt;</td>
-        <td class="a warn">只提示</td>
-        <td class="h">—</td>
-      </tr>
-<tr>
-        <td class="id">BROWSER-CLICK-NO-SHOT-01</td>
-        <td class="t">按坐标点页面前没截过图</td>
-        <td class="m">按坐标点页面，但最近没截过图，点偏了也不知道点到哪</td>
-        <td class="f">先截图看这一屏再点坐标；或者改用元素定位（css / 文字）代替坐标</td>
-        <td class="a warn">只提示</td>
+        <td class="a block">拦下</td>
         <td class="h">—</td>
       </tr>
       </tbody>
@@ -256,7 +248,7 @@
 <section id="windows-powershell">
     <h2>windows-powershell <span class="n">16 条</span></h2>
     <p class="what">Windows 和 PowerShell 上会真出事的那一类。写文本文件漏编码、给自动变量赋值、往 .ps1 里写中文丢 BOM、递归删除不带 -WhatIf、DELETE 不带 WHERE、往系统盘写东西。</p>
-    <p class="note">这台机器上踩过的错，不是网上抄的清单。　16 条里 10 条会拦下，6 条只提示不拦截。</p>
+    <p class="note">这台机器上踩过的错，不是网上抄的清单。　16 条里 11 条会拦下，5 条只提示不拦截。</p>
     <div class="cmd"><code>node tools/judge-packs.cjs add windows-powershell</code><button data-cmd="node tools/judge-packs.cjs add windows-powershell">复制</button></div>
     <table>
       <thead><tr><th>编号</th><th>它看什么</th><th>命中时说什么</th><th>怎么改</th><th>后果</th><th>累计命中</th></tr></thead>
@@ -306,7 +298,7 @@
         <td class="t">递归删除变量/通配路径没带 -WhatIf</td>
         <td class="m">递归删除的路径是变量或通配（删错目录救不回，回收站也未必留得住）</td>
         <td class="f">先把要删的清单落成文件看一眼（Get-ChildItem $p -Recurse | Tee-Object 清单 -Encoding utf8），或先加 -WhatIf 干跑；字面路径直接删不归这条管</td>
-        <td class="a warn">只提示</td>
+        <td class="a block">拦下</td>
         <td class="h">—</td>
       </tr>
 <tr>
@@ -387,6 +379,146 @@
         <td class="m">目标是系统盘或临时目录：临时目录会被清掉，系统目录改了会影响别的软件</td>
         <td class="f">工具和依赖装到 D 盘独立目录（D:\&lt;软件名&gt;\），纯临时文件明确放 _tmp 并在收尾清掉</td>
         <td class="a warn">只提示</td>
+        <td class="h">—</td>
+      </tr>
+      </tbody>
+    </table>
+  </section>
+  <section id="browser">
+    <h2>browser <span class="n">4 条</span></h2>
+    <p class="what">管浏览器自动化的外发与登录态：往页面填凭据、上传密钥文件、读 cookie。</p>
+    <p class="note">由 pack.json 的 description 说明。　4 条里 0 条会拦下，4 条只提示不拦截。</p>
+    <div class="cmd"><code>node tools/judge-packs.cjs add browser</code><button data-cmd="node tools/judge-packs.cjs add browser">复制</button></div>
+    <table>
+      <thead><tr><th>编号</th><th>它看什么</th><th>命中时说什么</th><th>怎么改</th><th>后果</th><th>累计命中</th></tr></thead>
+      <tbody>
+<tr>
+        <td class="id">BROWSER-CRED-IN-TEXT-01</td>
+        <td class="t">往网页输入框里敲疑似凭据</td>
+        <td class="m">这一次往页面里输的文本含令牌/私钥形状的串</td>
+        <td class="f">凭据用输入框粘贴或让用户自己填，别经模型参数中转（会进流水与日志）</td>
+        <td class="a warn">只提示</td>
+        <td class="h">—</td>
+      </tr>
+<tr>
+        <td class="id">BROWSER-SECRET-UPLOAD-01</td>
+        <td class="t">把凭据类文件塞进上传框</td>
+        <td class="m">上传的文件名像密钥/凭据文件</td>
+        <td class="f">确认这是有意上传；否则换一个非凭据文件，或让用户自己选文件</td>
+        <td class="a warn">只提示</td>
+        <td class="h">—</td>
+      </tr>
+<tr>
+        <td class="id">BROWSER-COOKIE-EXFIL-01</td>
+        <td class="t">在页面里读 cookie 或本地存储</td>
+        <td class="m">这段脚本在读登录态（cookie / 本地存储）</td>
+        <td class="f">需要登录态就用浏览器自身会话；非读不可时只说用途、不回显值</td>
+        <td class="a warn">只提示</td>
+        <td class="h">—</td>
+      </tr>
+<tr>
+        <td class="id">BROWSER-CLICK-NO-SHOT-01</td>
+        <td class="t">按坐标点页面前没截过图</td>
+        <td class="m">按坐标点页面，但最近没截过图，点偏了也不知道点到哪</td>
+        <td class="f">先截图看这一屏再点坐标；或者改用元素定位（css / 文字）代替坐标</td>
+        <td class="a warn">只提示</td>
+        <td class="h">—</td>
+      </tr>
+      </tbody>
+    </table>
+  </section>
+  <section id="doc-suite">
+    <h2>doc-suite <span class="n">3 条</span></h2>
+    <p class="what">管在真窗口里改文档的不可逆动作：覆盖既有文件、整表替换、把标记当正文。</p>
+    <p class="note">由 pack.json 的 description 说明。　3 条里 0 条会拦下，3 条只提示不拦截。</p>
+    <div class="cmd"><code>node tools/judge-packs.cjs add doc-suite</code><button data-cmd="node tools/judge-packs.cjs add doc-suite">复制</button></div>
+    <table>
+      <thead><tr><th>编号</th><th>它看什么</th><th>命中时说什么</th><th>怎么改</th><th>后果</th><th>累计命中</th></tr></thead>
+      <tbody>
+<tr>
+        <td class="id">DOC-SAVE-OVERWRITE-01</td>
+        <td class="t">覆盖一份本来就存在的文档</td>
+        <td class="m">要写的这份文件本轮之前就存在，覆盖后旧版本没了</td>
+        <td class="f">先复制一份到备份目录再保存，或另存新名</td>
+        <td class="a warn">只提示</td>
+        <td class="h">—</td>
+      </tr>
+<tr>
+        <td class="id">DOC-EXCEL-SHEET-REPLACE-01</td>
+        <td class="t">整张表被数组替换</td>
+        <td class="m">sheets 参数是整表替换：该表原有内容与公式会整体丢弃</td>
+        <td class="f">要改几格就用 cell_updates；确要整表重写先备份工作簿</td>
+        <td class="a warn">只提示</td>
+        <td class="h">—</td>
+      </tr>
+<tr>
+        <td class="id">DOC-RAW-MARKUP-01</td>
+        <td class="t">把表格标记当正文写进文档</td>
+        <td class="m">这段文本里有 HTML/OOXML 标记，会被当纯文字原样排进文档</td>
+        <td class="f">表格用文档自己的表格能力插入；要标记也要先确认宿主认</td>
+        <td class="a warn">只提示</td>
+        <td class="h">—</td>
+      </tr>
+      </tbody>
+    </table>
+  </section>
+  <section id="publish">
+    <h2>publish <span class="n">2 条</span></h2>
+    <p class="what">管发出去的东西：命令行明文令牌、写进文件的本机路径。</p>
+    <p class="note">由 pack.json 的 description 说明。　2 条里 0 条会拦下，2 条只提示不拦截。</p>
+    <div class="cmd"><code>node tools/judge-packs.cjs add publish</code><button data-cmd="node tools/judge-packs.cjs add publish">复制</button></div>
+    <table>
+      <thead><tr><th>编号</th><th>它看什么</th><th>命中时说什么</th><th>怎么改</th><th>后果</th><th>累计命中</th></tr></thead>
+      <tbody>
+<tr>
+        <td class="id">PUB-SECRET-IN-CMD-01</td>
+        <td class="t">命令行里出现明文令牌</td>
+        <td class="m">这条命令把令牌写在参数里，会被完整记进流水与日志</td>
+        <td class="f">令牌从凭据库或环境变量取，命令里只出现变量名</td>
+        <td class="a warn">只提示</td>
+        <td class="h">—</td>
+      </tr>
+<tr>
+        <td class="id">PUB-HOSTPATH-IN-CONTENT-01</td>
+        <td class="t">写出去的文件里带本机绝对路径</td>
+        <td class="m">要写入的正文含本机绝对路径</td>
+        <td class="f">换成占位符或相对路径；确实要给本机用的文档就放本机目录、别进仓库</td>
+        <td class="a warn">只提示</td>
+        <td class="h">—</td>
+      </tr>
+      </tbody>
+    </table>
+  </section>
+  <section id="preference">
+    <h2>preference <span class="n">3 条</span></h2>
+    <p class="what">用户自己的偏好：默认短、要链接、别捧场这类。出厂只有三条示例，条件永不命中，等同未启用；改成你自己的断言才生效。跟前几包的区别是来源——这些不是模型犯过的错，是你要的样子。</p>
+    <p class="note">由 pack.json 的 description 说明。　3 条里 0 条会拦下，3 条只提示不拦截。</p>
+    <div class="cmd"><code>node tools/judge-packs.cjs add preference</code><button data-cmd="node tools/judge-packs.cjs add preference">复制</button></div>
+    <table>
+      <thead><tr><th>编号</th><th>它看什么</th><th>命中时说什么</th><th>怎么改</th><th>后果</th><th>累计命中</th></tr></thead>
+      <tbody>
+<tr>
+        <td class="id">PREF-BRIEF-01</td>
+        <td class="t">示例：默认短，只给结论与操作</td>
+        <td class="m">示例规则：这条出厂不生效，只是给你看「个人偏好」长什么样</td>
+        <td class="f">照这条的形状改成你自己的偏好：把 condition 换成你真要抓的形态，selfTest 写一正一反</td>
+        <td class="a warn">只提醒</td>
+        <td class="h">—</td>
+      </tr>
+<tr>
+        <td class="id">PREF-PATH-LINK-01</td>
+        <td class="t">示例：提到文件必须给可点链接</td>
+        <td class="m">示例规则：同样是模板，改成「正文出现文件名就必须带 [名](路径)」</td>
+        <td class="f">把 condition 换成对 args 的断言，selfTest 写一正一反</td>
+        <td class="a warn">只提醒</td>
+        <td class="h">—</td>
+      </tr>
+<tr>
+        <td class="id">PREF-NO-ENCOURAGE-01</td>
+        <td class="t">示例：不要捧场话</td>
+        <td class="m">示例规则：不许「太好了」「你说得对」这类开头</td>
+        <td class="f">把要禁的词写进 pattern，正例写一句含该词的、反例写一句正常的</td>
+        <td class="a warn">只提醒</td>
         <td class="h">—</td>
       </tr>
       </tbody>

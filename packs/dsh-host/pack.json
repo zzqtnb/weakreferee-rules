@@ -12,12 +12,11 @@
     ]
   },
   "loadOrder": 30,
-  "rules": 4,
+  "rules": 3,
   "ruleIds": [
     "DSH-ANCHOR-01",
     "DSH-STALE-JUDGE-01",
-    "SCENE-BACKUP-01",
-    "BROWSER-CLICK-NO-SHOT-01"
+    "SCENE-BACKUP-01"
   ],
   "testedOn": {
     "host": "DSH 桌面版（Windows）",

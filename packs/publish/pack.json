@@ -1,0 +1,27 @@
+{
+  "id": "publish",
+  "name": "对外发布包",
+  "version": "0.1.0",
+  "kind": "core",
+  "description": "管发出去的东西：命令行明文令牌、写进文件的本机路径。",
+  "author": "ZQ",
+  "license": "AGPL-3.0-only",
+  "appliesTo": {},
+  "loadOrder": 20,
+  "rules": 2,
+  "ruleIds": [
+    "PUB-SECRET-IN-CMD-01",
+    "PUB-HOSTPATH-IN-CONTENT-01"
+  ],
+  "testedOn": {
+    "host": "DSH 桌面版（Windows）",
+    "model": "deepseek-chat",
+    "period": "2026-11-27",
+    "calls": 0,
+    "hits": 0,
+    "note": "新装，影子期"
+  },
+  "notes": [
+    "由 rule-gate 自动装上的草稿，动作先 warn，观察期攒数据后由周报请人签转正。"
+  ]
+}

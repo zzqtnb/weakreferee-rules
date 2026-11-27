@@ -1,0 +1,28 @@
+{
+  "id": "doc-suite",
+  "name": "办公文档包",
+  "version": "0.1.0",
+  "kind": "core",
+  "description": "管在真窗口里改文档的不可逆动作：覆盖既有文件、整表替换、把标记当正文。",
+  "author": "ZQ",
+  "license": "AGPL-3.0-only",
+  "appliesTo": {},
+  "loadOrder": 20,
+  "rules": 3,
+  "ruleIds": [
+    "DOC-SAVE-OVERWRITE-01",
+    "DOC-EXCEL-SHEET-REPLACE-01",
+    "DOC-RAW-MARKUP-01"
+  ],
+  "testedOn": {
+    "host": "DSH 桌面版（Windows）",
+    "model": "deepseek-chat",
+    "period": "2026-11-27",
+    "calls": 0,
+    "hits": 0,
+    "note": "新装，影子期"
+  },
+  "notes": [
+    "由 rule-gate 自动装上的草稿，动作先 warn，观察期攒数据后由周报请人签转正。"
+  ]
+}

@@ -1,6 +1,6 @@
 ---
 name: weakreferee
-description: 弱裁判把「我觉得对」换成机器能戳穿的检查：一套可自测的判据包（core / dsh-host / windows-powershell / cross-call 四个包，手写 38 条、展开 487 条细项）加三种接法——DSH 插件在工具调用前同步拦、安装包接任意 MCP 客户端或直接跑命令行、本 skill 只做自查提醒。用户问「这个操作该不该拦」「我之前踩过哪些重复的坑」「装个闸」「检查这次改动会不会又犯老错」「这套检查怎么给别人用」时使用。
+description: 弱裁判把「我觉得对」换成机器能戳穿的检查：一套可自测的判据包（core / cross-call / dsh-host / windows-powershell / browser / doc-suite / publish / preference 八个包，手写 49 条、展开 498 条细项；判据按来源分「模型错误」与「个人偏好」两类）加三种接法——DSH 插件在工具调用前同步拦、安装包接任意 MCP 客户端或直接跑命令行、本 skill 只做自查提醒。用户问「这个操作该不该拦」「我之前踩过哪些重复的坑」「装个闸」「检查这次改动会不会又犯老错」「这套检查怎么给别人用」时使用。
 license: AGPL-3.0
 compatibility: 插件形态需要 DSH 桌面版；安装包形态只需要 Node.js 22 以上（包里不带 node 运行时）；规则里 windows-powershell 域只在 Windows 上生效，core 域跨平台。
 metadata:
@@ -22,7 +22,7 @@ metadata:
 |---|---|---|
 | 让每次工具调用前先被检查 | `dsh-judge-gate\install.ps1`（DSH 插件） | 装完完全退出 DSH 再开，之后每次调用前同步判 |
 | 问单条命令会不会被拦 | `node dsh-judge-gate\check.cjs <工具名> "k=v"` | 「判定：拦下 / 提示 / 通过」，退出码 0 通过、1 拦下 |
-| 看装了哪些判据、条数对不对 | `node weakreferee-cli.js packs` | 末行「完整性：4 个包与清单一致」 |
+| 看装了哪些判据、条数对不对 | `node weakreferee-cli.js packs` | 末行「完整性：8 个包与清单一致」 |
 | 翻过去的会话，看重复踩了什么坑 | `node weakreferee-cli.js mine <会话目录>` | 命中按判据号分组 |
 | 改判据 / 加一条判据 | 改 `rules\<包>\rules.json` → 重新生成清单 | 见下面「改判据的流程」 |
 

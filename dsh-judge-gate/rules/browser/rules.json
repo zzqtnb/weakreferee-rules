@@ -1,0 +1,264 @@
+[
+  {
+    "id": "BROWSER-CRED-IN-TEXT-01",
+    "title": "往网页输入框里敲疑似凭据",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tools": [
+        "dsh_browser_type"
+      ]
+    },
+    "condition": {
+      "any": [
+        {
+          "type": "regexHit",
+          "in": "args.text",
+          "pattern": "ghp_[A-Za-z0-9]{20,}|sk-[A-Za-z0-9]{20,}|AKIA[0-9A-Z]{16}|xox[baprs]-[A-Za-z0-9-]{10,}|-----BEGIN [A-Z ]*PRIVATE KEY-----"
+        }
+      ]
+    },
+    "action": "warn",
+    "severity": "A",
+    "message": "这一次往页面里输的文本含令牌/私钥形状的串",
+    "fix": "凭据用输入框粘贴或让用户自己填，别经模型参数中转（会进流水与日志）",
+    "reversible": false,
+    "origin": "model-error",
+    "evidence": {
+      "hits": 0,
+      "sessions": 0,
+      "source": "2026-11-27 由真实事故归纳（凭据经参数中转风险），待影子期记账"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "text": "ghp_aaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "target": {
+              "by": "css",
+              "value": "#pwd"
+            }
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "text": "西门子 PLC 型号",
+            "target": {
+              "by": "css",
+              "value": "#q"
+            }
+          },
+          "expect": "pass"
+        }
+      ],
+      "needFs": false
+    },
+    "scene": "让 AI 帮忙登录一个后台，模型把自己的 key 直接 type 进密码框，这下 key 就留在了会话记录里。"
+  },
+  {
+    "id": "BROWSER-SECRET-UPLOAD-01",
+    "title": "把凭据类文件塞进上传框",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tools": [
+        "dsh_browser_upload"
+      ]
+    },
+    "condition": {
+      "any": [
+        {
+          "type": "regexHit",
+          "in": "args.path",
+          "pattern": "[\\\\/]\\.ssh[\\\\/]|id_rsa|id_ed25519|\\.env$|credentials|token|\\.pem$"
+        }
+      ]
+    },
+    "action": "warn",
+    "severity": "A",
+    "message": "上传的文件名像密钥/凭据文件",
+    "fix": "确认这是有意上传；否则换一个非凭据文件，或让用户自己选文件",
+    "reversible": false,
+    "origin": "model-error",
+    "evidence": {
+      "hits": 0,
+      "sessions": 0,
+      "source": "2026-11-27 归纳（上传路径是唯一会外发文件内容的浏览器动作）"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "path": "C:/Users/x/.ssh/id_rsa",
+            "selector": "#file"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "path": "D:/demo/report.pdf",
+            "selector": "#file"
+          },
+          "expect": "pass"
+        }
+      ],
+      "needFs": false
+    },
+    "scene": "要往网页传一个附件，模型顺手挑了个路径，恰好落在用户的密钥目录里。"
+  },
+  {
+    "id": "BROWSER-COOKIE-EXFIL-01",
+    "title": "在页面里读 cookie 或本地存储",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tools": [
+        "dsh_browser_execute"
+      ]
+    },
+    "condition": {
+      "any": [
+        {
+          "type": "regexHit",
+          "in": "args.script",
+          "pattern": "document\\.cookie|localStorage\\.(?:key|getItem)|sessionStorage\\.getItem"
+        }
+      ]
+    },
+    "action": "warn",
+    "severity": "B",
+    "message": "这段脚本在读登录态（cookie / 本地存储）",
+    "fix": "需要登录态就用浏览器自身会话；非读不可时只说用途、不回显值",
+    "reversible": false,
+    "origin": "model-error",
+    "evidence": {
+      "hits": 0,
+      "sessions": 0,
+      "source": "2026-11-27 归纳（登录态读出来就等于拿到对方的钥匙）"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "script": "return document.cookie"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "script": "return document.title"
+          },
+          "expect": "pass"
+        }
+      ],
+      "needFs": false
+    },
+    "scene": "调试一个要登录的页面，模型偷懒直接读 cookie 判断登没登，把整串会话票据打进了日志。"
+  },
+  {
+    "id": "BROWSER-CLICK-NO-SHOT-01",
+    "needs": [
+      "history"
+    ],
+    "title": "按坐标点页面前没截过图",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "dsh_browser_click"
+    },
+    "condition": {
+      "all": [
+        {
+          "type": "argSet",
+          "keys": [
+            "x",
+            "y"
+          ]
+        },
+        {
+          "type": "noCallSince",
+          "tools": [
+            "dsh_browser_screenshot"
+          ],
+          "within": 30
+        }
+      ]
+    },
+    "action": "warn",
+    "severity": "B",
+    "message": "按坐标点页面，但最近没截过图，点偏了也不知道点到哪",
+    "fix": "先截图看这一屏再点坐标；或者改用元素定位（css / 文字）代替坐标",
+    "reversible": true,
+    "evidence": {
+      "hits": 1,
+      "sessions": 1,
+      "source": "本机一次按坐标盲点（没有截图依据）"
+    },
+    "scene": "页面元素位置不确定时直接报坐标去点，点完了看不出点到了哪儿，判断依据是空的。",
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "x": 120,
+            "y": 340
+          },
+          "history": [],
+          "expect": "pass",
+          "note": "没有历史：判不了，放行"
+        },
+        {
+          "args": {
+            "x": 120,
+            "y": 340
+          },
+          "history": [
+            {
+              "tool": "dsh_browser_click",
+              "args": {
+                "target": "#ok"
+              },
+              "ok": true,
+              "at": 1794999000000
+            }
+          ],
+          "expect": "block",
+          "note": "最近 30 次里一次截图都没有，这次报坐标"
+        },
+        {
+          "args": {
+            "x": 120,
+            "y": 340
+          },
+          "history": [
+            {
+              "tool": "dsh_browser_screenshot",
+              "args": {},
+              "ok": true,
+              "at": 1794999000000
+            }
+          ],
+          "expect": "pass",
+          "note": "刚截过图，有依据"
+        },
+        {
+          "args": {
+            "target": {
+              "by": "css",
+              "value": "#ok"
+            }
+          },
+          "history": [
+            {
+              "tool": "dsh_browser_click",
+              "args": {
+                "target": "#ok"
+              },
+              "ok": true,
+              "at": 1794999000000
+            }
+          ],
+          "expect": "pass",
+          "note": "按元素点的，不是坐标"
+        }
+      ]
+    },
+    "origin": "model-error"
+  }
+]

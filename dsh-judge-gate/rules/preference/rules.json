@@ -1,0 +1,134 @@
+[
+  {
+    "id": "PREF-BRIEF-01",
+    "title": "示例：默认短，只给结论与操作",
+    "when": "tool:pre",
+    "appliesTo": {},
+    "condition": {
+      "any": [
+        {
+          "type": "regexHit",
+          "in": "args.demo",
+          "pattern": "^PREFERENCE-DEMO$"
+        }
+      ]
+    },
+    "action": "steer",
+    "severity": "C",
+    "message": "示例规则：这条出厂不生效，只是给你看「个人偏好」长什么样",
+    "fix": "照这条的形状改成你自己的偏好：把 condition 换成你真要抓的形态，selfTest 写一正一反",
+    "reversible": true,
+    "origin": "preference",
+    "evidence": {
+      "hits": 0,
+      "sessions": 0,
+      "source": "示例（条件是 args.demo=PREFERENCE-DEMO，正常调用永不命中）"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "demo": "PREFERENCE-DEMO"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "demo": "other"
+          },
+          "expect": "pass"
+        }
+      ],
+      "needFs": false
+    },
+    "scene": "示例：用户要求回答只给结论和操作，不要寒暄与总结段。"
+  },
+  {
+    "id": "PREF-PATH-LINK-01",
+    "title": "示例：提到文件必须给可点链接",
+    "when": "tool:pre",
+    "appliesTo": {},
+    "condition": {
+      "any": [
+        {
+          "type": "regexHit",
+          "in": "args.demo",
+          "pattern": "^PREFERENCE-DEMO$"
+        }
+      ]
+    },
+    "action": "steer",
+    "severity": "C",
+    "message": "示例规则：同样是模板，改成「正文出现文件名就必须带 [名](路径)」",
+    "fix": "把 condition 换成对 args 的断言，selfTest 写一正一反",
+    "reversible": true,
+    "origin": "preference",
+    "evidence": {
+      "hits": 0,
+      "sessions": 0,
+      "source": "示例（条件是 args.demo=PREFERENCE-DEMO，正常调用永不命中）"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "demo": "PREFERENCE-DEMO"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "demo": "other"
+          },
+          "expect": "pass"
+        }
+      ],
+      "needFs": false
+    },
+    "scene": "示例：用户要求任何交付都点得开，标题不许写成裸文件名。"
+  },
+  {
+    "id": "PREF-NO-ENCOURAGE-01",
+    "title": "示例：不要捧场话",
+    "when": "tool:pre",
+    "appliesTo": {},
+    "condition": {
+      "any": [
+        {
+          "type": "regexHit",
+          "in": "args.demo",
+          "pattern": "^PREFERENCE-DEMO$"
+        }
+      ]
+    },
+    "action": "steer",
+    "severity": "C",
+    "message": "示例规则：不许「太好了」「你说得对」这类开头",
+    "fix": "把要禁的词写进 pattern，正例写一句含该词的、反例写一句正常的",
+    "reversible": true,
+    "origin": "preference",
+    "evidence": {
+      "hits": 0,
+      "sessions": 0,
+      "source": "示例（条件是 args.demo=PREFERENCE-DEMO，正常调用永不命中）"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "demo": "PREFERENCE-DEMO"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "demo": "other"
+          },
+          "expect": "pass"
+        }
+      ],
+      "needFs": false
+    },
+    "scene": "示例：用户不爱被夸，开场只接活。"
+  }
+]

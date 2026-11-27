@@ -27,7 +27,22 @@ const DOCS = path.join(ROOT, 'docs', 'index.html');
 const PACKS = path.join(ROOT, 'packs');
 const APPLY = process.argv.includes('--apply');
 
-const ORDER = ['core', 'cross-call', 'dsh-host', 'windows-powershell'];
+// 包清单不再写死：按 packs/ 下的目录现读，再用 pack.json 的 loadOrder 排
+// （2026-11-27 加了 browser / doc-suite / publish 三包，写死的名单会把新包漏在页面外）
+function packNames() {
+  return fs.readdirSync(PACKS)
+    .filter((n) => fs.existsSync(path.join(PACKS, n, 'rules.json')))
+    .sort((a, b) => {
+      const la = loadMeta(a).loadOrder ?? 99;
+      const lb = loadMeta(b).loadOrder ?? 99;
+      return la - lb || a.localeCompare(b);
+    });
+}
+
+function loadMeta(name) {
+  const f = path.join(PACKS, name, 'pack.json');
+  try { return JSON.parse(fs.readFileSync(f, 'utf8')); } catch { return {}; }
+}
 
 function loadPack(name) {
   const f = path.join(PACKS, name, 'rules.json');
@@ -77,7 +92,7 @@ function main() {
   const report = [];
 
   // 1) 汇总
-  const packs = ORDER.map((n) => ({ name: n, rules: loadPack(n) })).filter((p) => p.rules);
+  const packs = packNames().map((n) => ({ name: n, rules: loadPack(n), meta: loadMeta(n) })).filter((p) => p.rules);
   const total = packs.reduce((s, p) => s + p.rules.length, 0);
 
   // lead 那句：「一共 4 个包、34 条判据」——两个数字都按现读改
@@ -87,7 +102,31 @@ function main() {
   for (const p of packs) {
     const secRe = new RegExp(`(<section id="${p.name}">)([\\s\\S]*?)(</section>)`);
     const hit = html.match(secRe);
-    if (!hit) { report.push(`  ! 找不到 section#${p.name}，跳过`); continue; }
+    if (!hit) {
+      // 新包：页面上还没有这一节 —— 按现有版式生成一节，插在 </main> 之前
+      const blockN = p.rules.filter((r) => r.action === 'block').length;
+      const warnN = p.rules.length - blockN;
+      const rows = p.rules.map((r) => rowHtml(r, new Map())).join('\n');
+      const where = esc(p.meta.description || '');
+      const sec = [
+        `<section id="${p.name}">`,
+        `    <h2>${p.name} <span class="n">${p.rules.length} 条</span></h2>`,
+        `    <p class="what">${where}</p>`,
+        `    <p class="note">由 pack.json 的 description 说明。　${p.rules.length} 条里 ${blockN} 条会拦下，${warnN} 条只提示不拦截。</p>`,
+        `    <div class="cmd"><code>node tools/judge-packs.cjs add ${p.name}</code><button data-cmd="node tools/judge-packs.cjs add ${p.name}">复制</button></div>`,
+        '    <table>',
+        '      <thead><tr><th>编号</th><th>它看什么</th><th>命中时说什么</th><th>怎么改</th><th>后果</th><th>累计命中</th></tr></thead>',
+        '      <tbody>',
+        rows,
+        '      </tbody>',
+        '    </table>',
+        '  </section>',
+      ].join('\n');
+      if (!html.includes('</main>')) { report.push(`  ! 找不到 </main>，新增 section#${p.name} 放弃`); continue; }
+      html = html.replace('</main>', `  ${sec}\n</main>`);
+      report.push(`  ${p.name}: ${p.rules.length} 条（拦下 ${blockN} / 只提示 ${warnN}），新增一节`);
+      continue;
+    }
     let body = hit[2];
     const blockN = p.rules.filter((r) => r.action === 'block').length;
     const warnN = p.rules.length - blockN;
@@ -124,10 +163,16 @@ function main() {
   }
   if (html === before) { console.log('没有要改的，不落盘'); return; }
   const stamp = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 12);
-  const bak = DOCS + `.bak-${stamp}`;
+  // 备份不再落在 docs/ 下：散落 .bak 会被验收 A15 记账，统一放归档备份（守则 33）
+  const bakDir = process.env.DSH_BACKUP_DIR || 'D:/deepseek/归档备份/_自动备份/docs';
+  let bak = DOCS + `.bak-${stamp}`;
+  try {
+    fs.mkdirSync(bakDir, { recursive: true });
+    bak = path.join(bakDir, `index.html.bak-${stamp}`);
+  } catch { /* 目录建不出来就退回原处，但不静默 */ console.warn('备份目录不可用，退回 docs/ 下'); }
   fs.copyFileSync(DOCS, bak);
   fs.writeFileSync(DOCS, html, 'utf8');
-  console.log(`已写 ${DOCS}（${fs.statSync(DOCS).size} B），备份 ${path.basename(bak)}`);
+  console.log(`已写 ${DOCS}（${fs.statSync(DOCS).size} B），备份 ${bak}`);
 }
 
 main();

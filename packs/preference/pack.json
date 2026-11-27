@@ -1,0 +1,30 @@
+{
+  "id": "preference",
+  "name": "个人偏好包",
+  "version": "0.1.0",
+  "kind": "core",
+  "description": "用户自己的偏好：默认短、要链接、别捧场这类。出厂只有三条示例，条件永不命中，等同未启用；改成你自己的断言才生效。跟前几包的区别是来源——这些不是模型犯过的错，是你要的样子。",
+  "author": "ZQ",
+  "license": "AGPL-3.0-only",
+  "appliesTo": {},
+  "loadOrder": 15,
+  "rules": 3,
+  "ruleIds": [
+    "PREF-BRIEF-01",
+    "PREF-PATH-LINK-01",
+    "PREF-NO-ENCOURAGE-01"
+  ],
+  "testedOn": {
+    "host": "DSH 桌面版（Windows）",
+    "model": "deepseek-chat",
+    "period": "2026-11-27",
+    "calls": 0,
+    "hits": 0,
+    "note": "示例规则，未命中"
+  },
+  "notes": [
+    "这一包出厂是模板：三条规则的条件都写成「永不命中」，装上也不拦任何东西。",
+    "转正门槛跟模型错误包一样（10 次事件、误报不超一成、人签），不因为偏好类就放宽。",
+    "偏好只在本机生效，别塞进对外发布的官方包——那是别人的习惯。"
+  ]
+}

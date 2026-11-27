@@ -1,0 +1,165 @@
+[
+  {
+    "id": "DOC-SAVE-OVERWRITE-01",
+    "title": "覆盖一份本来就存在的文档",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tools": [
+        "office_save"
+      ]
+    },
+    "condition": {
+      "any": [
+        {
+          "type": "fileExistsBefore",
+          "key": "path"
+        }
+      ]
+    },
+    "action": "warn",
+    "severity": "B",
+    "message": "要写的这份文件本轮之前就存在，覆盖后旧版本没了",
+    "fix": "先复制一份到备份目录再保存，或另存新名",
+    "reversible": false,
+    "origin": "model-error",
+    "evidence": {
+      "hits": 0,
+      "sessions": 0,
+      "source": "2026-11-27 归纳（办公文档没有版本控制，覆盖即丢失）"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "path": "D:/deepseek/目录说明.md"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "path": "D:/tmp/never-exists-9f3a.docx"
+          },
+          "expect": "pass"
+        }
+      ],
+      "needFs": true
+    },
+    "scene": "用户开着 Word，模型在同一个文件上保存，用户原来那版被替换掉了。"
+  },
+  {
+    "id": "DOC-EXCEL-SHEET-REPLACE-01",
+    "title": "整张表被数组替换",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tools": [
+        "excel_update"
+      ]
+    },
+    "condition": {
+      "any": [
+        {
+          "type": "argSet",
+          "keys": [
+            "sheets"
+          ]
+        }
+      ]
+    },
+    "action": "warn",
+    "severity": "B",
+    "message": "sheets 参数是整表替换：该表原有内容与公式会整体丢弃",
+    "fix": "要改几格就用 cell_updates；确要整表重写先备份工作簿",
+    "reversible": false,
+    "origin": "model-error",
+    "evidence": {
+      "hits": 0,
+      "sessions": 0,
+      "source": "2026-11-27 归纳（excel_update 的 sheets 语义就是整表替换）"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "file": "book.xlsx",
+            "sheets": [
+              {
+                "name": "Sheet1",
+                "rows": [
+                  [
+                    "a"
+                  ]
+                ]
+              }
+            ]
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "file": "book.xlsx",
+            "cell_updates": [
+              {
+                "cell": "A1",
+                "value": 1
+              }
+            ]
+          },
+          "expect": "pass"
+        }
+      ],
+      "needFs": false
+    },
+    "scene": "想把两格数字改掉，结果用了整表参数，剩下几十行连公式一起被冲掉。"
+  },
+  {
+    "id": "DOC-RAW-MARKUP-01",
+    "title": "把表格标记当正文写进文档",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tools": [
+        "word_update",
+        "office_edit"
+      ]
+    },
+    "condition": {
+      "any": [
+        {
+          "type": "regexHit",
+          "in": "args.text",
+          "pattern": "<table\\b|<w:|<br\\s*/?>"
+        }
+      ]
+    },
+    "action": "warn",
+    "severity": "C",
+    "message": "这段文本里有 HTML/OOXML 标记，会被当纯文字原样排进文档",
+    "fix": "表格用文档自己的表格能力插入；要标记也要先确认宿主认",
+    "reversible": true,
+    "origin": "model-error",
+    "evidence": {
+      "hits": 0,
+      "sessions": 0,
+      "source": "2026-11-27 归纳（纯文本接口不解析标记）"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "file": "a.docx",
+            "text": "<table><tr><td>x</td></tr></table>"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "file": "a.docx",
+            "text": "第一段落"
+          },
+          "expect": "pass"
+        }
+      ],
+      "needFs": false
+    },
+    "scene": "用户要一张表，模型直接把表格标记粘进正文，文档里出现了一串没人看得懂的尖括号。"
+  }
+]

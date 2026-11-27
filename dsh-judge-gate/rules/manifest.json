@@ -1,30 +1,54 @@
 {
   "_说明": "每个包的 rules.json 指纹。改规则要重新生成这份清单，否则加载时会提示不符。它只能发现文件被改动，不是签名。",
-  "generatedAt": "2026-11-26T19:17:13.734Z",
+  "generatedAt": "2026-11-27T04:42:52.083Z",
   "packs": {
+    "browser": {
+      "file": "rules.json",
+      "rules": 4,
+      "bytes": 6888,
+      "sha256": "7ac0026fec30f0340d98ce5dce22e27f41ccc36b27fea2fbc36eaa3155f484bd"
+    },
     "core": {
       "file": "rules.json",
       "rules": 13,
-      "bytes": 23434,
-      "sha256": "07acbd47840a1a80e05ea5fd375c5b4a70f92c64b23238ed3df8ff818029f95d"
+      "bytes": 23813,
+      "sha256": "5adb79d481fc54176306b8f9d71856a398134d294897cb4faf23df3d13d78afd"
     },
     "cross-call": {
       "file": "rules.json",
       "rules": 5,
-      "bytes": 14187,
-      "sha256": "997863a13af3091618dc5f58a0dcc4050ac7b875a728264a3424358455d11ef1"
+      "bytes": 14333,
+      "sha256": "5b5653a98f60236e309983b798bd7fa000d50f290be19485bef30adeba99f1ec"
+    },
+    "doc-suite": {
+      "file": "rules.json",
+      "rules": 3,
+      "bytes": 4032,
+      "sha256": "d5bbd5cb095cf687f5ae14eb3d478001a54694494f8bec9c1df9b8e1c1c0d709"
     },
     "dsh-host": {
       "file": "rules.json",
-      "rules": 4,
-      "bytes": 7684,
-      "sha256": "7b9c63c234f540b789ef3fa85292664ce7708ceeaf2110e4d39e90685de00750"
+      "rules": 3,
+      "bytes": 5184,
+      "sha256": "7cec90038fec317ca66ed0688ca479b6578c83f7d2ee4df0b0b8bc1ebc585485"
+    },
+    "preference": {
+      "file": "rules.json",
+      "rules": 3,
+      "bytes": 3445,
+      "sha256": "7de4f986952b653c25ed2ebe737ba7c58864c4926a2a7093c66f17617dd09217"
+    },
+    "publish": {
+      "file": "rules.json",
+      "rules": 2,
+      "bytes": 2966,
+      "sha256": "0fe550a9c23f1362a8917623155c3905d998a3e73f86879b232b56900fcf492c"
     },
     "windows-powershell": {
       "file": "rules.json",
       "rules": 16,
-      "bytes": 31869,
-      "sha256": "47ec4c5e2fe0c721f31ca979c9820ae53f3e707a8de48e791344f7b2ab2264aa"
+      "bytes": 32334,
+      "sha256": "f98f1caa62fd0dbefb0fc570d41705511704a763c161fda2c5e80b8fdd601b1b"
     }
   }
 }

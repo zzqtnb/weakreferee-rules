@@ -1,0 +1,773 @@
+{
+  "_说明": "工具参数约束表：单一真源。judge-audit.js（事后）与 preflight.js（事前）都读这一份，避免两边各写一份再漂移。",
+  "_更新": "改这张表等于改闸门。改完必须重跑 preflight --replay 与 judge-audit，两边数字一致才算过。 ; 2026-11-27 加 allowempty：edit 的 new_string 允许空串（删行是合法用法）",
+  "req": {
+    "pwsh": [
+      "command",
+      "description"
+    ],
+    "web_fetch": [
+      "url"
+    ],
+    "web_search": [
+      "queries"
+    ],
+    "advanced_search": [
+      "query"
+    ],
+    "read": [
+      "file_path"
+    ],
+    "edit": [
+      "file_path",
+      "old_string",
+      "new_string"
+    ],
+    "write": [
+      "file_path",
+      "content"
+    ],
+    "grep": [
+      "pattern"
+    ],
+    "glob": [
+      "pattern"
+    ],
+    "activate_tools": [
+      "identifiers",
+      "reason"
+    ],
+    "subagent": [
+      "prompt",
+      "description"
+    ],
+    "compress": [
+      "content"
+    ],
+    "read_image": [
+      "file_path"
+    ],
+    "word_read": [
+      "path"
+    ],
+    "dsh_im_return_file": [
+      "path"
+    ],
+    "dsh_browser_open": [
+      "url"
+    ],
+    "dsh_browser_execute": [
+      "script"
+    ],
+    "ask_user_question": [
+      "questions"
+    ],
+    "present": [
+      "files"
+    ],
+    "dsh_browser_click": [
+      "@any:target|x"
+    ],
+    "cache_search": [
+      "query"
+    ],
+    "cad_constraint": [
+      "@any:entities|clear"
+    ],
+    "cad_drawing": [
+      "target"
+    ],
+    "cad_extrude_profile": [
+      "@any:points|profile|sketch"
+    ],
+    "cite_lookup": [
+      "@any:doi|query"
+    ],
+    "domain_search": [
+      "engine",
+      "query"
+    ],
+    "doubao_paint": [
+      "@any:prompt|prompts"
+    ],
+    "dsh_browser_assert": [
+      "@any:selector|text|url|js"
+    ],
+    "dsh_browser_scroll": [
+      "@any:deltaY|selector|toTop|toBottom"
+    ],
+    "multi_search": [
+      "query"
+    ],
+    "novel_noai_scan": [
+      "@any:text|book"
+    ],
+    "office_open": [
+      "path"
+    ],
+    "platform_search": [
+      "platform",
+      "query"
+    ],
+    "research": [
+      "question"
+    ],
+    "search_meme_wiki": [
+      "query"
+    ],
+    "video_search": [
+      "query"
+    ],
+    "weather": [
+      "location"
+    ],
+    "list_papers": [
+      "topic"
+    ],
+    "transcribe_pdf": [
+      "path"
+    ],
+    "acp_read_original_image": [
+      "ref"
+    ],
+    "automation_create": [
+      "name",
+      "prompt",
+      "kind",
+      "time_zone"
+    ],
+    "automation_delete": [
+      "id"
+    ],
+    "automation_run_now": [
+      "id"
+    ],
+    "automation_update": [
+      "id"
+    ],
+    "ba_exec": [
+      "command"
+    ],
+    "ba_read": [
+      "path"
+    ],
+    "ba_write": [
+      "path",
+      "content"
+    ],
+    "cad_assembly_connect": [
+      "instanceId",
+      "parent",
+      "parentLabel",
+      "childLabel"
+    ],
+    "cad_assembly_drive": [
+      "instanceId",
+      "label",
+      "value"
+    ],
+    "cad_assembly_explode": [
+      "factor"
+    ],
+    "cad_assembly_insert": [
+      "bodyId"
+    ],
+    "cad_assembly_joint": [
+      "instanceId",
+      "label",
+      "joint"
+    ],
+    "cad_assembly_move": [
+      "instanceId"
+    ],
+    "cad_assembly_remove": [
+      "instanceId"
+    ],
+    "cad_boolean": [
+      "op",
+      "target",
+      "tools"
+    ],
+    "cad_chamfer": [
+      "target",
+      "distance"
+    ],
+    "cad_create_prim": [
+      "kind"
+    ],
+    "cad_delete": [
+      "target"
+    ],
+    "cad_doc_delete": [
+      "doc",
+      "confirm"
+    ],
+    "cad_doc_open": [
+      "doc"
+    ],
+    "cad_doc_rename": [
+      "doc",
+      "name"
+    ],
+    "cad_draft": [
+      "target",
+      "angle"
+    ],
+    "cad_export": [
+      "path"
+    ],
+    "cad_fillet": [
+      "target",
+      "radius"
+    ],
+    "cad_freecad": [
+      "steps"
+    ],
+    "cad_fusion": [
+      "steps"
+    ],
+    "cad_image_profile": [
+      "path"
+    ],
+    "cad_info": [
+      "path"
+    ],
+    "cad_loft": [
+      "sections"
+    ],
+    "cad_motion": [
+      "constraintId",
+      "from",
+      "to"
+    ],
+    "cad_onshape": [
+      "steps"
+    ],
+    "cad_pattern": [
+      "target",
+      "mode",
+      "count"
+    ],
+    "cad_revolve": [
+      "profile"
+    ],
+    "cad_script": [
+      "language",
+      "code"
+    ],
+    "cad_shell": [
+      "target",
+      "thickness"
+    ],
+    "cad_sketch_delete": [
+      "name"
+    ],
+    "cad_sketch_edit": [
+      "name",
+      "profile"
+    ],
+    "cad_sketch_new": [
+      "profile"
+    ],
+    "cad_step_import": [
+      "file"
+    ],
+    "cad_sweep": [
+      "profile",
+      "path"
+    ],
+    "cad_transform": [
+      "target"
+    ],
+    "cad_view": [
+      "path"
+    ],
+    "cad_volume": [
+      "target"
+    ],
+    "cite_batch": [
+      "action"
+    ],
+    "cite_bibtex": [
+      "doi"
+    ],
+    "cite_check": [
+      "text"
+    ],
+    "cite_format": [
+      "doi"
+    ],
+    "create_goal": [
+      "objective"
+    ],
+    "create_skill": [
+      "name",
+      "description",
+      "body"
+    ],
+    "decompress": [
+      "blockId"
+    ],
+    "dsh_browser_auth": [
+      "action"
+    ],
+    "dsh_browser_check": [
+      "target"
+    ],
+    "dsh_browser_clear": [
+      "target"
+    ],
+    "dsh_browser_click_sequence": [
+      "points"
+    ],
+    "dsh_browser_close_tab": [
+      "tabId"
+    ],
+    "dsh_browser_content": [
+      "format"
+    ],
+    "dsh_browser_do": [
+      "steps"
+    ],
+    "dsh_browser_download": [
+      "url",
+      "savePath"
+    ],
+    "dsh_browser_drag": [
+      "fromX",
+      "fromY",
+      "toX",
+      "toY"
+    ],
+    "dsh_browser_fill": [
+      "fields"
+    ],
+    "dsh_browser_find": [
+      "text"
+    ],
+    "dsh_browser_get_value": [
+      "target"
+    ],
+    "dsh_browser_hover": [
+      "target"
+    ],
+    "dsh_browser_key": [
+      "key"
+    ],
+    "dsh_browser_replay": [
+      "seq"
+    ],
+    "dsh_browser_scrape": [
+      "item",
+      "fields"
+    ],
+    "dsh_browser_select": [
+      "target"
+    ],
+    "dsh_browser_set_value": [
+      "target",
+      "value"
+    ],
+    "dsh_browser_switch_tab": [
+      "tabId"
+    ],
+    "dsh_browser_type": [
+      "text"
+    ],
+    "dsh_browser_upload": [
+      "target",
+      "path"
+    ],
+    "dsh_browser_wait_for_response": [
+      "urlContains"
+    ],
+    "dsh_im_group_file": [
+      "attachmentId"
+    ],
+    "excel_create": [
+      "path",
+      "sheets"
+    ],
+    "excel_read": [
+      "path"
+    ],
+    "excel_update": [
+      "path"
+    ],
+    "exit_plan_mode": [
+      "plan"
+    ],
+    "ffmpeg_adjust": [
+      "input"
+    ],
+    "ffmpeg_concat": [
+      "inputs"
+    ],
+    "ffmpeg_cut": [
+      "input"
+    ],
+    "ffmpeg_encode": [
+      "input"
+    ],
+    "ffmpeg_extract": [
+      "input",
+      "what"
+    ],
+    "ffmpeg_frames": [
+      "input"
+    ],
+    "ffmpeg_gif": [
+      "input"
+    ],
+    "ffmpeg_probe": [
+      "input"
+    ],
+    "ffmpeg_storyboard": [
+      "input"
+    ],
+    "ffmpeg_subtitle": [
+      "input",
+      "subtitle"
+    ],
+    "fishtalk_check": [
+      "text"
+    ],
+    "fishtalk_feed": [
+      "lines"
+    ],
+    "fishtalk_learn": [
+      "site",
+      "target"
+    ],
+    "interrupt_agent": [
+      "agent_id"
+    ],
+    "job_kill": [
+      "job_id"
+    ],
+    "job_output": [
+      "job_id"
+    ],
+    "list_mcp_resource_templates": [
+      "server"
+    ],
+    "list_mcp_resources": [
+      "server"
+    ],
+    "map_bicycling_route": [
+      "origin",
+      "destination"
+    ],
+    "map_driving_route": [
+      "origin",
+      "destination"
+    ],
+    "map_geocode": [
+      "address"
+    ],
+    "map_poi_search": [
+      "keywords"
+    ],
+    "map_reverse_geocode": [
+      "location"
+    ],
+    "map_transit_route": [
+      "origin",
+      "destination"
+    ],
+    "map_walking_route": [
+      "origin",
+      "destination"
+    ],
+    "mcp__autocad__call_tool": [
+      "name"
+    ],
+    "mcp__autocad__search_tools": [
+      "query"
+    ],
+    "mnemon_document_create": [
+      "title",
+      "content"
+    ],
+    "mnemon_document_manage": [
+      "action"
+    ],
+    "mnemon_document_search": [
+      "query"
+    ],
+    "mnemon_forget": [
+      "id"
+    ],
+    "mnemon_link": [
+      "sourceId",
+      "targetId"
+    ],
+    "mnemon_memory_body_create": [
+      "name",
+      "description"
+    ],
+    "mnemon_memory_body_merge": [
+      "targetMemoryBodyId",
+      "sourceMemoryBodyIds"
+    ],
+    "mnemon_memory_body_update": [
+      "memoryBodyId"
+    ],
+    "mnemon_recall": [
+      "query"
+    ],
+    "mnemon_related": [
+      "id"
+    ],
+    "mnemon_remember": [
+      "content"
+    ],
+    "mnemon_runtime_memory": [
+      "action",
+      "target"
+    ],
+    "mnemon_subagent_result": [
+      "requestId",
+      "result"
+    ],
+    "mnemon_view_action": [
+      "offerId",
+      "input"
+    ],
+    "mnemon_view_route": [
+      "routeId",
+      "input"
+    ],
+    "modlens_read_image": [
+      "path"
+    ],
+    "novel_arc": [
+      "action",
+      "book"
+    ],
+    "novel_audit": [
+      "book",
+      "chapter"
+    ],
+    "novel_briefing": [
+      "book",
+      "chapter"
+    ],
+    "novel_character": [
+      "action",
+      "book"
+    ],
+    "novel_clone_project": [
+      "from_book",
+      "new_book"
+    ],
+    "novel_diagnose": [
+      "book"
+    ],
+    "novel_export": [
+      "book"
+    ],
+    "novel_extract": [
+      "book"
+    ],
+    "novel_glossary": [
+      "action",
+      "book"
+    ],
+    "novel_import": [
+      "action",
+      "book"
+    ],
+    "novel_ledger": [
+      "action",
+      "book"
+    ],
+    "novel_library": [
+      "action"
+    ],
+    "novel_outline": [
+      "action",
+      "book"
+    ],
+    "novel_polish": [
+      "action",
+      "book",
+      "chapter"
+    ],
+    "novel_project": [
+      "action",
+      "book"
+    ],
+    "novel_propose": [
+      "action",
+      "book"
+    ],
+    "novel_quality": [
+      "action",
+      "book"
+    ],
+    "novel_relation": [
+      "action",
+      "book"
+    ],
+    "novel_scene": [
+      "action",
+      "book"
+    ],
+    "novel_search": [
+      "action",
+      "book"
+    ],
+    "novel_style": [
+      "action",
+      "book"
+    ],
+    "novel_worldbook": [
+      "action",
+      "book"
+    ],
+    "novel_write_chapter": [
+      "book",
+      "chapter",
+      "title",
+      "content",
+      "summary"
+    ],
+    "office_edit": [
+      "ops"
+    ],
+    "office_help": [
+      "app"
+    ],
+    "ppt_create": [
+      "path"
+    ],
+    "ppt_read": [
+      "path"
+    ],
+    "read_mcp_resource": [
+      "server",
+      "uri"
+    ],
+    "schedule_create": [
+      "prompt",
+      "title"
+    ],
+    "schedule_delete": [
+      "id"
+    ],
+    "schedule_update": [
+      "id"
+    ],
+    "search_context": [
+      "query"
+    ],
+    "send_message": [
+      "agent_id",
+      "message"
+    ],
+    "skill": [
+      "name"
+    ],
+    "subagent_fork": [
+      "description",
+      "prompt"
+    ],
+    "todo_write": [
+      "todos"
+    ],
+    "update_goal": [
+      "goal_id",
+      "revision",
+      "action"
+    ],
+    "video_locate": [
+      "input",
+      "query"
+    ],
+    "video_outline": [
+      "input"
+    ],
+    "video_probe": [
+      "input"
+    ],
+    "video_read": [
+      "input"
+    ],
+    "video_storyboard": [
+      "input"
+    ],
+    "video_subtitles": [
+      "input"
+    ],
+    "video_zoom": [
+      "input"
+    ],
+    "word_create": [
+      "path"
+    ],
+    "word_update": [
+      "path"
+    ],
+    "workflow": [
+      "script",
+      "meta"
+    ],
+    "group_tools": [
+      "action"
+    ],
+    "search_paper": [
+      "query"
+    ],
+    "study_update": [
+      "action"
+    ],
+    "task_board_create": [
+      "title"
+    ],
+    "task_board_get": [
+      "taskId"
+    ],
+    "task_board_manage": [
+      "taskId",
+      "action"
+    ],
+    "task_board_run": [
+      "taskId"
+    ],
+    "task_board_schedule": [
+      "taskId"
+    ],
+    "task_board_set_parent": [
+      "taskId",
+      "parentId"
+    ],
+    "task_board_update": [
+      "taskId"
+    ]
+  },
+  "wrongkey": {
+    "read_image": [
+      "path"
+    ],
+    "dsh_im_return_file": [
+      "file_path"
+    ],
+    "web_fetch": [
+      "urls"
+    ]
+  },
+  "forbid": {
+    "present": [
+      "files[].title"
+    ],
+    "activate_tools": [
+      "names"
+    ]
+  },
+  "allowempty": {
+    "edit": [
+      "new_string"
+    ]
+  }
+}

@@ -1,8 +1,10 @@
+<p align="center"><img src="brand/logo.svg" width="128" alt="弱裁判：天平压着几本书"></p>
+
 # 弱裁判 规则包
 
 > 管 AI 的「手」：在它调用工具之前，检查这次调用的参数写对没有。
 
-判据清单在线版（8 个包 49 条，每条写明它看什么、命中时说什么、怎么改）：<https://zzqtnb.github.io/weakreferee-rules/>
+判据清单在线版（9 个包 59 条，每条写明它看什么、命中时说什么、怎么改）：<https://zzqtnb.github.io/weakreferee-rules/>
 
 ## What this is (English)
 

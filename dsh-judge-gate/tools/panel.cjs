@@ -506,7 +506,7 @@ function page() {
   header{position:sticky;top:0;z-index:9;background:var(--panel);border-bottom:1px solid var(--line);padding:16px 26px 12px}
   .top{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
   .brand{display:flex;align-items:center;gap:12px}
-  .logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(140deg,#2f8f63,#1f6b49);color:#fff;display:flex;align-items:center;justify-content:center;font-size:17px}
+  .logo{width:38px;height:38px;border-radius:10px;background:linear-gradient(140deg,#2f8f63,#1f6b49);color:#fff;display:flex;align-items:center;justify-content:center;font-size:17px}
   h1{font-size:17px;margin:0;font-weight:650;letter-spacing:.3px}
   .tag{font-size:12px;color:var(--dim);margin-top:1px}
   .stats{display:flex;align-items:center;gap:22px;flex-wrap:wrap}
@@ -641,7 +641,7 @@ function page() {
 <header>
   <div class="top">
     <div class="brand">
-      <div class="logo">⚖</div>
+      <div class="logo"><svg viewBox="0 0 32 32" width="31" height="31" aria-hidden="true"><circle cx="16" cy="4" r="2.1" fill="#fff"/><g stroke="#fff" stroke-width="2.6" stroke-linecap="round"><line x1="4.2" y1="7.6" x2="27.8" y2="7.6"/><line x1="16" y1="6" x2="16" y2="19.4"/></g><path d="M3.2 10.4 H12.6 A4.7 4.7 0 0 1 3.2 10.4 Z" fill="#fff"/><path d="M19.4 10.4 H28.8 A4.7 4.7 0 0 1 19.4 10.4 Z" fill="#fff"/><rect x="8.2" y="20.2" width="15.6" height="2.4" rx="1" fill="#fff" opacity="0.95"/><rect x="9.4" y="23.4" width="13.2" height="2.4" rx="1" fill="#fff" opacity="0.8"/><rect x="10.6" y="26.6" width="10.8" height="2.4" rx="1" fill="#fff" opacity="0.65"/></svg></div>
       <div>
         <h1>弱裁判</h1>
         <div class="tag">AI 动手之前，先看它要干什么</div>

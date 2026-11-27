@@ -35,7 +35,7 @@ window.__ModuleLoader__.load({
     })();
     const BASE = 'http://127.0.0.1:' + PORT + '/';
 
-    /** 天平图标：一横一竖两个托盘，和「权衡」这件事对得上。 */
+    /** 天平图标：一横一竖两个托盘，底下压三本书——「权衡」这件事对得上。 */
     function JudgeIcon(props) {
       const size = (props && props.size) || 16;
       return h(
@@ -46,11 +46,13 @@ window.__ModuleLoader__.load({
           strokeLinecap: 'round', strokeLinejoin: 'round',
           'aria-hidden': 'true',
         },
-        h('path', { d: 'M12 3.5v17' }),
+        h('path', { d: 'M12 3.5v12.4' }),
         h('path', { d: 'M5 7h14' }),
         h('path', { d: 'M5 7l-2.5 5.5h5L5 7z' }),
         h('path', { d: 'M19 7l-2.5 5.5h5L19 7z' }),
-        h('path', { d: 'M8.5 20.5h7' })
+        h('rect', { x: '8.4', y: '16.2', width: '7.2', height: '1.5', rx: '0.6', fill: 'currentColor', stroke: 'none' }),
+        h('rect', { x: '7.4', y: '18.3', width: '9.2', height: '1.5', rx: '0.6', fill: 'currentColor', stroke: 'none', opacity: '0.85' }),
+        h('rect', { x: '6.4', y: '20.4', width: '11.2', height: '1.6', rx: '0.6', fill: 'currentColor', stroke: 'none', opacity: '0.7' })
       );
     }
 

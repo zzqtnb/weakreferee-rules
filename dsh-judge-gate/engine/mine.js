@@ -302,6 +302,7 @@ function mine(opts) {
       message: t.message,
       fix: t.fix,
       reversible: t.reversible,
+      origin: 'model-error',
       selfTest: { cases: t.cases || [] },
       evidence: {
         hits: r.hits,

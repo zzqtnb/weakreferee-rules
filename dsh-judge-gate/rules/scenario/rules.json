@@ -35,7 +35,7 @@
     "message": "要删的是整个盘、整个家目录或系统目录；路径写在引号里也一样",
     "fix": "先 Get-ChildItem 列出要删的清单看一眼，或先加 -WhatIf 干跑；确认范围后改成具体子目录，别从盘根删",
     "reversible": false,
-    "limits": "不管三件：① here-string 里的脚本正文同样会被拦（有意为之，因为写完通常会执行）；② 只认盘符根与家目录根，`D:\\deepseek\\*` 这类通配子目录不在此列；③ 未经真实生产调用验证——建议装上后先攒几天自己的日志，确认没有误拦再决定是否保留 block 档，误拦多了就降成 warn 或把具体写法加进本字段。",
+    "limits": "不管三件：① here-string 里的脚本正文同样会被拦（有意为之，因为写完通常会执行）；② 只认盘符根与家目录根，`D:\\data\\*` 这类通配子目录不在此列；③ 未经真实生产调用验证——建议装上后先攒几天自己的日志，确认没有误拦再决定是否保留 block 档，误拦多了就降成 warn 或把具体写法加进本字段。",
     "scene": "AI 拿到「清理磁盘」这类模糊指令时，最容易的错法就是拿盘根或家目录当范围。这条不问删法、只问「删的目标是不是整个盘」，正是为了绕开「路径写在引号里就看不清」这个坑。",
     "evidence": {
       "hits": 0,
@@ -80,14 +80,14 @@
       },
       {
         "args": {
-          "command": "Remove-Item 'D:\\deepseek\\工作区\\ai训练\\_tmp\\x' -Recurse -Force",
+          "command": "Remove-Item 'D:\\data\\_tmp\\x' -Recurse -Force",
           "description": "t"
         },
         "expect": "pass"
       },
       {
         "args": {
-          "command": "Remove-Item 'D:\\deepseek\\工具脚本\\asr-any.py' -Force",
+          "command": "Remove-Item 'D:\\data\\tools\\asr.py' -Force",
           "description": "t"
         },
         "expect": "pass"

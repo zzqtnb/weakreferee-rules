@@ -137,7 +137,7 @@
         "review": 0,
         "rate": "70%",
         "note": "拦对：面板脚本 office.mjs 原地字符串替换、dsh_automation.json 原地改 cwd、会话 .zstd 原地重压第一帧。误报七例均为 heredoc 写 _tmp 临时脚本。",
-        "report": "D:\\deepseek\\部门\\弱裁判\\误报率抽判-20261127.md"
+        "report": "参赛\\材料\\误报率抽判-20261127.md"
       },
       "revised": "2026-11-27 抽判：80 次里 7 成是往 _tmp 写临时脚本被当成动真文件 → 命令里出现临时目录即放行"
     },

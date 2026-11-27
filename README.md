@@ -152,7 +152,7 @@ node dsh-judge-gate/tools/judge-packs.cjs status                   # 现在实�
 
 **一条人挑**：上面那些命令，`list` 看市场、`add` 装包或单条。适合「我知道我要防什么」。
 
-**一条机器挑**：`node weakreferee-cli.js mine` 扫自己的会话历史，把反复出现、现在没人管的写法列成草案；确认后 `judge-packs.cjs add --draft mine-rules.json` 把它装成一个自建包（落在 `data/custom/mine/`）。适合「我不知道自己会被什么坑，让记录说话」。草案的 `action` 一律是 `warn`（只提示不拦）。**草案装进来先进一周观察期**：一周内看三个数——命中几次、其中误报几条、有没有人真判过样本；误报不过半且有正例，才谈转正（面板点「拦」或 `judge-packs.cjs action MINE-BAT-CJK-01 block`），误报过半就回观察期改条件或退役。**零命中单独看**：一周没命中只说明这台机器没遇到这类操作，准确率记「未观测」，既不转正也不退役——要动就动条件（把窗口放宽、换检测点），不是把判据删掉。这三个数不用手数：`node tools\observe.mjs --ledger <账本> --human <人判表> --packs <包目录> --out <候选目录>` 直接算（本机有薄壳 `D:\deepseek\系统\脚本\judge-observe.mjs --write`，落 `观察期-<日期>.md` 与 `观察期.tsv`），别用「跑了挺久」当理由。
+**一条机器挑**：`node weakreferee-cli.js mine` 扫自己的会话历史，把反复出现、现在没人管的写法列成草案；确认后 `judge-packs.cjs add --draft mine-rules.json` 把它装成一个自建包（落在 `data/custom/mine/`）。适合「我不知道自己会被什么坑，让记录说话」。草案的 `action` 一律是 `warn`（只提示不拦）。**草案装进来先进一周观察期**：一周内看三个数——命中几次、其中误报几条、有没有人真判过样本；误报不过半且有正例，才谈转正（面板点「拦」或 `judge-packs.cjs action MINE-BAT-CJK-01 block`），误报过半就回观察期改条件或退役。**零命中单独看**：一周没命中只说明这台机器没遇到这类操作，准确率记「未观测」，既不转正也不退役——要动就动条件（把窗口放宽、换检测点），不是把判据删掉。这三个数不用手数：`node tools\observe.mjs --ledger <账本> --human <人判表> --packs <包目录> --out <候选目录>` 直接算，落 `观察期-<日期>.md` 与 `观察期.tsv`，别用「跑了挺久」当理由。
 
 **一条边干边攒**：`notes`——会话里遇到能被机器查出来的错，当场记一条候选；同一条反复出现就累加；够三次、正反例齐全，再起草一条判据草案，由人签字并进包。
 

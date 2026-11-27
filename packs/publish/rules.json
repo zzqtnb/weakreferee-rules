@@ -87,7 +87,7 @@
         {
           "args": {
             "file_path": "D:/demo/a.md",
-            "content": "配置在 D:\\\\deepseek\\\\dsh\\\\home"
+            "content": "配置在 D:\\\\app\\\\config"
           },
           "expect": "block"
         },

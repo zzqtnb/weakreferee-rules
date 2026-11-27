@@ -1,6 +1,6 @@
 {
   "_说明": "每个包的 rules.json 指纹。改规则要重新生成这份清单，否则加载时会提示不符。它只能发现文件被改动，不是签名。",
-  "generatedAt": "2026-11-27T18:32:00.915Z",
+  "generatedAt": "2026-11-27T20:46:56.659Z",
   "packs": {
     "browser": {
       "file": "rules.json",
@@ -11,26 +11,26 @@
     "core": {
       "file": "rules.json",
       "rules": 13,
-      "bytes": 25109,
-      "sha256": "892d559c1c736440d1389fc4766f9ce2b31da9afe439133b8f6316e223be4fcf"
+      "bytes": 25052,
+      "sha256": "b8dcaf5ca32f5d5ae25dda0bdb2eae8110e87d207296e0fcd8cec51688b90732"
     },
     "cross-call": {
       "file": "rules.json",
       "rules": 4,
-      "bytes": 12751,
-      "sha256": "24af435e259fb294ff0872ff2c18244930b3ddc7e00d814285f52d47849c10aa"
+      "bytes": 12734,
+      "sha256": "3dc1c8f120ab167ebfe3b20b1b8ce83d9c80fe9910e06925d69459c5a2fd2a04"
     },
     "doc-suite": {
       "file": "rules.json",
       "rules": 3,
-      "bytes": 4032,
-      "sha256": "d5bbd5cb095cf687f5ae14eb3d478001a54694494f8bec9c1df9b8e1c1c0d709"
+      "bytes": 4013,
+      "sha256": "1ce2e085754d7f49e114b1518ce70fab0986bb37dfd64daefda3f23a2ca1ed3e"
     },
     "dsh-host": {
       "file": "rules.json",
       "rules": 3,
-      "bytes": 6100,
-      "sha256": "960685c92755d8bc8a796bdc426c325b54d9599dea94b209561e52863e97860e"
+      "bytes": 6083,
+      "sha256": "6f57e656fe71c1e9cb1d86346042c8de45e694666be67efbd0c74f438e34daf0"
     },
     "preference": {
       "file": "rules.json",
@@ -41,14 +41,14 @@
     "publish": {
       "file": "rules.json",
       "rules": 2,
-      "bytes": 2966,
-      "sha256": "0fe550a9c23f1362a8917623155c3905d998a3e73f86879b232b56900fcf492c"
+      "bytes": 2956,
+      "sha256": "5352b110c2256ff6ea7bf7281669f34f14fd047146c2a36a6994b75117897905"
     },
     "scenario": {
       "file": "rules.json",
       "rules": 11,
-      "bytes": 34733,
-      "sha256": "0fbd8ace0b7203cc587e005766059e439b40d0725f1677b03ad0baf938be6ce9"
+      "bytes": 34689,
+      "sha256": "6ceb95924bd4e9d69f35124cd8b9dc1b453792f645f1241f29a45a3b974ffc16"
     },
     "windows-powershell": {
       "file": "rules.json",

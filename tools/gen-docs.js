@@ -177,7 +177,7 @@ function main() {
   if (html === before) { console.log('没有要改的，不落盘'); return; }
   const stamp = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 12);
   // 备份不再落在 docs/ 下：散落 .bak 会被验收 A15 记账，统一放归档备份（守则 33）
-  const bakDir = process.env.DSH_BACKUP_DIR || 'D:/deepseek/归档备份/_自动备份/docs';
+  const bakDir = process.env.DSH_BACKUP_DIR || path.join(process.cwd(), '_backup', 'docs');
   let bak = DOCS + `.bak-${stamp}`;
   try {
     fs.mkdirSync(bakDir, { recursive: true });

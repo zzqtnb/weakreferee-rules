@@ -375,7 +375,7 @@
         "review": 2,
         "rate": "80%",
         "note": "八例写的是内部文件（_tmp 脚本、内部报告、说明文档）；两例待议——宣传\\视频\\demo.ps1 上镜与公司制交付脚本确实带内部路径，规则分不清文件会不会对外。",
-        "report": "D:\\deepseek\\部门\\弱裁判\\误报率抽判-20261127.md"
+        "report": "参赛\\材料\\误报率抽判-20261127.md"
       },
       "revised": "2026-11-27 抽判：31 次里 8 次写内部临时/报告文件，本就不会发出去 → 只对宣传/推广/参赛/交付目录判"
     },
@@ -579,7 +579,7 @@
         },
         {
           "args": {
-            "file_path": "D:/deepseek/工作区/weakreferee-rules/README.md",
+            "file_path": "README.md",
             "content": "新内容"
           },
           "expect": "block",

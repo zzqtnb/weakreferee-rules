@@ -31,7 +31,7 @@
       "cases": [
         {
           "args": {
-            "path": "D:/deepseek/目录说明.md"
+            "path": "notes.md"
           },
           "expect": "block"
         },

@@ -338,6 +338,24 @@ function contractDir() {
   return path.join(ROOT, 'contract');
 }
 let TRY_CACHE = null;
+// 缓存指纹：规则文件被手工改过（编辑器保存、覆盖、增删包）也要让缓存失效，
+// 否则「试一试」还拿旧规则判，人会以为刚加的那条没生效。
+// 走 mtime + 大小（size 兜住同毫秒内改两次），custom 下的包名也进指纹。
+function tryStamp(dirs) {
+  const parts = [];
+  for (const d of dirs) {
+    for (const f of ['rules.json', 'pack.json']) {
+      try {
+        const st = fs.statSync(path.join(d, f));
+        parts.push(d + '/' + f + ':' + st.mtimeMs + ':' + st.size);
+      } catch { /* 没有这个文件就跳过 */ }
+    }
+  }
+  try {
+    for (const pack of fs.readdirSync(path.join(DATA, 'custom'))) parts.push('pack:' + pack);
+  } catch { /* 没有 custom 目录 */ }
+  return parts.join('|');
+}
 // 试一试要跟闸用同一批规矩：包里的 + 用户在面板上加的（落在 data\custom\<包>\rules.json）
 function tryDirs() {
   const dirs = [path.join(ROOT, 'rules')];
@@ -351,12 +369,14 @@ function tryDirs() {
   return dirs;
 }
 function tryJudge(tool, args) {
-  if (!TRY_CACHE) {
+  const dirs = tryDirs();
+  const stamp = tryStamp(dirs);
+  if (!TRY_CACHE || TRY_CACHE.stamp !== stamp) {
     const J = require(path.join(ROOT, 'engine', 'judge.js'));
     const EX = require(path.join(ROOT, 'engine', 'expand.js'));
-    const rs = J.load(tryDirs(), J.ENV);
+    const rs = J.load(dirs, J.ENV);
     const ex = EX.expandAll(rs.rules, { dir: contractDir() });
-    TRY_CACHE = { J, pre: ex.rules.filter((r) => (r.when || 'tool:pre') === 'tool:pre') };
+    TRY_CACHE = { J, pre: ex.rules.filter((r) => (r.when || 'tool:pre') === 'tool:pre'), stamp };
   }
   const { J, pre } = TRY_CACHE;
   // 面板只让用户写命令，必填的 description 由这儿补：不然每条都会先命中「参数缺了」，

@@ -85,6 +85,9 @@ function judges() {
         rules: [{
           id: r.id, action: r.action || 'block', text: r.title || '', appliesTo: r.appliesTo || {},
           message: r.message || '', fix: r.fix || '', severity: r.severity || '', legacyJudge: r.legacyJudge || '',
+          // 生成器（CORE-PARAMS-GEN）要带出来：它靠 expand 展开 PARAM-* 一族，自己不可判，
+          // 不带这个标记会被 status 当成「生效但零命中」的一条判据。
+          generator: r.generator || null,
         }],
       });
     }
@@ -386,12 +389,18 @@ if (cmd === 'list') {
 
 if (cmd === 'status') {
   if (json) { console.log(JSON.stringify(STORE_NOW, null, 2)); process.exit(0); }
-  const onRules = ALL.flatMap((j) => j.rules).filter((r) => isRuleOn(r.id));
+  const onAll = ALL.flatMap((j) => j.rules).filter((r) => isRuleOn(r.id));
+  // 生成器（CORE-PARAMS-GEN）不是一条能判的规矩：它靠 expand 展开出 PARAM-* 一族，
+  // 自己既没有 condition 也不会进判定。混在手写条数里会让「生效 39 条」虚高一条、
+  // 还会在「一条都没命中」的盘点里冒出来当噪声（2026-11-27 盘零命中时发现）。
+  const onGen = onAll.filter((r) => r.generator);
+  const onRules = onAll.filter((r) => !r.generator);
   console.log(`来源：${fs.existsSync(STORE) ? STORE : '（未安装任何判据）'}`);
   console.log(`包：${STORE_NOW.packs.join(', ') || '无'}`);
   console.log(`单独装的条：${STORE_NOW.rules.join(', ') || '无'}`);
   console.log(`删掉的：${STORE_NOW.removed.join(', ') || '无'}`);
   console.log(`实际生效 ${onRules.length} 条${onRules.length ? '：' + onRules.map((r) => r.id).join(' ') : ''}`);
+  if (onGen.length) console.log(`另有生成器 ${onGen.length} 条（不直接判定，靠它展开：${onGen.map((r) => r.id).join(' ')}）`);
   if (!onRules.length) console.log('提示：现在一条都没装，闸不会拦任何东西。先跑 list 看看。');
   process.exit(0);
 }

@@ -232,6 +232,29 @@ if (cmd === 'export') {
     const from = path.join(ROOT, f);
     if (fs.existsSync(from)) { fs.copyFileSync(from, path.join(packDir, f)); packParts.push(f); }
   }
+  // 交付件里的「判据包」是空的：一条都不装，装哪些由用户从判据库自己挑。
+  // 理由（2026-11-27 用户定案）：判据库是判据库（说明 + 可挑的规则本体），判据包是判据包（这台机器上真正生效的那份）；
+  // 默认把作者这套装进去等于替用户做决定，还会让「装完就拦」变成惊吓。
+  fs.mkdirSync(path.join(packDir, 'data'), { recursive: true });
+  fs.writeFileSync(path.join(packDir, 'data', 'judges-installed.json'), JSON.stringify({ packs: [], rules: [], actions: {}, removed: [] }, null, 2) + '\n', 'utf8');
+  fs.writeFileSync(path.join(packDir, 'data', 'README.md'), [
+    '# 这里是「装了哪些判据」的清单',
+    '',
+    '发出去时是空的：`packs` 与 `rules` 都是空数组，所以闸一条都不拦。',
+    '',
+    '要从判据库里挑着装：',
+    '',
+    '```',
+    'node dsh-judge-gate/tools/judge-packs.cjs list              # 看判据库里有哪些（按包分组，带「已装/未装」）',
+    'node dsh-judge-gate/tools/judge-packs.cjs add WIN-ENC-01    # 装一条',
+    'node dsh-judge-gate/tools/judge-packs.cjs add core          # 或者整包装',
+    'node dsh-judge-gate/tools/judge-packs.cjs status            # 看现在实际生效几条',
+    '```',
+    '',
+    '装的记录就写在这个文件里。改完重启 DSH 生效（不装 DSH 用命令行时当场生效）。',
+    '',
+  ].join('\n'), 'utf8');
+  packParts.push('data/ judges-installed.json（空清单）+ README.md');
   let cliOk = false;
   const cliFrom = path.join(ROOT, '..', 'weakreferee-cli.js');
   if (fs.existsSync(cliFrom)) { fs.copyFileSync(cliFrom, path.join(tmp, 'weakreferee-cli.js')); cliOk = true; packParts.push('weakreferee-cli.js'); }
@@ -259,7 +282,24 @@ if (cmd === 'export') {
     'node weakreferee-cli.js packs',
     '```',
     '',
-    '最后一行应当是「完整性：4 个包与清单一致」，前面是手写条数与展开条数。',
+    '最后一行应当是「完整性：8 个包与清单一致」，前面是手写条数与展开条数。',
+    '',
+    '## 装进来的是空包，装什么自己挑',
+    '',
+    '发出去的包里 `dsh-judge-gate/data/judges-installed.json` 是空的（`packs` 与 `rules` 都是空数组），',
+    '也就是说**装完不会拦任何东西**——判据库里有全部判据与说明，装哪条由你决定。',
+    '',
+    '```',
+    'node dsh-judge-gate/tools/judge-packs.cjs list              # 看判据库（按包分组，标「已装/未装」）',
+    'node dsh-judge-gate/tools/judge-packs.cjs add WIN-ENC-01    # 装一条',
+    'node dsh-judge-gate/tools/judge-packs.cjs add core          # 或整包装',
+    'node dsh-judge-gate/tools/judge-packs.cjs status            # 看实际生效几条',
+    'node dsh-judge-gate/tools/judge-packs.cjs action WIN-ENC-01 warn   # 装好后调这档严不严（拦 / 提示 / 默认）',
+    'node dsh-judge-gate/tools/judge-packs.cjs remove WIN-ENC-01 # 这次不装',
+    'node dsh-judge-gate/tools/judge-packs.cjs delete WIN-ENC-01 # 这条我不要了（升级冲不掉，restore 能回来）',
+    '```',
+    '',
+    '装到 DSH 里之后也可以直接点面板（`tools/panel.cjs`）挑，效果一样。',
     '',
     '## 接到任意支持 MCP 的客户端',
     '',

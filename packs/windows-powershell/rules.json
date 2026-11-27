@@ -113,11 +113,11 @@
       "type": "regexHit",
       "in": "args.command",
       "maskQuoted": true,
-      "pattern": "\\$(input|args|error|host|home|pid|matches|this|foreach|psitem)\\s*=(?!=)"
+      "pattern": "\\$(input|host|home|pid|matches|this|foreach|psitem)\\s*=(?!=)"
     },
     "action": "block",
     "severity": "S",
-    "message": "给 PowerShell 自动变量赋值（只读，或影响解析）",
+    "message": "给 PowerShell 只读自动变量赋值（改了立即报错，报错信息看不出原因）",
     "fix": "换带固定前缀的多字名，如 $envPath 而不是 $home",
     "reversible": false,
     "evidence": {
@@ -137,7 +137,7 @@
           "args": {
             "command": "$args = 1"
           },
-          "expect": "block"
+          "expect": "pass"
         },
         {
           "args": {
@@ -429,7 +429,7 @@
           "type": "regexHit",
           "in": "args.command",
           "maskQuoted": true,
-          "pattern": "\\b(reg\\s+(add|delete|import)|New-Service|Set-Service|Remove-Service|Register-ScheduledTask|Unregister-ScheduledTask|Format-Volume|Initialize-Disk|Clear-Disk|vssadmin\\s+(create|delete|resize|revert)|wbadmin\\s+(start|delete|disable))\\b|\\bsc(\\.exe)?\\s+(create|delete|config)\\b|\\bschtasks(\\.exe)?\\s+/(create|delete)\\b|\\bnetsh\\s+(int|advfirewall|winsock)\\s+\\w+\\s+(set|reset|delete)\\b|\\bdiskpart\\b"
+          "pattern": "\\b(reg\\s+(add|delete|import)|New-Service|Set-Service|Remove-Service|Register-ScheduledTask|Unregister-ScheduledTask|vssadmin\\s+(create|delete|resize|revert)|wbadmin\\s+(start|delete|disable))\\b|\\bsc(\\.exe)?\\s+(create|delete|config)\\b|\\bschtasks(\\.exe)?\\s+/(create|delete)\\b|\\bnetsh\\s+(int|advfirewall|winsock)\\s+\\w+\\s+(set|reset|delete)\\b"
         },
         {
           "type": "regexMiss",
@@ -494,7 +494,9 @@
       ]
     },
     "scene": "改注册表、服务或计划任务之前没有导出旧配置，出问题只能靠回忆往回改，改错一处就再也回不到原样。",
-    "origin": "model-error"
+    "origin": "model-error",
+    "limits": "只管「能导出回滚材料」的那批动作（注册表、服务、计划任务、卷影、备份计划）。磁盘格式化与 diskpart 已拆到 DISK-FORMAT-01，那条是拦档",
+    "notes": "2026-11-28 拆分：Format-Volume／Initialize-Disk／Clear-Disk／diskpart 移交 DISK-FORMAT-01（block），本条保持 warn"
   },
   {
     "id": "WIN-MIRROR-01",

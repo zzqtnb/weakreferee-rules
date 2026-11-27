@@ -1,0 +1,38 @@
+{
+  "id": "scenario",
+  "name": "场景防护包",
+  "version": "0.1.0",
+  "kind": "core",
+  "description": "一次性铸成大错的那类操作：删盘根、格式化、迁移工具改真实库、云上删实例删存储。装之前请先自己测，默认动作偏保守。",
+  "author": "ZQ",
+  "license": "AGPL-3.0-only",
+  "appliesTo": {},
+  "loadOrder": 25,
+  "rules": 11,
+  "ruleIds": [
+    "DELETE-ROOT-01",
+    "DELETE-UNIX-RF-01",
+    "DISK-FORMAT-01",
+    "DELETE-FOREIGN-DRIVE-01",
+    "DB-MIGRATE-01",
+    "DB-PROD-CONN-01",
+    "DB-SQL-FILE-01",
+    "CLOUD-TERMINATE-01",
+    "CLOUD-IAM-DELETE-01",
+    "CLOUD-STORAGE-PURGE-01",
+    "CLOUD-PROD-NAME-01"
+  ],
+  "testedOn": {
+    "host": "DSH 桌面版（Windows）",
+    "model": "deepseek-chat",
+    "period": "2026-11-27",
+    "calls": 35651,
+    "hits": 0,
+    "note": "作者本机没有这类操作，35,651 次历史回放 0 命中；样本照三起公开事故反推，准确率记「未观测」"
+  },
+  "notes": [
+    "这 11 条不是从操作日志里统计出来的，是照三起公开事故（GitLab 2017 误删数据库、AWS 误清 4,000 张照片等）反推的样本。",
+    "作者本机没有数据库迁移、云 CLI、批量删盘这些场景，所以零命中不构成退役理由——本机不装，库里保留。",
+    "建议先以 warn 装一周，看误报再决定哪条升级成 block。"
+  ]
+}

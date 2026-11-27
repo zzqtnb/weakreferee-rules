@@ -42,7 +42,8 @@
       "sessions": 0,
       "source": "真实案例：2026 年 Gemini CLI 一次文件操作清空用户整个 D 盘（8,000+ 文件）；同类可查的还有 2017-05 tenforums 与 2018-12 reddit r/buildapc 的 diskpart 误清分区帖。作者本机命中 0 次，属公共库收录、本机不默认启用"
     },
-    "selfTest": [
+    "selfTest": {
+      "cases": [
       {
         "args": {
           "command": "Remove-Item 'D:\\' -Recurse -Force",
@@ -99,7 +100,8 @@
         },
         "expect": "pass"
       }
-    ],
+    ]
+    },
     "origin": "incident",
     "advisory": "作者本机无此场景，样本为公开事故反推的构造样本，仅供参考；默认启用前请先用自己的常用命令跑一遍 selfTest。"
   },
@@ -321,7 +323,7 @@
             "command": "Remove-Item \"C:\\temp\\build\" -Recurse -Force",
             "description": "删 C 盘"
           },
-          "expect": "warn"
+          "expect": "block"
         },
         {
           "args": {
@@ -375,21 +377,21 @@
             "command": "npx drizzle-kit push",
             "description": "直推"
           },
-          "expect": "warn"
+          "expect": "block"
         },
         {
           "args": {
             "command": "npx prisma migrate deploy",
             "description": "部署迁移"
           },
-          "expect": "warn"
+          "expect": "block"
         },
         {
           "args": {
             "command": "alembic upgrade head",
             "description": "升级"
           },
-          "expect": "warn"
+          "expect": "block"
         },
         {
           "args": {
@@ -460,14 +462,14 @@
             "command": "psql postgres://u:p@db.production.internal/app -c \"select 1\"",
             "description": "连生产"
           },
-          "expect": "warn"
+          "expect": "block"
         },
         {
           "args": {
             "command": "mysql -h prod-db -u root -e \"select 1\"",
             "description": "连生产"
           },
-          "expect": "warn"
+          "expect": "block"
         },
         {
           "args": {
@@ -533,14 +535,14 @@
             "file_path": "schema/drop.sql",
             "content": "DROP TABLE users;"
           },
-          "expect": "warn"
+          "expect": "block"
         },
         {
           "args": {
             "file_path": "schema/m1.sql",
             "content": "ALTER TABLE users DROP COLUMN phone;"
           },
-          "expect": "warn"
+          "expect": "block"
         },
         {
           "args": {
@@ -893,14 +895,14 @@
             "command": "aws ec2 stop-instances --instance-ids i-prod-01",
             "description": "停生产"
           },
-          "expect": "warn"
+          "expect": "block"
         },
         {
           "args": {
             "command": "aws rds delete-db-instance --db-instance-identifier prod-db",
             "description": "删生产库"
           },
-          "expect": "warn"
+          "expect": "block"
         },
         {
           "args": {

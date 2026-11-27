@@ -1,6 +1,6 @@
 {
   "_说明": "每个包的 rules.json 指纹。改规则要重新生成这份清单，否则加载时会提示不符。它只能发现文件被改动，不是签名。",
-  "generatedAt": "2026-11-27T11:36:37.324Z",
+  "generatedAt": "2026-11-27T12:04:11.125Z",
   "packs": {
     "browser": {
       "file": "rules.json",
@@ -16,9 +16,9 @@
     },
     "cross-call": {
       "file": "rules.json",
-      "rules": 5,
-      "bytes": 16453,
-      "sha256": "8ea82a55a320482c6c8c01b51f6f32287e7d80d06a67253e90b6b4693a09fecb"
+      "rules": 4,
+      "bytes": 12751,
+      "sha256": "24af435e259fb294ff0872ff2c18244930b3ddc7e00d814285f52d47849c10aa"
     },
     "doc-suite": {
       "file": "rules.json",

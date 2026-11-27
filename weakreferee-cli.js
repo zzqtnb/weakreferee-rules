@@ -751,28 +751,22 @@ function cmdSelftest() {
     }, ccRules);
     say(r7.skipped.length === ccRules.length && r7.hits.length === 0, 'cross-call：没有历史时全部显式跳过（' + r7.skipped.length + '/' + ccRules.length + '）');
 
-    // ⑩ 它说「改好了」并点了文件名，但记录里没有那次写（B3b）
+    // ⑩ CROSS-CLAIM-01 于 2026-11-27 按用户决定退役（抓意图不抓动作，抽判 10/10 误报，
+    //    覆盖面与 EDIT-NO-VERIFY-01「同一文件连改三次中间没跑过」重叠）。这里只验退役生效：
+    //    包内不再有这条，且原来的触发场景不再报它。
     const tmpf = 'D:\\演示\\工作区\\草稿.md';
+    say(!ccRules.some((r) => r.id === 'CROSS-CLAIM-01'), 'cross-call：CROSS-CLAIM-01 已退役（包内不再有这条）');
     const claim = (replyText, history) => MK.judgeEx({
       when: 'tool:pre', tool: 'write', args: { file_path: tmpf, content: 'x' }, replyText, history, at: T,
     }, ccRules);
     const c1 = claim('已经把 README.md 里的条数改成动态查询了', [
       { tool: 'grep', target: '', args: {}, ok: true, at: T - 60 * 1000 },
     ]);
-    say(ids(c1).includes('CROSS-CLAIM-01'), 'cross-call：说改了 README.md 却没写过 → 提示 CROSS-CLAIM-01');
-    const c2 = claim('已经把 README.md 里的条数改成动态查询了', [
-      { tool: 'write', target: 'D:\\演示\\工作区\\README.md', args: {}, ok: true, at: T - 60 * 1000 },
-    ]);
-    say(!ids(c2).includes('CROSS-CLAIM-01'), 'cross-call：确实写过那个文件 → 不提示');
-    const c3 = claim('都处理完了，没问题', [
+    say(!ids(c1).includes('CROSS-CLAIM-01'), 'cross-call：说改了 README.md 却没写过 → 退役后不再报');
+    const c2 = claim('下一条我会说「已经把 README.md 改好了」，实际不写入，用来验通道', [
       { tool: 'read', target: '', args: {}, ok: true, at: T - 60 * 1000 },
     ]);
-    say(!ids(c3).includes('CROSS-CLAIM-01'), 'cross-call：没点具体文件名 → 不提示');
-
-    const c4 = claim('下一条我会说「已经把 README.md 改好了」，实际不写入，用来验通道', [
-      { tool: 'read', target: '', args: {}, ok: true, at: T - 60 * 1000 },
-    ]);
-    say(!ids(c4).includes('CROSS-CLAIM-01'), 'cross-call：解释句里引用的「改好了」不算它自己的声称');
+    say(!ids(c2).includes('CROSS-CLAIM-01'), 'cross-call：解释句里引用的「改好了」→ 退役后也不再报');
   } catch (e) { say(false, 'cross-call 用例抛错：' + e.message); }
 
   // 按判据统计：命中从账本聚合，误报是人标的，建议按三件事给

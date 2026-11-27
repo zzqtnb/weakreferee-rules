@@ -8,11 +8,10 @@
   "license": "AGPL-3.0-only",
   "appliesTo": {},
   "loadOrder": 30,
-  "rules": 5,
+  "rules": 4,
   "ruleIds": [
     "CROSS-RETRY-01",
     "CROSS-BLIND-01",
-    "CROSS-CLAIM-01",
     "WORK-CLAIM-VERIFIED-01",
     "WORK-EDIT-NO-SYNC-01"
   ],
@@ -26,6 +25,7 @@
     "「连着失败」是从最近一条往前数、遇到成功就断：失败两次之后中间成功过五回，再来一次不算死磕——那是正常工作。按「窗口内失败过两次」写会一路误报（本机实测 23 次里绝大多数属于这种）。",
     "CROSS-GRIND-01（同工具连失败三次、参数没改）写在引擎条件 failCountSince 里，本机 27984 次调用 0 命中，按「命中 0 次不收」暂不进包；哪天它真出现了再加回来并给证据。",
     "WORK-CLAIM-VERIFIED-01 / WORK-EDIT-NO-SYNC-01（2026-11-26 第二批）：这两条判的不是单次调用，是「上一次做了什么、这一次该做而没做」。前者与 CROSS-CLAIM-01 同族（那条找文件写、这条找命令跑）；后者用 obligationPending 表达「改了要同步」的两步规矩。两条都只有自测用例、真机 0 命中，按「命中 0 次只当候选」的口径先挂 warn。",
-    "工作链两条的动作档是 steer 不是 warn：validate 的入库口径按「推断档 + 误拦 medium 最多 steer」卡，等真机命中并人判为真再升档。"
+    "工作链两条的动作档是 steer 不是 warn：validate 的入库口径按「推断档 + 误拦 medium 最多 steer」卡，等真机命中并人判为真再升档。",
+    "CROSS-CLAIM-01（2026-11-27 按用户决定退役）：它抓的是「上一句是不是声称改好了」——判意图不判动作。抽判 10 例全误报（写由脚本完成、未来时、超 15 分钟窗口都算），且覆盖面与 EDIT-NO-VERIFY-01「同一文件连改三次中间没跑过」重叠；同日它还把本会话工具全拦死过一次。原对象整段存档在 归档备份\\2026-11-27-CROSS-CLAIM-01退役\\CROSS-CLAIM-01.retired.json，要复活先修「历史改动被后续对话顶掉」的口径。"
   ]
 }

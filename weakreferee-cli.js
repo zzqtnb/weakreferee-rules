@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 'use strict';
 // 包的中文名：命令行输出给人看，英文 id 仍是仓库里的真名
-const PACK_CN = { core: '核心规矩', 'cross-call': '连着几次动作', 'dsh-host': 'DSH 自身', 'windows-powershell': 'Windows 命令', browser: '浏览器', 'doc-suite': '文档与表格', publish: '对外发布', preference: '个人偏好' };
+const PACK_CN = { core: '核心判据', 'cross-call': '连着几次动作', 'dsh-host': 'DSH 自身', 'windows-powershell': 'Windows 命令', browser: '浏览器', 'doc-suite': '文档与表格', publish: '对外发布', preference: '个人偏好' };
 /**
  * 弱裁判 · 独立命令行（weakreferee-cli.js）v0.1
  *
  * 为什么要有这个文件：
  *   原来的 preflight.js 只做参数形态，写中文 ps1、Set-Content 中文、带 -Encoding 的正常写法
  *   三条全返回「通过：必填键齐」——它不判编码、不判文本写入。这个命令行把整套引擎
- *   （14 条实体规矩 + 生成器展开的 464 条）装起来，判完给你结论和退出码。
+ *   （14 条实体判据 + 生成器展开的 464 条）装起来，判完给你结论和退出码。
  *
  * 用法：
  *   weakreferee check pwsh "command=Out-File a.ps1 -InputObject 中文"
@@ -100,7 +100,7 @@ const optShell = flagValue('--shell') || cfgVal('shell');
 if (optShell) process.env.DSH_JUDGE_SHELL = optShell;
 
 /* 契约表目录必须在 require 引擎之前定好并导出成环境变量：
- * dsh-host 包的 DSH-STALE-JUDGE-01 规矩里引用了 {DSH_JUDGE_TOOLS_DIR}，
+ * dsh-host 包的 DSH-STALE-JUDGE-01 判据里引用了 {DSH_JUDGE_TOOLS_DIR}，
  * 装载时校验「引用的环境变量必须已设置」，没设就直接拒装——它不会报错，
  * 只会安静少一条判据（实测：装载数从 463 掉到 462，差的就是它）。 */
 /* 配置文件里的相对路径按配置文件所在目录算，命令行给的按当前目录算——
@@ -128,7 +128,7 @@ function pickContractDir() {
 const CONTRACT_DIR = pickContractDir();
 if (CONTRACT_DIR) {
   if (!process.env.JUDGE_TOOLS_DIR) process.env.JUDGE_TOOLS_DIR = CONTRACT_DIR;
-  // 规矩里写的就是这个名字，别改成别的：改名等于把那条判据静默关掉
+  // 判据里写的就是这个名字，别改成别的：改名等于把那条判据静默关掉
   if (!process.env.DSH_JUDGE_TOOLS_DIR) process.env.DSH_JUDGE_TOOLS_DIR = CONTRACT_DIR;
 }
 
@@ -215,7 +215,7 @@ function loadAll() {
   if (hasContractFiles) {
     ex = EXP.expandAll(rs.rules, { dir: contractDir });
   } else {
-    // 没有契约表时 expandAll 仍会跑，但读空表 → 0 条参数规矩。
+    // 没有契约表时 expandAll 仍会跑，但读空表 → 0 条参数判据。
     // 那种「0 条」看起来和「全过」一模一样，必须显式区分开。
     contractMissing = rs.rules.some(r => r.generator);
     ex = EXP.expandAll(rs.rules, { dir: path.join(__dirname, '__no_contract__') });
@@ -326,7 +326,7 @@ function printHits(hits, action) {
   out.push('判定：' + (ACTION_CN[action] || action));
   for (const h of hits) {
     if (h.error) {
-      out.push('  [' + h.ruleId + '] 这条规矩执行出错，判不了：' + h.error);
+      out.push('  [' + h.ruleId + '] 这条判据执行出错，判不了：' + h.error);
       continue;
     }
     out.push('  [' + h.ruleId + '] ' + (h.message || ''));
@@ -424,9 +424,9 @@ function cmdCheck(args) {
     console.log(printFooter(st));
     if (filled.length) console.log('注：命令行场景代填了 ' + filled.join(',') + '（真调用必须自己给）');
     if (st.contractMissing) {
-      console.log('⚠ 契约表缺失：只装了手写规矩，参数形态一条都没展开——这时「通过」不代表参数没问题');
+      console.log('⚠ 契约表缺失：只装了手写判据，参数形态一条都没展开——这时「通过」不代表参数没问题');
     }
-    if (errHits.length) console.log('⚠ 有 ' + errHits.length + ' 条规矩执行出错，这些是「没判」，不是「通过」');
+    if (errHits.length) console.log('⚠ 有 ' + errHits.length + ' 条判据执行出错，这些是「没判」，不是「通过」');
   }
 
   if (crashed) return 3;
@@ -436,7 +436,7 @@ function cmdCheck(args) {
   return 0;
 }
 
-/* 回放：把历史调用按现有判据重判一遍，告诉你这套规矩在你这里能拦多少 */
+/* 回放：把历史调用按现有判据重判一遍，告诉你这套判据在你这里能拦多少 */
 function cmdReplay(argv) {
   const pos = splitArgs(argv.slice(1));
   const def = process.env.DSH_HOME ? path.join(process.env.DSH_HOME, 'sessions') : '.';
@@ -1206,7 +1206,7 @@ function cmdSuggest(args) {
     console.log('    命中 ' + hits + ' / ' + data.calls.length + '（' + pct + '%）' +
       (hits < wanted ? '  ← 低于 --min-hits 的要求，建议先别收' : ''));
     samples.forEach((s, i) => console.log('      ' + (i + 1) + '. ' + s));
-    if (!hits) console.log('      （一次都没命中：这条在你这里是死规矩，收进来只是多一份没人看的东西）');
+    if (!hits) console.log('      （一次都没命中：这条在你这里是死判据，收进来只是多一份没人看的东西）');
     if (hits) keep.push(r);
   }
   console.log('');
@@ -1306,7 +1306,7 @@ function cmdHelp() {
     '  weakreferee scan [目录|文件]                             体检：翻历史记录，出一页人话报告（亲友版）',
     '  weakreferee suggest <规则文件>                           别人给的判据，先在你自己的记录上回放一遍',
     '  weakreferee schema <工具定义.json>                       别的模型的工具定义，转成契约表三件套',
-    '  weakreferee replay [目录|文件]                           把历史调用按现有判据重判，看这套规矩能拦多少',
+    '  weakreferee replay [目录|文件]                           把历史调用按现有判据重判，看这套判据能拦多少',
     '  weakreferee trace [目录] [--max-files N] [--rules 文件]    带成败重放：跨调用判据会不会乱报（--rules 默认 cross-call）',
     '  weakreferee packs                                        看装了哪些包、多少条',
     '  weakreferee config                                       看这次实际用的配置（含忽略清单）',

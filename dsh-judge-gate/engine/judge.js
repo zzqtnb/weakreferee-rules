@@ -87,6 +87,13 @@ const HISTORY_MAX = 80;
 let FP_HELPER = null;   // 懒加载 history.js，只为算指纹
 const HISTORY = [];
 
+/* 「这次调用会不会落盘」的两种认法（claimUnbacked 用，2026-11-27 补）：
+ *  工具名本身就是写类；或者命令／脚本里带写盘动作。
+ * 第二个是必须的：日常成批改文件走的是「pwsh 里跑 node 脚本」，
+ * 只认 write/edit 会把正常回合判成空口，最后连修判据自己的写入都拦死。 */
+const WRITE_TOOL_RE = /^(write|edit|multi_edit|apply_patch|str_replace|create_file|write_file|notebook_edit)$/i;
+const WRITE_CMD_RE = /Set-Content|Add-Content|Out-File|WriteAllText|WriteAllBytes|New-Item\s+-ItemType\s+File|writeFileSync|writeFile\s*\(|appendFileSync|--apply\b|--write\b|fs\.(write|rename|rm)/i;
+
 function pushHistory(call) {
   try {
     const a = (call && call.args) || {};
@@ -505,6 +512,13 @@ const CONDITION = {
   },
   // 它说「改好了 / 修好了 / 搞定了」，并且点了具体文件名，
   // 但小本子里那段时间没有对这个文件的成功写——说的和做的对不上。
+  //
+  // 2026-11-27 修（自锁教训）：原来只认 write/edit 两种工具的「成功写」，
+  // 而日常成批改文件是「pwsh 里跑 node 脚本」——那种调用在记录里既没有 ok 也没有
+  // 目标文件名，于是判据认定「一句都没兑现」，把整个回合连同修它自己的写入一起拦死。
+  // 现在的口径分两层：
+  //   ① 全程一个写动作都没有（工具是写类，或命令里带写盘/脚本），说改了才算空口——拦；
+  //   ② 有写动作，只是没点对文件名：放过（宁可漏报，也别把正常回合锁死）。
   claimUnbacked(p, ctx) {
     const hist = histOf(ctx);
     if (!hist.length) return false;
@@ -526,16 +540,20 @@ const CONDITION = {
     if (!files.length) return false;
     const minutes = p.minutes || 15;
     const now = typeof ctx.now === 'number' ? ctx.now : Date.now();
-    const wrote = (name) => hist.some((h) => {
-      if (h.ok !== true) return false;
+    const inWin = (h) => {
       const at = typeof h.at === 'number' ? h.at : 0;
-      if (at && now - at > minutes * 60000) return false;
-      const t = String(h.target || '');
-      if (t && t.indexOf(name) >= 0) return true;
-      return false;
-    });
-    // 点到的文件名里，只要有一个没有成功写记录，就算没兑现
-    return files.some((f) => !wrote(f));
+      return !at || now - at <= minutes * 60000;
+    };
+    const isWriteCall = (h) => {
+      if (h.ok === false) return false;
+      if (WRITE_TOOL_RE.test(String(h.tool || ''))) return true;
+      return WRITE_CMD_RE.test(histText(h));
+    };
+    // 第一层：这一段里有没有任何「可能落盘」的调用。一个都没有，说改了就是空口。
+    const anyWrite = hist.some((h) => inWin(h) && isWriteCall(h));
+    if (!anyWrite) return files.length > 0;
+    // 第二层：动过手，再逐文件核；缺记录只当漏报放过，不锁回合。
+    return false;
   },
 
   /* ── 工作链一：说「验证过了」，但最近没有一次成功的验证调用 ──

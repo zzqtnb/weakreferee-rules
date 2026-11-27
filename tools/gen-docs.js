@@ -57,7 +57,7 @@ function esc(s) {
 
 // 包的中文名：给人看的那一层用中文，英文 id 仍留在括号里（仓库、命令行、文档锚点都靠它）
 const PACK_CN = {
-  core: '核心规矩',
+  core: '核心判据',
   'cross-call': '连着几次动作',
   'dsh-host': 'DSH 自身',
   'windows-powershell': 'Windows 命令',

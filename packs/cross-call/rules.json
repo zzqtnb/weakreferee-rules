@@ -162,7 +162,7 @@
     "needs": [
       "history"
     ],
-    "title": "它说「改好了」并点了文件名，但记录里没有那次写",
+    "title": "它说「改好了」并点了文件名，但这一段里一次写都没发生",
     "when": "tool:pre",
     "appliesTo": {},
     "condition": {
@@ -172,12 +172,12 @@
     "action": "block",
     "severity": "B",
     "message": "上一条说改好了，但记录里没有对这个文件的成功写",
-    "fix": "把那次写真的做一遍，或者说明白改的是哪一次、在哪个文件",
+    "fix": "把那次写真的做一遍，或者说明白改的是哪一次、在哪个文件；批量脚本改的，在回复里点明脚本名",
     "reversible": true,
     "evidence": {
       "hits": 0,
       "sessions": 0,
-      "source": "2026-11-25 讨论：模型说「已改好」而账本里没有对应写操作，人眼最难发现的一类"
+      "source": "2026-11-25 讨论：模型说「已改好」而账本里没有对应写操作，人眼最难发现的一类；2026-11-27 自锁：日常批量改文件走 pwsh+node，旧口径只认 write/edit，把整回合拦死"
     },
     "selfTest": {
       "cases": [
@@ -234,6 +234,23 @@
           "at": 1795000000000,
           "expect": "pass",
           "note": "没点具体文件名，不判"
+        },
+        {
+          "args": {
+            "command": "node _tmp/patch-readme.mjs --apply"
+          },
+          "replyText": "README 里的条数已经改成动态查询了",
+          "history": [
+            {
+              "tool": "pwsh",
+              "target": "node _tmp/patch-readme.mjs --apply",
+              "ok": true,
+              "at": 1794999900000
+            }
+          ],
+          "at": 1795000000000,
+          "expect": "pass",
+          "note": "脚本写盘也算写过（2026-11-27 修：只认 write/edit 会把正常回合锁死）"
         }
       ]
     },

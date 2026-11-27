@@ -583,8 +583,20 @@ export function apply(ctx, config) {
         const skipped = (ex && ex.skipped) || [];
         const v = JE.adjudicate(hits);
         const ids = hits.map((h) => h.ruleId || (h.rule && h.rule.id) || '?');
-        const msgs = hits.map((h) => h.message || (h.rule && h.rule.message) || '').filter(Boolean);
-        const fixes = hits.map((h) => h.fix || (h.rule && h.rule.fix) || '').filter(Boolean);
+        // 2026-11-27 修：引擎返回的 hit 只带 ruleId，没有 message/rule，
+        // 于是账本第 5 列只剩「[J3] EDIT-NO-VERIFY-01：」后面空白——判据说不出为什么拦。
+        // 这里按 id 回查本次实际装上的判据（pre 是数组），把写给人看的那句话补回来。
+        const byId = new Map();
+        for (const r of pre) if (r && r.id) byId.set(r.id, r);
+        const ruleOf = (h) => h.rule || byId.get(h.ruleId || (h.rule && h.rule.id)) || null;
+        const msgs = hits.map((h) => {
+          const r = ruleOf(h);
+          return h.message || (r && r.message) || '';
+        }).filter(Boolean);
+        const fixes = hits.map((h) => {
+          const r = ruleOf(h);
+          return h.fix || (r && r.fix) || '';
+        }).filter(Boolean);
         return {
           action: (v && v.action) || 'pass', ids,
           message: msgs[0] || '', fix: fixes[0] || '',

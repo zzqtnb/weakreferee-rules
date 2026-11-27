@@ -35,7 +35,7 @@
           "type": "regexMiss",
           "in": "args.command",
           "maskQuoted": true,
-          "pattern": "-Encoding\\b"
+          "pattern": "-Encoding\\b|\\[IO\\.File\\]::Write|WriteAllText|WriteAllLines|UTF8Encoding|\\[Text\\.(UTF8)?Encoding\\]|\\bgit\\s+commit\\b"
         }
       ]
     },
@@ -48,7 +48,8 @@
       "hits": 29,
       "sessions": 16,
       "source": "作者环境拦记账本 / 作者环境回放记录",
-      "whyRaw": "e-m-02：6 天记了 10 条、从未合并"
+      "whyRaw": "e-m-02：6 天记了 10 条、从未合并",
+      "revised": "2026-11-27 抽判：12 次里一半是 .NET 写法（[IO.File]::WriteAllText+UTF8Encoding）与 git commit -m 中文被当写盘无 -Encoding → 视为已指定编码"
     },
     "selfTest": {
       "cases": [
@@ -1071,7 +1072,7 @@
           "type": "regexHit",
           "in": "args.command",
           "maskQuoted": false,
-          "pattern": "(%TEMP%|%TMP%|\\$env:TEMP|\\$env:TMP|AppData\\\\Local\\\\Temp|C:\\\\Windows\\\\Temp|C:\\\\Users\\\\[^\\\\]+\\\\AppData\\\\Local)"
+          "pattern": "(C:\\\\Windows\\\\|C:\\\\Program Files|C:\\\\ProgramData\\\\|C:\\\\Users\\\\[^\\\\]+\\\\AppData\\\\Roaming)"
         }
       ]
     },
@@ -1083,7 +1084,8 @@
     "evidence": {
       "hits": 0,
       "sessions": 0,
-      "source": "工程经验，作者环境未命中（新规则，未上线）"
+      "source": "工程经验，作者环境未命中（新规则，未上线）",
+      "revised": "2026-11-27：本机把 %TEMP%/_tmp 当正常工作区，写临时目录是常态 → 只对系统目录与 Roaming 配置判"
     },
     "selfTest": {
       "cases": [

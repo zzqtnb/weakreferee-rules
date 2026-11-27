@@ -57,7 +57,7 @@
         }
       ]
     },
-    "action": "block",
+    "action": "warn",
     "severity": "A",
     "message": "判据文件比宿主进程新——闸正在用旧逻辑判定，等于没装",
     "fix": "完全退出宿主再打开（不是关窗口，是退出进程）",
@@ -65,7 +65,8 @@
     "evidence": {
       "hits": 12,
       "sessions": 12,
-      "source": "作者环境拦记账本，重复 12 次"
+      "source": "作者环境拦记账本，重复 12 次",
+      "revised": "2026-11-27：block 会连 read 一起拦死（判据比进程新时整个会话停摆）→ 降 warn"
     },
     "selfTest": {
       "cases": [],
@@ -110,6 +111,12 @@
           "in": "args.command",
           "maskQuoted": true,
           "pattern": "-WhatIf\\b"
+        },
+        {
+          "type": "regexMiss",
+          "in": "args.command",
+          "maskQuoted": false,
+          "pattern": "_tmp[\\\\/]|\\\\Temp\\\\|%TEMP%|%TMP%|\\$env:TEMP|AppData\\\\Local\\\\Temp"
         }
       ]
     },
@@ -121,7 +128,18 @@
     "evidence": {
       "hits": 0,
       "sessions": 0,
-      "source": "影子规则，上线后尚未命中（只提示不拦）"
+      "source": "影子规则，上线后尚未命中（只提示不拦）",
+      "fp_sampled": {
+        "at": "2026-11-27",
+        "n": 10,
+        "hits": 3,
+        "fp": 7,
+        "review": 0,
+        "rate": "70%",
+        "note": "拦对：面板脚本 office.mjs 原地字符串替换、dsh_automation.json 原地改 cwd、会话 .zstd 原地重压第一帧。误报七例均为 heredoc 写 _tmp 临时脚本。",
+        "report": "D:\\deepseek\\部门\\弱裁判\\误报率抽判-20261127.md"
+      },
+      "revised": "2026-11-27 抽判：80 次里 7 成是往 _tmp 写临时脚本被当成动真文件 → 命令里出现临时目录即放行"
     },
     "selfTest": {
       "cases": [

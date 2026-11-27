@@ -345,9 +345,18 @@
       "tool": "write"
     },
     "condition": {
-      "type": "regexHit",
-      "in": "args.content",
-      "pattern": "(sessions\\\\[0-9a-z-]{8,}|[0-9a-z]{8,10}-[0-9a-f]{16,}|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[A-Za-z]:\\\\[^\\\\]{2,}\\\\工作区\\\\[^\\\\]+)"
+      "all": [
+        {
+          "type": "regexHit",
+          "in": "args.file_path",
+          "pattern": "(宣传|推广|参赛|交付|递交|对外)"
+        },
+        {
+          "type": "regexHit",
+          "in": "args.content",
+          "pattern": "(sessions\\\\[0-9a-z-]{8,}|[0-9a-z]{8,10}-[0-9a-f]{16,}|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[A-Za-z]:\\\\[^\\\\]{2,}\\\\工作区\\\\[^\\\\]+)"
+        }
+      ]
     },
     "action": "block",
     "severity": "C",
@@ -357,7 +366,18 @@
     "evidence": {
       "hits": 0,
       "sessions": 0,
-      "source": "工程经验，作者环境未命中（新规则，未上线）"
+      "source": "工程经验，作者环境未命中（新规则，未上线）",
+      "fp_sampled": {
+        "at": "2026-11-27",
+        "n": 10,
+        "hits": 0,
+        "fp": 8,
+        "review": 2,
+        "rate": "80%",
+        "note": "八例写的是内部文件（_tmp 脚本、内部报告、说明文档）；两例待议——宣传\\视频\\demo.ps1 上镜与公司制交付脚本确实带内部路径，规则分不清文件会不会对外。",
+        "report": "D:\\deepseek\\部门\\弱裁判\\误报率抽判-20261127.md"
+      },
+      "revised": "2026-11-27 抽判：31 次里 8 次写内部临时/报告文件，本就不会发出去 → 只对宣传/推广/参赛/交付目录判"
     },
     "selfTest": {
       "cases": [
@@ -665,6 +685,11 @@
       "all": [
         {
           "type": "regexHit",
+          "in": "args.file_path",
+          "pattern": "(宣传|推广|参赛|交付|递交|对外)"
+        },
+        {
+          "type": "regexHit",
           "in": "args.content",
           "pattern": "https?://[^\\s)\\]\"']+"
         },
@@ -678,7 +703,7 @@
         }
       ]
     },
-    "action": "block",
+    "action": "warn",
     "severity": "C",
     "message": "正文里带了网址，这一轮没打开过任何页面——只看了搜索摘要就写成结论，最容易过时",
     "fix": "打开那一条看一眼再写，或者把出处换成真读过的来源",
@@ -686,7 +711,8 @@
     "evidence": {
       "hits": 0,
       "sessions": 0,
-      "source": "2026-11-24 四模型 × 43 情景实测，qwen3.8-flash / qwen3.8-max / doubao-seed-2.1-turbo 三家犯过"
+      "source": "2026-11-24 四模型 × 43 情景实测，qwen3.8-flash / qwen3.8-max / doubao-seed-2.1-turbo 三家犯过",
+      "revised": "2026-11-27：写作时引用资料里已有的链接不是「没查」→ 只对外文稿提示，block→warn"
     },
     "scene": "搜到三条结果，直接拿摘要写成一段引用；被引的那页其实已经改过半年。",
     "selfTest": {

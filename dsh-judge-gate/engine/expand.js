@@ -76,7 +76,7 @@ function buildContract(dir) {
     const inAny = new Set(e.anyOf.reduce((acc, g) => acc.concat(g), []));
     e.req = e.req.filter(k => !inAny.has(k));
   }
-  return { T, GEN, TYPES, REQ, WRONGKEY: T.wrongkey || {}, FORBID: T.forbid || {} };
+  return { T, GEN, TYPES, REQ, WRONGKEY: T.wrongkey || {}, FORBID: T.forbid || {}, ALLOWEMPTY: T.allowempty || {} };
 }
 
 /**
@@ -131,9 +131,12 @@ function expandContractTable(gen, opts) {
       }));
       stats.missingKey++;
 
-      rules.push(mk('PARAM-EMPTY:' + tool, { type: 'emptyValue', keys: spec.req }, {
+      // 允许空串的键不生成「必填键为空」（2026-11-27：edit 删行时 new_string 就是空串，
+      // 三次实测全是正常用法被拦——空值校验只该管「本该有内容的键」）
+      const keepEmpty = (spec.req || []).filter(k => !(Array.isArray(c.ALLOWEMPTY[tool]) && c.ALLOWEMPTY[tool].includes(k)));
+      if (keepEmpty.length) rules.push(mk('PARAM-EMPTY:' + tool, { type: 'emptyValue', keys: keepEmpty }, {
         title: '必填键为空', appliesTo: { tool },
-        message: tool + ' 必填键为空: ' + spec.req.join(','),
+        message: tool + ' 必填键为空: ' + keepEmpty.join(','),
         fix: '空串/null/空数组都算没填，给一个真值'
       }));
       stats.emptyValue++;

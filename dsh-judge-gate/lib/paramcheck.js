@@ -130,7 +130,11 @@ function check(name, args, badJson) {
   }
   const a = args || {};
   const missing = schema.req.filter(k => !(k in a));
-  const empty = schema.req.filter(k => k in a && (a[k] === "" || a[k] === null || (Array.isArray(a[k]) && !a[k].length)));
+  // 允许空串的键（tool-params.json 的 allowempty）：edit 删行时 new_string 就是空串，属合法用法。
+  // 2026-11-27 补：engine\expand.js 生成 PARAM-EMPTY 时已按 allowempty 过滤，这里漏了同一张表，
+  // 结果事前闸仍按老口径拦——同一份约束表两个消费点，必须同口径。
+  const keepEmptyOk = (T.allowempty && T.allowempty[name]) || [];
+  const empty = schema.req.filter(k => k in a && !keepEmptyOk.includes(k) && (a[k] === "" || a[k] === null || (Array.isArray(a[k]) && !a[k].length)));
   const anyOfFail = schema.anyOf.filter(g => !g.some(k => k in a));
   const wrong = (WRONGKEY[name] || []).filter(k => k in a);
   const extra = (FORBID[name] || []).filter(p => hasPath(a, p));

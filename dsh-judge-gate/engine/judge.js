@@ -429,8 +429,17 @@ const CONDITION = {
     if (val === undefined || val === null) return false;
     const want = String(val);
     const times = p.times || 3;
+    // 2026-11-27 修：原来写死 String(h.args[key] …) —— 插件小本子写盘的那份没有 args，
+    // h.args 是 undefined 时这里抛 TypeError（被外层 try 吞掉＝永远判 false），
+    // 就算不抛也恒不相等（'' !== 真值），于是「同一文件改三次」一次都不会命中。
+    // 现在与 failRepeat 同一套取值口径：有 args 用 args，没有就用 target（file_path 的摘要）。
+    const sameValue = (h) => {
+      const raw = h.args && h.args[key] != null ? h.args[key]
+        : (key === 'file_path' ? h.target : undefined);
+      return raw !== undefined && raw !== null && String(raw) === want;
+    };
     const n = recentHistory(p.within || 20, hist)
-      .filter(h => (!p.tool || h.tool === p.tool) && String(h.args[key] == null ? '' : h.args[key]) === want)
+      .filter(h => (!p.tool || h.tool === p.tool) && sameValue(h))
       .length;
     return n >= times - 1;
   },
@@ -606,8 +615,13 @@ const CONDITION = {
     const arr = recentHistory(within, hist);
     const afterRe = new RegExp(p.after);
     const thenRe = new RegExp(p.then);
+    // afterTool（2026-11-27 加）：只认「写类」调用开的义务。
+    // 原先 read 一下 rules.json 也算「改过规则」，于是接下来 30 次调用（含 read/compress）
+    // 全被提醒，一天 118 次——判据把「看过」当成「改过」。
+    const afterToolRe = p.afterTool ? new RegExp(p.afterTool) : null;
     let openAt = -1;
     for (let i = 0; i < arr.length; i += 1) {
+      if (afterToolRe && !afterToolRe.test(String(arr[i] && arr[i].tool || ''))) continue;
       if (afterRe.test(histText(arr[i]))) openAt = i;
     }
     if (openAt < 0) return false;

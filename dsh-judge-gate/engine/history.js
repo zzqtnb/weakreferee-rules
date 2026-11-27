@@ -22,6 +22,11 @@ const HISTORY_MAX = 20;
 // 其余参数一律不进——进了就是原文，脱敏再好也是泄露面。
 const PICK = ['command', 'file_path', 'path', 'url', 'query', 'pattern', 'name', 'tool', 'code'];
 
+// 进小本子的参数键：只留短标识，command / code 这类正文一律不进（与 PICK 的差别就在这）。
+// 为什么不整份 PICK：判据要的是「同一个文件」「同一个网址」，不是命令原文；多存一份正文
+// 等于把上面那条「不记命令全文」的设计反着做。（2026-11-27 加，配合 argRepeat 的修复）
+const ARGS_KEEP = ['file_path', 'path', 'url', 'query', 'pattern', 'name', 'tool'];
+
 function safeName(session) {
   const raw = String(session || 'default');
   // 中文会话名洗完会变成一串下划线，两个不同的名字能撞成同一个文件——
@@ -49,6 +54,17 @@ function fingerprint(tool, args) {
   return crypto.createHash('sha1').update(raw, 'utf8').digest('hex').slice(0, 16);
 }
 
+function slimArgs(args) {
+  const a = args && typeof args === 'object' ? args : {};
+  const out = {};
+  for (const k of ARGS_KEEP) {
+    if (a[k] === undefined || a[k] === null) continue;
+    const v = String(a[k]);
+    out[k] = L.scrubLong(v.length > 200 ? v.slice(0, 200) : v);
+  }
+  return Object.keys(out).length ? out : undefined;
+}
+
 function entryOf(call, ok) {
   const args = (call && call.args) || {};
   const target = args.file_path || args.path || args.url || '';
@@ -56,6 +72,9 @@ function entryOf(call, ok) {
     tool: String((call && call.tool) || '?'),
     fp: fingerprint(call && call.tool, args),
     target: target ? L.scrubLong(String(target)).slice(0, 200) : '',
+    // 跨调用判据（argRepeat / failRepeat）要按某个参数值比对；老条目没有这个字段，
+    // 判定侧按 target 兜底，所以老本子照样能读。
+    args: slimArgs(args),
     ok: ok === true ? true : (ok === false ? false : null),
     at: Date.now(),
   };
@@ -127,4 +146,4 @@ function reset(dir, session) {
   try { fs.unlinkSync(pathFor(dir, session)); return true; } catch { return false; }
 }
 
-module.exports = { append, recent, reset, markResult, pathFor, fingerprint, entryOf, HISTORY_MAX, PICK };
+module.exports = { append, recent, reset, markResult, pathFor, fingerprint, entryOf, HISTORY_MAX, PICK, ARGS_KEEP };

@@ -1,6 +1,6 @@
 {
   "_说明": "工具参数约束表：单一真源。judge-audit.js（事后）与 preflight.js（事前）都读这一份，避免两边各写一份再漂移。",
-  "_更新": "改这张表等于改闸门。改完必须重跑 preflight --replay 与 judge-audit，两边数字一致才算过。",
+  "_更新": "改这张表等于改闸门。改完必须重跑 preflight --replay 与 judge-audit，两边数字一致才算过。 ; 2026-11-27 加 allowempty：edit 的 new_string 允许空串（删行是合法用法）",
   "req": {
     "pwsh": [
       "command",
@@ -763,6 +763,11 @@
     ],
     "activate_tools": [
       "names"
+    ]
+  },
+  "allowempty": {
+    "edit": [
+      "new_string"
     ]
   }
 }

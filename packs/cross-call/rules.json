@@ -169,7 +169,7 @@
       "type": "claimUnbacked",
       "minutes": 15
     },
-    "action": "block",
+    "action": "warn",
     "severity": "B",
     "message": "上一条说改好了，但记录里没有对这个文件的成功写",
     "fix": "把那次写真的做一遍，或者说明白改的是哪一次、在哪个文件；批量脚本改的，在回复里点明脚本名",
@@ -177,7 +177,17 @@
     "evidence": {
       "hits": 0,
       "sessions": 0,
-      "source": "2026-11-25 讨论：模型说「已改好」而账本里没有对应写操作，人眼最难发现的一类；2026-11-27 自锁：日常批量改文件走 pwsh+node，旧口径只认 write/edit，把整回合拦死"
+      "source": "2026-11-25 讨论：模型说「已改好」而账本里没有对应写操作，人眼最难发现的一类；2026-11-27 自锁：日常批量改文件走 pwsh+node，旧口径只认 write/edit，把整回合拦死；同日二次自锁（历史改动被后续对话顶掉后仍判成承诺未兑现，一整天工具全被拦）后按用户决定 block→warn 只提醒",
+      "fp_sampled": {
+        "at": "2026-11-27",
+        "n": 10,
+        "hits": 0,
+        "fp": 10,
+        "review": 0,
+        "rate": "100%",
+        "note": "断言多落在推理与未来时（Let me/Now write）；用 pwsh+node 脚本完成的写入不被认；15 分钟窗口过死。今日已按用户决定降为提示。",
+        "report": "D:\\deepseek\\部门\\弱裁判\\误报率抽判-20261127.md"
+      }
     },
     "selfTest": {
       "cases": [
@@ -378,19 +388,31 @@
     "appliesTo": {},
     "condition": {
       "type": "obligationPending",
-      "within": 30,
+      "within": 12,
       "after": "rules\\\\(core|windows-powershell|dsh-host|cross-call)\\\\rules\\.json|engine\\\\[a-z-]+\\.js|contract\\\\tool-types\\.json",
-      "then": "judge-sync|-Apply|Get-CimInstance Win32_Process|Get-Process"
+      "then": "judge-sync|-Apply|Get-CimInstance Win32_Process|Get-Process|validate\\.js|gen-manifest|\\bnode --check\\b|--check|selftest",
+      "afterTool": "^(write|edit|multi_edit|apply_patch)$"
     },
     "action": "steer",
     "severity": "C",
-    "message": "改过规则 / 引擎 / 契约表，之后 30 次调用里没出现同步或重启核对——改的东西可能还没到运行位",
+    "message": "改过规则 / 引擎 / 契约表，之后 12 次调用里没出现同步（judge-sync、validate、gen-manifest、node --check、selftest、重启都算同步）",
     "fix": "跑一次 judge-sync.ps1 -Apply；只改不发布就说明「这次不发」",
     "reversible": true,
     "evidence": {
       "hits": 0,
       "sessions": 0,
-      "source": "2026-11-26 实战：改完仓库那份要 judge-sync 才到运行位，漏了这一步时「改了却没生效」只能靠人记"
+      "source": "2026-11-26 实战：改完仓库那份要 judge-sync 才到运行位，漏了这一步时「改了却没生效」只能靠人记",
+      "fp_sampled": {
+        "at": "2026-11-27",
+        "n": 10,
+        "hits": 0,
+        "fp": 10,
+        "review": 0,
+        "rate": "100%",
+        "note": "改的是 _tmp 临时脚本却被当成引擎；窗口内的 validate / gen-manifest / judge-sync / node --check 不算同步；30 次窗口过长，早已换话题。",
+        "report": "D:\\deepseek\\部门\\弱裁判\\误报率抽判-20261127.md"
+      },
+      "revised": "2026-11-27 抽判：118 次里 read 一下 rules.json 就算「改过」，validate/gen-manifest/node --check 一个都不认 → afterTool 只认写类、then 认全部同步动作、within 30→12"
     },
     "selfTest": {
       "cases": [

@@ -1,0 +1,924 @@
+[
+  {
+    "id": "DELETE-ROOT-01",
+    "title": "删除的目标是整个盘、家目录或系统目录",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "pwsh",
+      "platform": [
+        "windows",
+        "linux",
+        "darwin"
+      ]
+    },
+    "scenarios": [
+      "bulk-delete"
+    ],
+    "condition": {
+      "all": [
+        {
+          "type": "regexHit",
+          "in": "args.command",
+          "maskQuoted": false,
+          "pattern": "\\b(Remove-Item|ri|del|erase|rd|rmdir)\\b[^\\n|;]*?(?:[A-Za-z]:[\\\\/]{1,2}(?![\\w.\\\\/-])|[A-Za-z]:[\\\\/]{1,2}\\*|%(?:USERPROFILE|SystemDrive|HOMEPATH)%|\\$env:(?:USERPROFILE|SystemDrive|HOMEDRIVE)|(?:^|[\\s\"'=(])~[\\\\/]?(?=[\\s\"'),;|]|$)|(?:^|[\\s\"'=(])/[\\\\/]?(?=[\\s\"'),;|]|$))"
+        },
+        {
+          "type": "regexMiss",
+          "in": "args.command",
+          "maskQuoted": false,
+          "pattern": "-WhatIf\\b"
+        }
+      ]
+    },
+    "action": "block",
+    "severity": "A",
+    "message": "要删的是整个盘、整个家目录或系统目录；路径写在引号里也一样",
+    "fix": "先 Get-ChildItem 列出要删的清单看一眼，或先加 -WhatIf 干跑；确认范围后改成具体子目录，别从盘根删",
+    "reversible": false,
+    "limits": "不管三件：① here-string 里的脚本正文同样会被拦（有意为之，因为写完通常会执行）；② 只认盘符根与家目录根，`D:\\deepseek\\*` 这类通配子目录不在此列；③ 未经真实生产调用验证——建议装上后先攒几天自己的日志，确认没有误拦再决定是否保留 block 档，误拦多了就降成 warn 或把具体写法加进本字段。",
+    "scene": "AI 拿到「清理磁盘」这类模糊指令时，最容易的错法就是拿盘根或家目录当范围。这条不问删法、只问「删的目标是不是整个盘」，正是为了绕开「路径写在引号里就看不清」这个坑。",
+    "evidence": {
+      "hits": 0,
+      "sessions": 0,
+      "source": "真实案例：2026 年 Gemini CLI 一次文件操作清空用户整个 D 盘（8,000+ 文件）；同类可查的还有 2017-05 tenforums 与 2018-12 reddit r/buildapc 的 diskpart 误清分区帖。作者本机命中 0 次，属公共库收录、本机不默认启用"
+    },
+    "selfTest": [
+      {
+        "args": {
+          "command": "Remove-Item 'D:\\' -Recurse -Force",
+          "description": "t"
+        },
+        "expect": "block"
+      },
+      {
+        "args": {
+          "command": "del D:\\*.* /s /q",
+          "description": "t"
+        },
+        "expect": "block"
+      },
+      {
+        "args": {
+          "command": "Remove-Item D:\\ -Recurse",
+          "description": "t"
+        },
+        "expect": "block"
+      },
+      {
+        "args": {
+          "command": "Remove-Item $env:USERPROFILE -Recurse",
+          "description": "t"
+        },
+        "expect": "block"
+      },
+      {
+        "args": {
+          "command": "Remove-Item \"D:\\*\" -Recurse -Force",
+          "description": "t"
+        },
+        "expect": "block"
+      },
+      {
+        "args": {
+          "command": "Remove-Item 'D:\\deepseek\\工作区\\ai训练\\_tmp\\x' -Recurse -Force",
+          "description": "t"
+        },
+        "expect": "pass"
+      },
+      {
+        "args": {
+          "command": "Remove-Item 'D:\\deepseek\\工具脚本\\asr-any.py' -Force",
+          "description": "t"
+        },
+        "expect": "pass"
+      },
+      {
+        "args": {
+          "command": "Remove-Item 'D:\\' -Recurse -WhatIf",
+          "description": "t"
+        },
+        "expect": "pass"
+      }
+    ],
+    "origin": "incident",
+    "advisory": "作者本机无此场景，样本为公开事故反推的构造样本，仅供参考；默认启用前请先用自己的常用命令跑一遍 selfTest。"
+  },
+  {
+    "id": "DELETE-UNIX-RF-01",
+    "title": "rm 带强制递归，删的是根目录或家目录",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "pwsh",
+      "platform": [
+        "windows",
+        "linux",
+        "darwin"
+      ]
+    },
+    "scenarios": [
+      "bulk-delete"
+    ],
+    "condition": {
+      "all": [
+        {
+          "type": "regexHit",
+          "in": "args.command",
+          "maskQuoted": false,
+          "pattern": "\\brm\\b[^|;]*\\s-[A-Za-z]*[rR][A-Za-z]*[fF][A-Za-z]*\\b|\\brm\\b[^|;]*\\s-[A-Za-z]*[fF][A-Za-z]*[rR][A-Za-z]*\\b"
+        },
+        {
+          "type": "regexHit",
+          "in": "args.command",
+          "maskQuoted": false,
+          "pattern": "(?:^|[\\s\"'=])(?:/|~|\\$HOME|/\\*|~\\*|~/\\*)(?=[\\s\"';|)]|$)"
+        },
+        {
+          "type": "regexMiss",
+          "in": "args.command",
+          "maskQuoted": false,
+          "pattern": "--dry-run\\b"
+        }
+      ]
+    },
+    "action": "block",
+    "severity": "A",
+    "message": "rm 带强制递归，删的是根目录或家目录；这类删法没有回收站",
+    "fix": "先 ls 或 find 把清单打出来；确实要清就写具体子路径，别用 / 或 ~ 当范围；能加 -i 就先加 -i",
+    "reversible": false,
+    "limits": "只认 rm 的字母参数组合（-rf/-fr/-Rf 都算），长参数 --recursive --force 也认。不认的是：`find / -delete`、`rsync --delete`、脚本里拼接后才出现的 rm（那类命令文本里没有 rm 字样）",
+    "scene": "Unix 上一个字符之差（`rm -rf ~` 少写一个 /）就能清掉整个家目录，且没有回收站。这条把「强制递归」和「根/家目录」两件事绑在一起判，避免把所有 rm -rf 都当危险（删 node_modules、删 dist 是日常操作）。",
+    "evidence": {
+      "hits": 0,
+      "sessions": 0,
+      "source": "真实案例：GitLab 2017-01-31 数据库删除事件，运维在 primary 上误跑 rm -rf 删掉数据库目录，事后发现五重备份全部失效（官方事后报告 https://about.gitlab.com/blog/postmortem-of-database-outage-of-january-31/ ）。作者本机命中 0 次"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "command": "rm -rf /",
+            "description": "删根"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "rm -rf ~/*",
+            "description": "清家目录"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "rm -rf $HOME",
+            "description": "删家目录"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "rm -rf node_modules",
+            "description": "删依赖"
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
+            "command": "rm -rf ./dist",
+            "description": "删产物"
+          },
+          "expect": "pass"
+        }
+      ]
+    },
+    "origin": "incident",
+    "advisory": "作者本机无此场景（35,651 次历史调用 0 次命中），样本为公开事故与故障模式反推的构造样本，仅供参考；默认建议先以 warn 档观察一周、确认无误拦再升 block，处置办法见 fix 字段。"
+  },
+  {
+    "id": "DISK-FORMAT-01",
+    "title": "格式化或清空磁盘分区",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "pwsh",
+      "platform": [
+        "windows",
+        "linux",
+        "darwin"
+      ]
+    },
+    "scenarios": [
+      "bulk-delete"
+    ],
+    "condition": {
+      "all": [
+        {
+          "type": "regexHit",
+          "in": "args.command",
+          "maskQuoted": false,
+          "pattern": "\\b(mkfs(\\.[a-z0-9]+)?|Format-Volume|Clear-Disk|Initialize-Disk|New-Partition)\\b|[Dd][Ii][Ss][Kk][Pp][Aa][Rr][Tt]\\b[^|;]*\\b([Cc][Ll][Ee][Aa][Nn]|[Ff][Oo][Rr][Mm][Aa][Tt]|[Cc][Rr][Ee][Aa][Tt][Ee])\\b|\\bformat\\s+[A-Za-z]:[\\s/]"
+        }
+      ]
+    },
+    "action": "block",
+    "severity": "A",
+    "message": "这条命令会格式化或清空磁盘分区，分区上的东西全没，且不可逆",
+    "fix": "先 Get-Disk / Get-Partition 确认目标编号；确认要动就用具体分区号，别用 select disk 后不校验直接 clean",
+    "reversible": false,
+    "limits": "只看命令文本。图形界面的磁盘管理点选不经过命令行，管不到；`diskpart /s 脚本.txt` 这种把 clean 藏在脚本文件里的，命令文本里只有 diskpart 没有 clean，认不出（属未覆盖）",
+    "scene": "AI 想「重置一块 U 盘」或「清掉那块旧盘」时，会走 diskpart clean 这类命令，而 diskpart 里 select 错一个编号就把系统盘清了。人肉操作有界面提示，AI 没有，所以要拦在发出去之前。",
+    "evidence": {
+      "hits": 0,
+      "sessions": 0,
+      "source": "真实案例：2017-05 tenforums「drive/partition totally missing after errant diskpart clean」与 2018-12 reddit r/buildapc 误选磁盘执行 clean 丢 2TB 素材（958 赞）。作者本机命中 0 次"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "command": "diskpart /c \"select disk 1\" \"clean\"",
+            "description": "清分区"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "Format-Volume -DriveLetter E",
+            "description": "格式化 E 盘"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "mkfs.ext4 /dev/sdb1",
+            "description": "格式化分区"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "Get-Disk",
+            "description": "看磁盘"
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
+            "command": "Get-Partition -DiskNumber 1",
+            "description": "看分区"
+          },
+          "expect": "pass"
+        }
+      ]
+    },
+    "origin": "incident",
+    "advisory": "作者本机无此场景（35,651 次历史调用 0 次命中），样本为公开事故与故障模式反推的构造样本，仅供参考；默认建议先以 warn 档观察一周、确认无误拦再升 block，处置办法见 fix 字段。"
+  },
+  {
+    "id": "DELETE-FOREIGN-DRIVE-01",
+    "title": "递归删除的目标不在工作盘上",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "pwsh",
+      "platform": [
+        "windows"
+      ]
+    },
+    "scenarios": [
+      "bulk-delete"
+    ],
+    "condition": {
+      "all": [
+        {
+          "type": "regexHit",
+          "in": "args.command",
+          "maskQuoted": false,
+          "pattern": "\\b(Remove-Item|ri|del|erase|rd|rmdir)\\b[^|;]*(-Recurse\\b|/s\\b|-Force\\b)"
+        },
+        {
+          "type": "regexHit",
+          "in": "args.command",
+          "maskQuoted": false,
+          "pattern": "[\\s\"'=][CEFGHcefgh]:[\\\\/]"
+        }
+      ]
+    },
+    "action": "warn",
+    "severity": "C",
+    "message": "递归删除的目标在别的盘；跨盘操作多半意味着路径拼错了",
+    "fix": "先 Get-Item 确认这个路径真的存在、真的是你要删的那个；确认无误再删",
+    "reversible": true,
+    "limits": "盘符是按「工作区在 D 盘」这个前提写死的，换机器要改；这条只是提醒，不拦；目标用变量拼出来时认不出",
+    "scene": "路径拼错是删错东西最常见的原因，而跨盘往往就是拼错的信号——工作区都在一个盘上，去删另一个盘的东西要么是备份目录、要么是写错了。",
+    "evidence": {
+      "hits": 0,
+      "sessions": 0,
+      "source": "虚拟案例：无对应公开事故可引；按「路径拼错导致删错目录」这一常见形态构造，检测点取「删除动作 + 非工作盘盘符」"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "command": "Remove-Item \"C:\\temp\\build\" -Recurse -Force",
+            "description": "删 C 盘"
+          },
+          "expect": "warn"
+        },
+        {
+          "args": {
+            "command": "Remove-Item \"D:\\temp\\build\" -Recurse -Force",
+            "description": "删 D 盘"
+          },
+          "expect": "pass"
+        }
+      ]
+    },
+    "origin": "craft",
+    "advisory": "作者本机无此场景（35,651 次历史调用 0 次命中），样本为公开事故与故障模式反推的构造样本，仅供参考；默认建议先以 warn 档观察一周、确认无误拦再升 block，处置办法见 fix 字段。"
+  },
+  {
+    "id": "DB-MIGRATE-01",
+    "title": "迁移工具直接改真实库结构",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "pwsh",
+      "platform": [
+        "windows",
+        "linux",
+        "darwin"
+      ]
+    },
+    "scenarios": [
+      "database"
+    ],
+    "condition": {
+      "type": "regexHit",
+      "in": "args.command",
+      "maskQuoted": false,
+      "pattern": "\\b(drizzle-kit\\s+push|prisma\\s+migrate\\s+(deploy|reset)|alembic\\s+(upgrade|downgrade)|sequelize\\s+db:migrate|knex\\s+migrate:latest|typeorm\\s+migration:run|flyway\\s+migrate|liquibase\\s+update)\\b"
+    },
+    "action": "warn",
+    "severity": "B",
+    "message": "迁移工具会按模型文件改真实库结构；删掉的列和它的数据一起没",
+    "fix": "先出待执行的 SQL 看一眼（prisma migrate diff / alembic upgrade --sql / drizzle-kit generate），确认没有 DROP COLUMN 再推；推之前先备份",
+    "reversible": false,
+    "limits": "只看命令形态，判断不了连的是哪个库、也判断不了这次迁移会不会删列——要看 SQL 才知道。连生产库的识别交给 DB-PROD-CONN-01 补；在 Node 脚本里调迁移 API（不经 CLI）认不出",
+    "scene": "迁移工具的设计取向是「让模型文件成为唯一真相」，所以它会主动把库里多出来的列删掉。用 AI 改一次 schema 再 push，可能就把一列业务数据删干净了，而事后现象只是「某个字段突然全为空」。",
+    "evidence": {
+      "hits": 0,
+      "sessions": 0,
+      "source": "虚拟案例：未检索到可公开引用的「迁移工具删列」事故报告；检测点取自 drizzle-kit push / prisma migrate deploy 的文档语义（按 schema 直接同步库），属按工具行为构造"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "command": "npx drizzle-kit push",
+            "description": "直推"
+          },
+          "expect": "warn"
+        },
+        {
+          "args": {
+            "command": "npx prisma migrate deploy",
+            "description": "部署迁移"
+          },
+          "expect": "warn"
+        },
+        {
+          "args": {
+            "command": "alembic upgrade head",
+            "description": "升级"
+          },
+          "expect": "warn"
+        },
+        {
+          "args": {
+            "command": "npx prisma migrate diff --from-schema-datasource",
+            "description": "只看差异"
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
+            "command": "npx prisma migrate status",
+            "description": "看状态"
+          },
+          "expect": "pass"
+        }
+      ]
+    },
+    "origin": "craft",
+    "advisory": "作者本机无此场景（35,651 次历史调用 0 次命中），样本为公开事故与故障模式反推的构造样本，仅供参考；默认建议先以 warn 档观察一周、确认无误拦再升 block，处置办法见 fix 字段。"
+  },
+  {
+    "id": "DB-PROD-CONN-01",
+    "title": "数据库客户端命令里出现生产库字样",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "pwsh",
+      "platform": [
+        "windows",
+        "linux",
+        "darwin"
+      ]
+    },
+    "scenarios": [
+      "database"
+    ],
+    "condition": {
+      "all": [
+        {
+          "type": "regexHit",
+          "in": "args.command",
+          "maskQuoted": false,
+          "pattern": "\\b(psql|mysql|mariadb|mongosh|mongo|redis-cli|sqlcmd|sqlite3)\\b"
+        },
+        {
+          "type": "regexHit",
+          "in": "args.command",
+          "maskQuoted": false,
+          "pattern": "[Pp][Rr][Oo][Dd]([Uu][Cc][Tt][Ii][Oo][Nn])?|[Ll][Ii][Vv][Ee]|[Pp][Rr][Dd]"
+        }
+      ]
+    },
+    "action": "warn",
+    "severity": "B",
+    "message": "这条数据库命令里带着生产库字样，先在测试库上验一遍",
+    "fix": "把库名换成 staging/dev 再跑；确认要在生产执行就挑低峰、先备份、先把要改的行数算出来",
+    "reversible": true,
+    "limits": "只认字符串里的 prod/production/live/prd。生产库取名不带这些词的（比如就叫 app_db）认不出——所以这条只能当提醒，不能当保护；也管不到连接串写在环境变量或配置文件里的情况",
+    "scene": "连错库是数据库事故里最常见的一类：命令本身完全正确，只是指向了错的环境。把「客户端 + 生产字样」两个条件凑在一起，是这个检测点唯一能在命令文本层面做对的样子。",
+    "evidence": {
+      "hits": 0,
+      "sessions": 0,
+      "source": "虚拟案例：未检索到可引用的「连错生产库」公开事后报告；按常见形态构造（同一套命令换一个连接串即可在两套环境上执行），检测点取「DB 客户端 + 环境标识词」"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "command": "psql postgres://u:p@db.production.internal/app -c \"select 1\"",
+            "description": "连生产"
+          },
+          "expect": "warn"
+        },
+        {
+          "args": {
+            "command": "mysql -h prod-db -u root -e \"select 1\"",
+            "description": "连生产"
+          },
+          "expect": "warn"
+        },
+        {
+          "args": {
+            "command": "psql postgres://u:p@localhost/dev -c \"select 1\"",
+            "description": "连本地"
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
+            "command": "mysql -h localhost -e \"select 1\"",
+            "description": "连本地"
+          },
+          "expect": "pass"
+        }
+      ]
+    },
+    "origin": "craft",
+    "advisory": "作者本机无此场景（35,651 次历史调用 0 次命中），样本为公开事故与故障模式反推的构造样本，仅供参考；默认建议先以 warn 档观察一周、确认无误拦再升 block，处置办法见 fix 字段。"
+  },
+  {
+    "id": "DB-SQL-FILE-01",
+    "title": "往 .sql 文件里写破坏性语句",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "write"
+    },
+    "scenarios": [
+      "database"
+    ],
+    "condition": {
+      "all": [
+        {
+          "type": "regexHit",
+          "in": "args.file_path",
+          "maskQuoted": false,
+          "pattern": "\\.sql$"
+        },
+        {
+          "type": "regexHit",
+          "in": "args.content",
+          "maskQuoted": false,
+          "pattern": "\\b(DROP\\s+(TABLE|DATABASE|SCHEMA)|TRUNCATE\\s+TABLE|ALTER\\s+TABLE\\s+\\S+\\s+DROP\\s+COLUMN)"
+        }
+      ]
+    },
+    "action": "warn",
+    "severity": "C",
+    "message": "写进 .sql 文件的是删表/清表/删列语句，谁照着跑一遍就出事",
+    "fix": "把破坏性语句注释掉，或另存一份 _danger.sql 并在文件名和文件头都写明；执行前必须人工确认目标是哪个库",
+    "reversible": true,
+    "limits": "只管 write 工具；用 edit 往已存在的 .sql 里插入破坏性语句还不管（列为待做）。也不管通过 ORM 代码写出来的破坏性操作",
+    "scene": "写文件本身不执行，但 .sql 文件是「等着被跑」的东西——AI 生成一份建表脚本时顺手带上 DROP TABLE IF EXISTS，看起来无害，谁在哪个库上跑一遍就清一次。所以只到提示档：提醒这份文件里带着有杀伤力的语句。",
+    "evidence": {
+      "hits": 0,
+      "sessions": 0,
+      "source": "虚拟案例：按「迁移脚本里带 DROP TABLE IF EXISTS」这一极常见写法构造；破坏性语句清单参考各数据库官方 DDL 文档"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "file_path": "schema/drop.sql",
+            "content": "DROP TABLE users;"
+          },
+          "expect": "warn"
+        },
+        {
+          "args": {
+            "file_path": "schema/m1.sql",
+            "content": "ALTER TABLE users DROP COLUMN phone;"
+          },
+          "expect": "warn"
+        },
+        {
+          "args": {
+            "file_path": "schema/init.sql",
+            "content": "CREATE TABLE users(id int);"
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
+            "file_path": "notes.md",
+            "content": "DROP TABLE 这段别跑"
+          },
+          "expect": "pass"
+        }
+      ]
+    },
+    "origin": "craft",
+    "advisory": "作者本机无此场景（35,651 次历史调用 0 次命中），样本为公开事故与故障模式反推的构造样本，仅供参考；默认建议先以 warn 档观察一周、确认无误拦再升 block，处置办法见 fix 字段。"
+  },
+  {
+    "id": "CLOUD-TERMINATE-01",
+    "title": "云命令行删实例 / 删库 / 删资源栈",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "pwsh",
+      "platform": [
+        "windows",
+        "linux",
+        "darwin"
+      ]
+    },
+    "scenarios": [
+      "cloud"
+    ],
+    "condition": {
+      "all": [
+        {
+          "type": "regexHit",
+          "in": "args.command",
+          "maskQuoted": false,
+          "pattern": "\\b(aws|az|gcloud|aliyun|tccli|doctl|flyctl|heroku)\\b"
+        },
+        {
+          "type": "regexHit",
+          "in": "args.command",
+          "maskQuoted": false,
+          "pattern": "\\b(terminate-instances|delete-db-instance|delete-db-cluster|delete-stack|delete-table|delete-function|delete-snapshot|delete-cluster|instances\\s+delete|group\\s+delete|vm\\s+delete|webapp\\s+delete|sql\\s+instances\\s+delete|DeleteInstance|DeleteDBInstance|DeleteSecurityGroup|TerminateInstances|delete\\s+app)\\b"
+        }
+      ]
+    },
+    "action": "block",
+    "severity": "A",
+    "message": "这条云命令删的是实例/数据库/资源栈，数据跟着一起没，多数服务没有回收站",
+    "fix": "先 describe 或 --dry-run 确认删的是哪一台；确认真要删，就在命令里把资源 ID 写成完整形态再跑，别用循环或通配批量删",
+    "reversible": false,
+    "limits": "只认常见云 CLI 的子命令名。封装过一层的脚本（内部调 SDK）认不出；控制台点选操作不经过命令行，管不到；`--dry-run` 目前也不放行（云厂商各家的 dry-run 语义不一致，宁可多提示一次）",
+    "scene": "云上的删除是「一条命令删掉一整个服务」，而且没有回收站——误删一次就是几小时到几天的恢复。人肉在控制台上删有二次确认弹窗，命令行没有，所以要在命令发出去之前拦。",
+    "evidence": {
+      "hits": 0,
+      "sessions": 0,
+      "source": "真实案例：2025 年 Amazon Q 在一次排障会话中终止 EC2 实例并删除周边基础设施（事后被公开报道）；同类的 describe-then-delete 误操作在云厂商事故复盘里反复出现。作者本机 35,543 次调用里云 API 删除命令 0 次"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "command": "aws ec2 terminate-instances --instance-ids i-1",
+            "description": "删实例"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "az group delete --name rg --yes",
+            "description": "删资源组"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "gcloud compute instances delete vm1",
+            "description": "删实例"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "aws rds delete-db-instance --db-instance-identifier db1",
+            "description": "删库"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "aliyun ecs DeleteInstance --InstanceId i-1",
+            "description": "删实例"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "aws ec2 describe-instances",
+            "description": "看一眼"
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
+            "command": "aws ec2 start-instances --instance-ids i-1",
+            "description": "开机"
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
+            "command": "gcloud compute instances list",
+            "description": "列实例"
+          },
+          "expect": "pass"
+        }
+      ]
+    },
+    "origin": "incident",
+    "advisory": "作者本机无此场景（35,651 次历史调用 0 次命中），样本为公开事故与故障模式反推的构造样本，仅供参考；默认建议先以 warn 档观察一周、确认无误拦再升 block，处置办法见 fix 字段。"
+  },
+  {
+    "id": "CLOUD-IAM-DELETE-01",
+    "title": "删云端身份 / 权限 / 访问密钥",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "pwsh",
+      "platform": [
+        "windows",
+        "linux",
+        "darwin"
+      ]
+    },
+    "scenarios": [
+      "cloud"
+    ],
+    "condition": {
+      "all": [
+        {
+          "type": "regexHit",
+          "in": "args.command",
+          "maskQuoted": false,
+          "pattern": "\\b(aws|az|gcloud|aliyun|tccli)\\b"
+        },
+        {
+          "type": "regexHit",
+          "in": "args.command",
+          "maskQuoted": false,
+          "pattern": "\\b(iam\\s+delete-(user|role|policy|access-key|group)|delete-access-key|delete-user|delete-role|delete-policy|ad\\s+user\\s+delete|ad\\s+sp\\s+delete|ad\\s+app\\s+delete|iam\\s+service-accounts\\s+delete|DeleteUser|DeleteRole|DeletePolicy|DeleteAccessKey|DetachUserPolicy|RemoveUserFromGroup)\\b"
+        }
+      ]
+    },
+    "action": "block",
+    "severity": "A",
+    "message": "删身份/权限/密钥会让正在跑的服务立刻断掉，而且现象是「莫名的 403」",
+    "fix": "先 list 一遍确认删的是哪个身份；删密钥前先轮换（建新密钥 → 换到服务上 → 确认正常 → 再删旧密钥）",
+    "reversible": false,
+    "limits": "只认 CLI 子命令名。控制台点选、Terraform 之类 IaC 工具里的删除动作都不经过命令行，管不到；把身份删掉后重建同名身份，权限绑定关系不会自动恢复",
+    "scene": "删身份比删实例更隐蔽：实例没了至少报错明显，身份没了是「服务还能启动，但一调接口就 403」，排障常常查几个小时才想到是权限。",
+    "evidence": {
+      "hits": 0,
+      "sessions": 0,
+      "source": "真实案例：Amazon Q 事故中除终止实例外还删除了周边基础设施（含访问配置）；另按常见「误删 IAM 密钥导致服务 403」形态构造。作者本机命中 0 次"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "command": "aws iam delete-user --user-name deploy",
+            "description": "删用户"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "aws iam delete-access-key --access-key-id AKIA...",
+            "description": "删密钥"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "az ad user delete --id x@y",
+            "description": "删用户"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "aws iam list-users",
+            "description": "列用户"
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
+            "command": "aws iam create-access-key --user-name deploy",
+            "description": "建密钥"
+          },
+          "expect": "pass"
+        }
+      ]
+    },
+    "origin": "incident",
+    "advisory": "作者本机无此场景（35,651 次历史调用 0 次命中），样本为公开事故与故障模式反推的构造样本，仅供参考；默认建议先以 warn 档观察一周、确认无误拦再升 block，处置办法见 fix 字段。"
+  },
+  {
+    "id": "CLOUD-STORAGE-PURGE-01",
+    "title": "批量清空对象存储",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "pwsh",
+      "platform": [
+        "windows",
+        "linux",
+        "darwin"
+      ]
+    },
+    "scenarios": [
+      "cloud"
+    ],
+    "condition": {
+      "all": [
+        {
+          "type": "regexHit",
+          "in": "args.command",
+          "maskQuoted": false,
+          "pattern": "\\b(aws\\s+s3\\s+(rm|rb)|gsutil\\s+rm|az\\s+storage\\s+blob\\s+delete-batch|ossutil\\s+rm|obsutil\\s+rm|azcopy\\s+(remove|rm))\\b"
+        },
+        {
+          "type": "regexHit",
+          "in": "args.command",
+          "maskQuoted": false,
+          "pattern": "(?:--recursive\\b|-r\\b|--force\\b|-f\\b|--delete\\b|delete-batch)"
+        }
+      ]
+    },
+    "action": "block",
+    "severity": "A",
+    "message": "这条命令会批量清空桶里的对象；没开版本控制的桶，删了就是删了",
+    "fix": "先 ls 或 du 看一眼桶里有什么、确认桶名；确实要清就开版本控制或先复制一份到别的桶，别用 rm --recursive 一把梭",
+    "reversible": false,
+    "limits": "只认带递归/强制标志的写法，单对象 rm 不归这条管。开了版本控制的桶删了还能恢复，但这条不区分桶有没有开版本控制——所以它是「拦一下让你确认」，不是「一定能救」",
+    "scene": "桶名少打一个字符、或者前缀写错一层，一条 rm --recursive 就把整个桶清空。这是「命令本身完全正确，只是范围错了」的典型，事后能查清但救不回来。",
+    "evidence": {
+      "hits": 0,
+      "sessions": 0,
+      "source": "真实案例：AWS Builder Center 公开的「The Night I Deleted Every User Photo with a Single CLI Command」——一次拼错的桶名加一条 aws s3 rm --recursive，4,000 张用户照片清空 https://builder.aws.com/content/3HSQOEoCigU5opO4uXeEQmNig3u/the-night-i-deleted-every-user-photo-with-a-single-cli-command 。作者本机命中 0 次"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "command": "aws s3 rm s3://my-bucket --recursive",
+            "description": "清桶"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "gsutil rm -r gs://b",
+            "description": "清桶"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "az storage blob delete-batch --source c",
+            "description": "批删"
+          },
+          "expect": "block"
+        },
+        {
+          "args": {
+            "command": "aws s3 ls s3://my-bucket",
+            "description": "看桶"
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
+            "command": "aws s3 cp a s3://b",
+            "description": "上传"
+          },
+          "expect": "pass"
+        }
+      ]
+    },
+    "origin": "incident",
+    "advisory": "作者本机无此场景（35,651 次历史调用 0 次命中），样本为公开事故与故障模式反推的构造样本，仅供参考；默认建议先以 warn 档观察一周、确认无误拦再升 block，处置办法见 fix 字段。"
+  },
+  {
+    "id": "CLOUD-PROD-NAME-01",
+    "title": "云的删除/停机命令里带着生产字样",
+    "when": "tool:pre",
+    "appliesTo": {
+      "tool": "pwsh",
+      "platform": [
+        "windows",
+        "linux",
+        "darwin"
+      ]
+    },
+    "scenarios": [
+      "cloud"
+    ],
+    "condition": {
+      "all": [
+        {
+          "type": "regexHit",
+          "in": "args.command",
+          "maskQuoted": false,
+          "pattern": "\\b(aws|az|gcloud|aliyun|tccli)\\b"
+        },
+        {
+          "type": "regexHit",
+          "in": "args.command",
+          "maskQuoted": false,
+          "pattern": "[Pp][Rr][Oo][Dd]([Uu][Cc][Tt][Ii][Oo][Nn])?|[Ll][Ii][Vv][Ee]|[Pp][Rr][Dd]"
+        },
+        {
+          "type": "regexHit",
+          "in": "args.command",
+          "maskQuoted": false,
+          "pattern": "\\b(delete|remove|terminate|purge|destroy|stop|revoke|deallocate)\\b"
+        }
+      ]
+    },
+    "action": "warn",
+    "severity": "B",
+    "message": "云命令里同时出现生产字样和删除/停机动词，先在测试环境验一遍",
+    "fix": "把资源名换成 staging/dev 再跑；确认要动生产就挑低峰、先做快照、把影响面写下来",
+    "reversible": true,
+    "limits": "只认字符串里的 prod/production/live/prd。命名不带这些词的生产资源照样是生产——所以这条只当提醒；也认不出「这个 ID 属于哪个环境」，那要看账号配置，命令文本里没有",
+    "scene": "停机（stop）在很多云上不算删除，但业务中断是立刻发生的。把「生产标识 + 破坏性动词」凑一起，是为了在「看起来可逆、其实影响用户」的那批命令上多提示一次。",
+    "evidence": {
+      "hits": 0,
+      "sessions": 0,
+      "source": "虚拟案例：无单独对应的事故报告可引；按「同一脚本换账号就跑到了生产」这一常见形态构造（与 DB-PROD-CONN-01 同一思路）"
+    },
+    "selfTest": {
+      "cases": [
+        {
+          "args": {
+            "command": "aws ec2 stop-instances --instance-ids i-prod-01",
+            "description": "停生产"
+          },
+          "expect": "warn"
+        },
+        {
+          "args": {
+            "command": "aws rds delete-db-instance --db-instance-identifier prod-db",
+            "description": "删生产库"
+          },
+          "expect": "warn"
+        },
+        {
+          "args": {
+            "command": "aws ec2 stop-instances --instance-ids i-dev-01",
+            "description": "停开发"
+          },
+          "expect": "pass"
+        },
+        {
+          "args": {
+            "command": "aws ec2 describe-instances --filters Name=tag:env,Values=production",
+            "description": "查生产"
+          },
+          "expect": "pass"
+        }
+      ]
+    },
+    "origin": "craft",
+    "advisory": "作者本机无此场景（35,651 次历史调用 0 次命中），样本为公开事故与故障模式反推的构造样本，仅供参考；默认建议先以 warn 档观察一周、确认无误拦再升 block，处置办法见 fix 字段。"
+  }
+]

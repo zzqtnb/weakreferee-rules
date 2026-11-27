@@ -45,7 +45,7 @@
   },
   "notes": [
     "这一包里的 5 条来自真实事故，每条 evidence.source 里写了命中时间戳。",
-    "WIN-RMDIR-01 / WIN-IRREVERSIBLE-01 / WIN-MIRROR-01 目前零命中，属于预防性规则，保留但优先级低。",
+    "WIN-RMDIR-01 / WIN-IRREVERSIBLE-01 / WIN-MIRROR-01 在本机暂零命中，属预防性规则：库里保留、优先级不因零命中下调。零命中说明这台机器没遇到这类操作，不说明判据没有价值。",
     "WIN-PS1-* 三条只对 .ps1 文件生效（appliesTo.fileMatches），不要扩展到 .txt 或 .md。",
     "testedOn 里的数字来自作者环境（2026-11，Windows 上的 DSH 桌面版）。换环境后请用你自己的账本覆盖它——别人的命中率不代表你的。"
   ]
